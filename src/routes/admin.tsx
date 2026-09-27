@@ -48,7 +48,20 @@ function AdminLayout() {
       return;
     }
     const token = localStorage.getItem("admin_token");
-    if (!token) {
+    // A token that is missing, unreadable or past its exp would fail server-side
+    // verification anyway — bounce straight to login instead of letting the
+    // dashboard render a misleading "database" error.
+    let valid = false;
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+        valid = typeof payload.exp === "number" ? payload.exp * 1000 > Date.now() : false;
+      } catch {
+        valid = false;
+      }
+    }
+    if (!valid) {
+      localStorage.removeItem("admin_token");
       navigate({ to: "/admin/login", replace: true });
     } else {
       setIsAuth(true);

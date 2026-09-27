@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import {
@@ -28,18 +28,18 @@ import { verifyAuth, adminToken } from "@/lib/auth";
 
 export const getDashboardData = createServerFn({ method: "GET" }).handler(
   async (opts?: { data?: { token?: string } }) => {
-    if (!(await verifyAuth(opts?.data?.token))) return null;
+    // Distinguish auth failures from DB failures so the UI never tells the
+    // admin to "check DATABASE_URL" when their session simply expired.
+    if (!(await verifyAuth(opts?.data?.token))) {
+      return { ok: false as const, reason: "auth" as const };
+    }
     try {
       if (!process.env.DATABASE_URL) {
         console.warn("DATABASE_URL is missing. Returning empty dashboard data.");
         return {
-          revenue: 0,
-          activeOrders: 0,
-          avgOrderValue: 0,
-          lowStock: 0,
-          totalProducts: 0,
-          recentOrders: [],
-          chartData: [],
+          ok: false as const,
+          reason: "db" as const,
+          message: "DATABASE_URL is not set on the server.",
         };
       }
       const [orders, totalRev, lowStock, totalProducts, allOrdersCount] = await Promise.all([
@@ -62,6 +62,7 @@ export const getDashboardData = createServerFn({ method: "GET" }).handler(
         { name: "Jun", total: revenue },
       ];
       return {
+        ok: true as const,
         revenue,
         activeOrders: allOrdersCount,
         avgOrderValue,
@@ -79,7 +80,11 @@ export const getDashboardData = createServerFn({ method: "GET" }).handler(
       };
     } catch (err) {
       console.error("Dashboard query failed", err);
-      return null;
+      return {
+        ok: false as const,
+        reason: "db" as const,
+        message: err instanceof Error ? err.message : "Database query failed.",
+      };
     }
   },
 );
@@ -139,15 +144,37 @@ function Stat({ title, value, change, trend, Icon, color, bg, delay }: any) {
 }
 
 function AdminDashboard() {
+  const navigate = useNavigate();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
+  const [error, setError] = useState<{ reason: "auth" | "db"; message?: string } | null>(null);
 
   useEffect(() => {
     let alive = true;
     getDashboardData({ data: { token: adminToken() } })
       .then((res) => {
-        if (alive) setData(res);
+        if (!alive) return;
+        if (res && res.ok) {
+          setData(res);
+          return;
+        }
+        if (res && res.reason === "db") {
+          setError({ reason: "db", message: res.message });
+          return;
+        }
+        // Session expired/invalid — send the admin back to sign in instead of
+        // showing a misleading database error.
+        setError({ reason: "auth" });
+        localStorage.removeItem("admin_token");
+        navigate({ to: "/admin/login", replace: true });
+      })
+      .catch((err) => {
+        if (!alive) return;
+        setError({
+          reason: "db",
+          message: err instanceof Error ? err.message : "Network request failed.",
+        });
       })
       .finally(() => {
         if (alive) setLoading(false);
@@ -155,7 +182,7 @@ function AdminDashboard() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [navigate]);
 
   const handleSeed = async () => {
     setSeeding(true);
@@ -171,7 +198,9 @@ function AdminDashboard() {
       </div>
     );
 
-  if (!data)
+  if (!data || error) {
+    // Auth failure: already navigating to /admin/login — render nothing meanwhile.
+    if (error?.reason === "auth") return null;
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
         <div className="p-4 bg-red-500/10 rounded-2xl mb-4 text-red-500">
@@ -179,9 +208,14 @@ function AdminDashboard() {
           <h2 className="text-xl font-bold">Database Connection Error</h2>
         </div>
         <p className="text-gray-400 max-w-md">
-          We couldn't reach the database to load your dashboard stats. Please check your
+          We couldn&apos;t reach the database to load your dashboard stats. Please check your
           DATABASE_URL or try again.
         </p>
+        {error?.message && (
+          <p className="text-gray-600 text-xs font-mono max-w-lg mt-3 break-words">
+            {error.message}
+          </p>
+        )}
         <button
           onClick={() => window.location.reload()}
           className="mt-6 px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-xl transition-all"
@@ -190,6 +224,7 @@ function AdminDashboard() {
         </button>
       </div>
     );
+  }
 
   const stats = [
     {
