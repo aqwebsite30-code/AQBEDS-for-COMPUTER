@@ -9,9 +9,9 @@ FABRICS AND OPTIONS: crushed velvet, plush velvet, chenille and soft matte (16 s
 
 DELIVERY: free UK delivery on every order. Beds and mattresses typically ship within 3-7 business days, sofas and upholstery 5-10 business days, made-to-order items 2-4 weeks.
 
-RETURNS: 30-day returns from delivery. Items must be unused and in original packaging; contact us within 30 days and we arrange a free collection. Custom or made-to-order items (bespoke sizes, non-standard fabrics) are non-returnable unless faulty.
+RETURNS: Returns are accepted at the door only - when the order is delivered. The customer inspects the bed before the courier leaves and reports any issue on the spot.
 
-WARRANTY: 1-year manufacturer warranty covering defects in materials and workmanship.
+REPLACEMENTS: Next Day Free Replacement: if something is wrong with the order, contact us any time and we'll replace it free of charge with next-day delivery - WhatsApp or info@aqbeds.com.
 
 PAYMENT: Cash on Delivery is available across the UK - the customer inspects the bed before paying the driver. Online card payment is not switched on yet; never claim we accept cards.
 
@@ -75,7 +75,8 @@ export default async function handler(req, res) {
     return jsonResponse(res, 405, { error: "Method not allowed" });
   }
 
-  const ip = req.headers["x-forwarded-for"] || (req.socket && req.socket.remoteAddress) || "unknown";
+  const ip =
+    req.headers["x-forwarded-for"] || (req.socket && req.socket.remoteAddress) || "unknown";
   if (rateLimited(String(ip).split(",")[0].trim())) {
     return jsonResponse(res, 429, { error: "Too many messages - please wait a moment." });
   }
@@ -158,8 +159,7 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error("[AI-CHAT] fetch failed:", (err && err.message) || err);
     return jsonResponse(res, 200, {
-      reply:
-        "Our assistant lost connection. Please email info@aqbeds.com or use the contact page.",
+      reply: "Our assistant lost connection. Please email info@aqbeds.com or use the contact page.",
       fallback: true,
     });
   }

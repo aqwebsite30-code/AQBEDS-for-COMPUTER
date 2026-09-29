@@ -10,7 +10,7 @@ const PRODUCTS_CATALOG_RAW = [
     slug: "ambessador",
     name: "Ambessador Bed",
     description:
-      "Your bedroom's new centrepiece — with a secret. The Ambessador pairs a deep-buttoned, hand-finished headboard with a solid timber frame you'll never hear creak. Choose crushed or plush velvet in 16 colours, then add gas-lift ottoman storage that swallows duvets, suitcases and everything else you'd rather not look at. Every Ambessador includes a comfort mattress free — so it's sleep-ready the day it arrives. Free UK delivery · 30-day returns · 1-year warranty · Pay on delivery available.",
+      "Your bedroom's new centrepiece — with a secret. The Ambessador pairs a deep-buttoned, hand-finished headboard with a solid timber frame you'll never hear creak. Choose crushed or plush velvet in 16 colours, then add gas-lift ottoman storage that swallows duvets, suitcases and everything else you'd rather not look at. Every Ambessador includes a comfort mattress free — so it's sleep-ready the day it arrives. Free UK delivery · Pay on delivery available · Mattress included · Next Day Free Replacement.",
     basePrice: 360,
     originalPrice: 400,
     category: "luxury-beds",
@@ -72,7 +72,7 @@ const PRODUCTS_CATALOG_RAW = [
     slug: "divan-ottoman-bed",
     name: "Aurora Ottoman Gas-Lift Bed",
     description:
-      'A full storage room hiding under your mattress. One hand, one motion: the gas-lift base rises to reveal a full-width cavity — bedding, suitcases, winter coats, gone. Built on a solid timber frame with a 45" standard headboard (54" available), upholstered in 16 velvet and chenille shades, and delivered free with a mattress included from £350. Free UK delivery · 30-day returns · 1-year warranty · Pay on delivery available.',
+      'A full storage room hiding under your mattress. One hand, one motion: the gas-lift base rises to reveal a full-width cavity — bedding, suitcases, winter coats, gone. Built on a solid timber frame with a 45" standard headboard (54" available), upholstered in 16 velvet and chenille shades, and delivered free with a mattress included from £350. Free UK delivery · Pay on delivery available · Mattress included · Next Day Free Replacement.',
     basePrice: 350,
     originalPrice: 400,
     category: "ottoman-beds",

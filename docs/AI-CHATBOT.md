@@ -9,22 +9,22 @@ Status: implemented and tested locally; awaiting push + Vercel deploy.
 
 A lightweight, in-site chat widget with two modes:
 
-| Mode | What happens | Where data goes |
-| --- | --- | --- |
+| Mode                        | What happens                                                                                                               | Where data goes                                                    |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | **Ask instantly** (default) | The visitor's question is answered by Google Gemini, guided by an AQ Beds system prompt. Replies appear in under a second. | Browser → `POST /api/ai-chat` → Gemini API. **Nothing is stored.** |
-| **Message the team** | The original AQ Beds live-chat: messages persist, staff reply from the admin panel. | Unchanged — server fns in `src/lib/chat.ts`, admin polling. |
+| **Message the team**        | The original AQ Beds live-chat: messages persist, staff reply from the admin panel.                                        | Unchanged — server fns in `src/lib/chat.ts`, admin polling.        |
 
 The visitor switches modes with the pills at the top of the widget. Team chat history and AI chat history are kept separately (AI history is in-memory only and resets on page reload).
 
 ## 2. Files
 
-| File | Role |
-| --- | --- |
-| `api/ai-chat.js` | Vercel serverless function. Validates input, throttles, calls Gemini, returns `{ reply }` or a graceful `{ reply, fallback: true }`. |
-| `src/components/layout/LiveChatWidget.tsx` | Widget UI + mode switch + `fetch("/api/ai-chat")` client call. |
-| `vercel.json` | Route `"src": "/api/ai-chat"` → `"dest": "/api/ai-chat.js"` (same pattern as `meta-capi`). |
-| `.env.local` (gitignored) | `GEMINI_API_KEY`, `GEMINI_MODEL=gemini-2.5-flash` for local dev. |
-| Vercel project env | Same two vars must be set in the Vercel dashboard (Production + Preview). |
+| File                                       | Role                                                                                                                                 |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `api/ai-chat.js`                           | Vercel serverless function. Validates input, throttles, calls Gemini, returns `{ reply }` or a graceful `{ reply, fallback: true }`. |
+| `src/components/layout/LiveChatWidget.tsx` | Widget UI + mode switch + `fetch("/api/ai-chat")` client call.                                                                       |
+| `vercel.json`                              | Route `"src": "/api/ai-chat"` → `"dest": "/api/ai-chat.js"` (same pattern as `meta-capi`).                                           |
+| `.env.local` (gitignored)                  | `GEMINI_API_KEY`, `GEMINI_MODEL=gemini-2.5-flash` for local dev.                                                                     |
+| Vercel project env                         | Same two vars must be set in the Vercel dashboard (Production + Preview).                                                            |
 
 ## 3. API contract
 
@@ -47,8 +47,8 @@ Limits: message ≤ 800 chars, history ≤ 12 turns (24 messages) trimmed oldest
 
 The full system prompt lives at the top of `api/ai-chat.js`. In short, the bot:
 
-- Answers **only** about AQ Beds: products, fabrics, sizes, delivery, returns, warranty, payment, assembly, contact.
-- Gives facts the site has actually published: free UK delivery; beds 3–7 business days; sofas 5–10; made-to-order 2–4 weeks; 30-day returns (unused, original packaging, free collection); 1-year warranty; **Cash on Delivery only — never claims cards**; prices sent to the product page rather than quoted.
+- Answers **only** about AQ Beds: products, fabrics, sizes, delivery, returns, replacements, payment, assembly, contact.
+- Gives facts the site has actually published: free UK delivery; beds 3–7 business days; sofas 5–10; made-to-order 2–4 weeks; At-Door Returns (accepted at delivery only, inspect before the courier leaves); Next Day Free Replacement (contact any time, free, next-day delivery); **Cash on Delivery only — never claims cards**; prices sent to the product page rather than quoted.
 - Refuses off-topic requests politely in one sentence.
 - Stays under 120 words, plain English.
 - Never invents stock, discounts, review counts or dates.

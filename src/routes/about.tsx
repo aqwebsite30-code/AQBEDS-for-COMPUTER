@@ -30,8 +30,11 @@ const CATEGORIES = [
 
 const PROMISES = [
   { title: "Free UK delivery", copy: "Every order ships free to your door, nationwide." },
-  { title: "30-day returns", copy: "Order, live with it, and send it back if it is wrong." },
-  { title: "1-year warranty", copy: "Frames, mechanisms and fabrics covered for a year." },
+  { title: "At-Door Returns", copy: "Inspect it at the door, before the courier leaves." },
+  {
+    title: "Next Day Free Replacement",
+    copy: "Something wrong? Contact us any time — free, next day.",
+  },
   { title: "Pay on delivery", copy: "Inspect the bed before money changes hands." },
 ];
 
@@ -42,13 +45,13 @@ export const Route = createFileRoute("/about")({
       {
         name: "description",
         content:
-          "AQ Beds has sold handcrafted beds direct to UK homes since 2018 — ottoman, divan and velvet beds, sofas and wardrobes with free delivery and 30-day returns.",
+          "AQ Beds has sold handcrafted beds direct to UK homes since 2018. Free UK delivery. Cash on delivery available.",
       },
       { property: "og:title", content: "About AQ Beds | Handcrafted Beds Since 2018" },
       {
         property: "og:description",
         content:
-          "Handcrafted beds, sofas and wardrobes sold direct since 2018, with free UK delivery, 30-day returns and a 1-year warranty.",
+          "Handcrafted beds, sofas and wardrobes sold direct since 2018. Free UK delivery. Cash on delivery available.",
       },
       {
         property: "og:image",
@@ -166,7 +169,7 @@ function About() {
             { stat: "10,000+", label: "customers since 2018" },
             { stat: "32", label: "products in the range" },
             { stat: "4", label: "fabric families" },
-            { stat: "30 days", label: "to change your mind" },
+            { stat: "Next Day", label: "free replacement, any time" },
           ].map((s) => (
             <div key={s.label} className="rounded-2xl bg-brand/[0.05] border border-brand/10 p-4">
               <p className="font-display font-black text-xl text-brand">{s.stat}</p>
@@ -190,8 +193,8 @@ function About() {
       <div className="mt-14 rounded-[32px] bg-gradient-to-br from-brand to-brand-accent text-white p-8 sm:p-10 text-center">
         <h2 className="font-display font-black text-2xl sm:text-3xl">Ready when you are</h2>
         <p className="mt-3 text-white/75 text-sm max-w-md mx-auto">
-          Pick your size and fabric online — free UK delivery, 30-day returns and a 1-year warranty
-          on every order.
+          Pick your size and fabric online — free UK delivery, At-Door Returns and Next Day Free
+          Replacement on every order.
         </p>
         <Link
           to="/shop"

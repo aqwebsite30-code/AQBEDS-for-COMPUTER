@@ -52,7 +52,12 @@ const faqs = [
   {
     question: "What is your return policy?",
     answer:
-      "We offer a 30-day return window from the date of delivery. Items must be unused and in their original packaging. Contact us within 30 days to initiate a return and we'll arrange a free collection.",
+      "Returns are accepted at the door only — when your order is delivered. Inspect the bed before the courier leaves, and if anything is wrong, report it on the spot and we'll take it back there and then.",
+  },
+  {
+    question: "Do you offer replacements?",
+    answer:
+      "Next Day Free Replacement: if something is wrong with your order, contact us any time and we'll replace it free of charge with next-day delivery — WhatsApp or info@aqbeds.com.",
   },
   {
     question: "Do you offer cash on delivery?",
@@ -63,11 +68,6 @@ const faqs = [
     question: "How long does shipping normally take?",
     answer:
       "Beds and mattresses typically ship within 3 to 7 business days. Sofas and upholstery take 5 to 10 business days. Made-to-order items may take 2–4 weeks.",
-  },
-  {
-    question: "Do your beds come with a warranty?",
-    answer:
-      "Absolutely. All AQ Beds products are backed by a standard 1-year manufacturer warranty covering any defects in materials and workmanship.",
   },
   {
     question: "What materials are used in AQ Beds?",
@@ -97,7 +97,7 @@ const faqs = [
   {
     question: "Can I change or cancel my order?",
     answer:
-      "You can change or cancel your order within 24 hours of placing it — just get in touch. After that, please refer to our 30-day returns policy.",
+      "You can change or cancel your order within 24 hours of placing it — just get in touch.",
   },
 ];
 

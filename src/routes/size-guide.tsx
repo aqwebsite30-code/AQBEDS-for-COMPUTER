@@ -37,7 +37,7 @@ export const Route = createFileRoute("/size-guide")({
       {
         name: "description",
         content:
-          "UK bed and mattress sizes in cm and ft/in, a room-measurement checklist and how our configurator labels each size. Free UK delivery, 30-day returns.",
+          "UK bed and mattress sizes in cm and ft/in, a room-measurement checklist and configurator size labels. Free UK delivery. Cash on delivery available.",
       },
       { property: "og:title", content: "UK Bed Size Guide — cm, ft & Inches | AQ Beds" },
       {
@@ -210,8 +210,8 @@ function SizeGuidePage() {
         <h2 className="font-display font-black text-xl mb-4">Still not sure?</h2>
         <p className="text-sm text-muted-foreground leading-relaxed mb-5">
           Send us your room measurements on WhatsApp and we will tell you which size fits before you
-          order. Every bed comes with free UK delivery, 30-day returns and a 1-year warranty, so a
-          wrong guess is never final.
+          order. Every bed comes with free UK delivery and Next Day Free Replacement, so a wrong
+          guess is never final.
         </p>
         <div className="flex flex-wrap gap-3">
           <Link

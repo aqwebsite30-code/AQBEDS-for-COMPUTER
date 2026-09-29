@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // Meta description must never be cut mid-word (WP-A.2).
 const META_MAX = 158;
-const RISK_TAIL = "Free UK delivery, 30-day returns & 1-year warranty.";
+const RISK_TAIL = "Free UK delivery. Cash on delivery available.";
 
 function wordBoundaryTruncate(text: string, max: number): string {
   if (text.length <= max) return text;
@@ -1076,7 +1076,8 @@ function ProductPage() {
               </a>
             </div>
             <p className="mt-3 text-[11px] text-muted-foreground text-center leading-relaxed">
-              🔒 Secure checkout · or pay Cash on Delivery · 30-day returns · 1-year warranty
+              🔒 Secure checkout · Pay on delivery available · Free UK delivery · Next Day Free
+              Replacement
             </p>
           </div>
         </div>

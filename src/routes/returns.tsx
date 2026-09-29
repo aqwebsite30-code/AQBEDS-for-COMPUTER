@@ -7,13 +7,13 @@ export const Route = createFileRoute("/returns")({
       {
         name: "description",
         content:
-          "AQ Beds 30-day returns policy — unused items in original packaging. Free returns, easy process, and fast refunds for UK customers.",
+          "At-Door Returns and Next Day Free Replacement at AQ Beds. Free UK delivery. Cash on delivery available.",
       },
       { property: "og:title", content: "Returns Policy — AQ Beds" },
       {
         property: "og:description",
         content:
-          "AQ Beds 30-day returns policy — unused items in original packaging. Free returns, easy process, and fast refunds for UK customers.",
+          "At-Door Returns and Next Day Free Replacement at AQ Beds. Free UK delivery. Cash on delivery available.",
       },
       {
         property: "og:image",
@@ -43,58 +43,23 @@ function Returns() {
 
       <section className="mt-10 space-y-8">
         <div className="rounded-[32px] border border-brand/10 bg-brand/[0.03] p-8 backdrop-blur-md shadow-card">
-          <h2 className="font-display font-bold text-xl text-brand">30-Day Return Window</h2>
+          <h2 className="font-display font-bold text-xl text-brand">At-Door Returns</h2>
           <p className="mt-3 text-muted-foreground leading-relaxed">
-            You have <strong>30 days from the date of delivery</strong> to return your item if you
-            change your mind. To be eligible, items must be unused, in the same condition you
-            received them, and in their original packaging.
+            Returns are accepted at the door only — when your order is delivered. Inspect the bed
+            before the courier leaves, and if anything is wrong, report it on the spot and we'll
+            take it back there and then.
           </p>
         </div>
 
         <div className="rounded-[32px] border border-brand/10 bg-brand/[0.03] p-8 backdrop-blur-md shadow-card">
-          <h2 className="font-display font-bold text-xl text-brand">How to Start a Return</h2>
-          <ol className="mt-3 text-muted-foreground leading-relaxed space-y-2 list-decimal pl-5">
-            <li>
-              <strong>Contact us</strong> within 30 days of delivery via email at{" "}
-              <a href="mailto:info@aqbeds.com" className="text-brand underline">
-                info@aqbeds.com
-              </a>{" "}
-              or WhatsApp.
-            </li>
-            <li>Provide your order number and reason for return.</li>
-            <li>
-              We will <strong>arrange a collection</strong> from your address at no cost to you.
-            </li>
-            <li>Pack the item securely in its original packaging for collection.</li>
-          </ol>
-        </div>
-
-        <div className="rounded-[32px] border border-brand/10 bg-brand/[0.03] p-8 backdrop-blur-md shadow-card">
-          <h2 className="font-display font-bold text-xl text-brand">Refund Timeline</h2>
+          <h2 className="font-display font-bold text-xl text-brand">Next Day Free Replacement</h2>
           <p className="mt-3 text-muted-foreground leading-relaxed">
-            Once we receive your returned item and inspect it, we will process your refund{" "}
-            <strong>within 14 days</strong>. The money will be returned to your original payment
-            method. You will receive a confirmation email once the refund is complete.
-          </p>
-        </div>
-
-        <div className="rounded-[32px] border border-brand/10 bg-brand/[0.03] p-8 backdrop-blur-md shadow-card">
-          <h2 className="font-display font-bold text-xl text-brand">Exclusions</h2>
-          <p className="mt-3 text-muted-foreground leading-relaxed">
-            <strong>Custom or made-to-order items</strong> (including bespoke sizes, non-standard
-            fabrics, and personalised beds) are <strong>non-returnable</strong> unless faulty. Beds
-            configured from our standard fabrics and the listed sizes on this site are covered by
-            the 30-day policy above.
-          </p>
-        </div>
-
-        <div className="rounded-[32px] border border-brand/10 bg-brand/[0.03] p-8 backdrop-blur-md shadow-card">
-          <h2 className="font-display font-bold text-xl text-brand">Damaged on Arrival</h2>
-          <p className="mt-3 text-muted-foreground leading-relaxed">
-            If your bed arrives damaged or with a manufacturing defect, please{" "}
-            <strong>contact us within 48 hours</strong> of delivery. Include photos of the damage
-            and your order number. We will arrange a free replacement or full refund — whichever you
-            prefer.
+            Next Day Free Replacement: if something is wrong with your order, contact us any time
+            and we'll replace it free of charge with next-day delivery — WhatsApp or{" "}
+            <a href="mailto:info@aqbeds.com" className="text-brand underline">
+              info@aqbeds.com
+            </a>
+            .
           </p>
         </div>
       </section>

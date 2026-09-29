@@ -1,6 +1,8 @@
-// AQ Beds audit verification suite (Phase 1 + Phase 2)
+// AQ Beds audit verification suite (Phase 1 + Phase 2 + copy regression)
 // Run: node scripts/verify-audit.mjs   (dev server must be up on PORT, default 5199)
 // Playwright is resolved from the local install or the omniroute global install.
+import fs from "node:fs";
+import path from "node:path";
 let chromium;
 try {
   ({ chromium } = await import("playwright"));
@@ -69,7 +71,42 @@ check(
   await page.locator("h1").first().innerText(),
 );
 check("/", "no 50% OFF in body", !homeBody.includes("50% OFF"), "");
-check("/", "announces trust bar", homeBody.includes("30-Day Returns"), "");
+const ANNOUNCE =
+  "✦ Free UK Delivery on Every Bed · Next Day Free Replacement · Cash on Delivery Available · Inspect on Delivery ✦";
+check("/", "announcement bar canonical", homeBody.includes(ANNOUNCE), "");
+const STRIP = [
+  "Free UK Delivery",
+  "To your door",
+  "Cash on Delivery",
+  "Pay when it arrives",
+  "At-Door Returns",
+  "Check it when it arrives",
+  "Next Day Free Replacement",
+  "Free, the very next day",
+];
+check(
+  "/",
+  "hero trust strip: 4 canonical items in order",
+  STRIP.every((t) => homeBody.includes(t)) &&
+    homeBody.indexOf("To your door") < homeBody.indexOf("Pay when it arrives") &&
+    homeBody.indexOf("Pay when it arrives") < homeBody.indexOf("Check it when it arrives") &&
+    homeBody.indexOf("Check it when it arrives") < homeBody.indexOf("Free, the very next day"),
+  "",
+);
+const tile = page.locator('img[alt="Panel Line bed"]').first();
+const tileSrc = (await tile.count()) ? await tile.getAttribute("src") : null;
+check(
+  "/",
+  "beds tile = Panel Wing Back image",
+  (await tile.count()) >= 1 && String(tileSrc).includes("Panel wing back"),
+  String(tileSrc),
+);
+check(
+  "/",
+  "sale section replacement copy",
+  homeBody.includes("Cash on Delivery, and Next Day Free Replacement"),
+  "",
+);
 const homeCanonical = await page
   .locator('link[rel="canonical"]')
   .getAttribute("href")
@@ -152,6 +189,35 @@ check(
   JSON.stringify(productLd?.aggregateRating || null),
 );
 
+const pdpHtml = await page.content();
+check(
+  "/product/divan-ottoman-bed",
+  "PDP trust line canonical",
+  pdpHtml.includes(
+    "🔒 Secure checkout · Pay on delivery available · Free UK delivery · Next Day Free Replacement",
+  ),
+  "",
+);
+check(
+  "/product/divan-ottoman-bed",
+  "PDP description canonical tail",
+  pdpHtml.includes(
+    "Free UK delivery · Pay on delivery available · Mattress included · Next Day Free Replacement.",
+  ),
+  "",
+);
+check(
+  "/product/divan-ottoman-bed",
+  "PDP meta = keep phrase",
+  String(
+    await page
+      .locator('meta[name="description"]')
+      .getAttribute("content")
+      .catch(() => ""),
+  ).includes("Free UK delivery. Cash on delivery available."),
+  "",
+);
+
 // sticky mobile bar (mobile viewport)
 const m = await ctx.newPage();
 await m.setViewportSize({ width: 390, height: 844 });
@@ -179,20 +245,38 @@ for (const p of ["/privacy", "/terms", "/delivery", "/returns", "/faqs", "/shop"
 }
 await go("/returns");
 const ret = await page.locator("body").innerText();
-// refund may be processed in 14 days; the *notify* window must be 30 days (audit 3.6)
-check("/returns", "notify window is 30 days", /within 30 days of delivery/i.test(ret), "");
+check("/returns", "At-Door Returns section", ret.includes("At-Door Returns"), "");
 check(
   "/returns",
-  "no 14-day notify rule",
-  !/contact[^.]{0,60}within 14 days|within 14 days of delivery/i.test(ret),
+  "Next Day Free Replacement section (full copy)",
+  ret.includes(
+    "Next Day Free Replacement: if something is wrong with your order, contact us any time and we'll replace it free of charge with next-day delivery",
+  ),
   "",
 );
+check("/returns", "no old 30-day / collection text", !/collection|30[- ]day/i.test(ret), "");
 await go("/delivery");
 const dlv = await page.locator("body").innerText();
 check("/delivery", "no curbside contradiction", !/curbside/i.test(dlv), "");
 await go("/faqs");
 const faq = await page.locator("body").innerText();
 check("/faqs", "no 14-day contradiction", !/within 14 days/i.test(faq), "");
+check(
+  "/faqs",
+  "replacements Q visible with full copy",
+  faq.includes("Do you offer replacements?") &&
+    faq.includes(
+      "Next Day Free Replacement: if something is wrong with your order, contact us any time and we'll replace it free of charge with next-day delivery",
+    ),
+  "",
+);
+check(
+  "/faqs",
+  "At-Door return policy wording",
+  faq.includes("Returns are accepted at the door only"),
+  "",
+);
+check("/faqs", "no warranty claims", !/warranty/i.test(faq), "");
 
 // ── FOOTER LINKS ──
 await go("/");
@@ -208,6 +292,22 @@ check("/", "footer -> /privacy", privHref === "/privacy", String(privHref));
 check("/", "footer -> /terms", termsHref === "/terms", String(termsHref));
 const deadSocial = await page.locator('footer a[href="#"]').count();
 check("/", "no dead # social links", deadSocial === 0, `count=${deadSocial}`);
+const FOOTER_TRIO = [
+  "Next Day Free Replacement",
+  "Free, the very next day",
+  "At-Door Returns",
+  "Inspect before the courier leaves",
+  "Free UK Delivery",
+  "On every bed",
+];
+// footer uses content-visibility:auto -> innerText is empty until scrolled; use textContent
+const footText = await page.evaluate(() => document.querySelector("footer")?.textContent || "");
+check(
+  "/",
+  "footer trio canonical (3 items)",
+  FOOTER_TRIO.every((t) => footText.includes(t)) && !footText.includes("hassle-free"),
+  `len=${footText.length}`,
+);
 
 // ── NAV ──
 const navText = await page
@@ -246,6 +346,30 @@ for (const raw of faqLd2) {
   } catch {}
 }
 check("/faqs", "FAQPage JSON-LD present", faqPageOk, "");
+let faqSchema = null;
+for (const raw of faqLd2) {
+  try {
+    const j = JSON.parse(raw);
+    if (j && j["@type"] === "FAQPage") faqSchema = j;
+  } catch {}
+}
+check(
+  "/faqs",
+  "FAQPage schema matches visible FAQ (names + answers)",
+  !!faqSchema &&
+    faqSchema.mainEntity.length > 0 &&
+    faqSchema.mainEntity.every(
+      (q) => faq.includes(q.name) && faq.includes(q.acceptedAnswer.text.slice(0, 80)),
+    ) &&
+    (await page.locator("h2").count()) >= faqSchema.mainEntity.length,
+  faqSchema ? `q=${faqSchema.mainEntity.length}` : "no schema",
+);
+check(
+  "/faqs",
+  "replacements Q in schema",
+  !!faqSchema && faqSchema.mainEntity.some((q) => q.name === "Do you offer replacements?"),
+  "",
+);
 
 await go("/category/wardrobes");
 const wBody = await page.locator("body").innerText();
@@ -436,6 +560,60 @@ check(
   focused.text === "Skip to main content" && focused.visible,
   JSON.stringify(focused),
 );
+
+// ==================== WP-2 BANNED PHRASE SWEEP ====================
+// Patterns are assembled from parts so this file never matches itself.
+const BANNED = [
+  ["30", "-day returns"].join(""),
+  ["1", "-year warranty"].join(""),
+  ["hassle", "-free returns"].join(""),
+  ["sleep on it, ", "risk-free"].join(""),
+  ["frame covered, ", "in writing"].join(""),
+];
+const SCAN_SKIP_DIRS = new Set([
+  "node_modules",
+  ".git",
+  "dist",
+  "build",
+  ".vercel",
+  "coverage",
+  ".turbo",
+]);
+const FLAG_FILES = new Set(["src/routes/terms.tsx"]);
+const bannedHits = [];
+function walk(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      if (SCAN_SKIP_DIRS.has(entry.name)) continue;
+      walk(path.join(dir, entry.name));
+    } else if (entry.isFile()) {
+      if (!/\.(m?js|jsx?|tsx?|json|cjs|md|html?|txt|css|csv|xml|yml|yaml)$/i.test(entry.name))
+        continue;
+      let text;
+      try {
+        text = fs.readFileSync(path.join(dir, entry.name), "utf8");
+      } catch {
+        continue;
+      }
+      if (text.includes("\u0000")) continue;
+      const lower = text.toLowerCase();
+      const rel = path.relative(process.cwd(), path.join(dir, entry.name)).replaceAll("\\", "/");
+      for (const b of BANNED) {
+        if (lower.includes(b)) bannedHits.push(`${rel} :: ${b}`);
+      }
+    }
+  }
+}
+walk(process.cwd());
+const failHits = bannedHits.filter((h) => !FLAG_FILES.has(h.split(" ::")[0]));
+const flagHits = bannedHits.filter((h) => FLAG_FILES.has(h.split(" ::")[0]));
+check(
+  "repo",
+  "banned phrases: 0 hits outside /terms flag",
+  failHits.length === 0,
+  failHits.slice(0, 8).join(" | "),
+);
+for (const f of flagHits) console.log(`FLAG [${f}] legal text - review only, not deleted`);
 
 console.log("\n--- console errors ---");
 console.log(errors.length ? errors.slice(0, 12).join("\n") : "(none)");

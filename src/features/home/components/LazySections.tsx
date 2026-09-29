@@ -53,8 +53,8 @@ export function PromoBanner() {
                 </span>
               </h2>
               <p className="mt-5 text-white/60 text-base max-w-md leading-relaxed">
-                Build your bed in 4 steps — fabric, colour, size, storage. Free UK delivery, 30-day
-                returns and a 1-year warranty. Cash on Delivery available.
+                Build your bed in 4 steps — fabric, colour, size, storage. Free UK delivery, a free
+                mattress with every bed, Cash on Delivery, and Next Day Free Replacement.
               </p>
               <Link
                 to="/shop"
@@ -68,7 +68,7 @@ export function PromoBanner() {
                 { val: "32%", label: "Max Discount" },
                 { val: "Free", label: "UK Delivery" },
                 { val: "COD", label: "Cash on Delivery" },
-                { val: "1 Yr", label: "Warranty" },
+                { val: "Next Day", label: "Free Replacement" },
               ].map((s) => (
                 <div
                   key={s.label}

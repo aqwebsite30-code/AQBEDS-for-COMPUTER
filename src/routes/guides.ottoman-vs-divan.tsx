@@ -97,7 +97,7 @@ export const Route = createFileRoute("/guides/ottoman-vs-divan")({
       {
         name: "description",
         content:
-          "Ottoman vs divan: how each storage bed works, what fits inside, the space each needs, real prices from £185, and how to choose. Free UK delivery, 30-day returns.",
+          "Ottoman vs divan: how each storage bed works, what fits inside, real prices from £185, how to choose. Free UK delivery. Cash on delivery available.",
       },
       {
         property: "og:title",

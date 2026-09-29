@@ -19,8 +19,8 @@ export function TopPromoBar() {
       <div className="mx-auto max-w-7xl px-4 py-2.5 flex items-center justify-center gap-4 text-center">
         <Sparkles className="h-3.5 w-3.5 opacity-70 flex-shrink-0" />
         <span className="font-semibold tracking-wide">
-          ✦ Free UK Delivery on Every Bed &nbsp;·&nbsp; 30-Day Returns &nbsp;·&nbsp; 1-Year Warranty
-          &nbsp;·&nbsp; Cash on Delivery ✦
+          ✦ Free UK Delivery on Every Bed · Next Day Free Replacement · Cash on Delivery Available ·
+          Inspect on Delivery ✦
         </span>
         <Sparkles className="h-3.5 w-3.5 opacity-70 flex-shrink-0" />
         <button

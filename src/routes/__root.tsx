@@ -95,13 +95,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Premium ottoman, divan, storage beds & sofas handcrafted in the UK, with a mattress included. Free UK delivery, 30-day returns & 1-year warranty. Customise your fabric, size & mattress — order online or via WhatsApp.",
+          "Premium ottoman, divan, storage beds & sofas with a mattress included, customisable online. Free UK delivery. Cash on delivery available.",
       },
       { property: "og:title", content: "AQ Beds — Luxury Beds & Sofas | Handcrafted in the UK" },
       {
         property: "og:description",
         content:
-          "Premium ottoman, divan & storage beds with a mattress included. Free UK delivery, 30-day returns and a 1-year warranty on all beds.",
+          "Premium ottoman, divan & storage beds with a mattress included. Free UK delivery. Cash on delivery available.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://www.aqbeds.com" },
@@ -445,7 +445,11 @@ function RootComponent() {
 
         {!isAdmin && <Header />}
 
-        <main id="main-content" tabIndex={-1} className={`flex-1 ${!isAdmin ? "pb-20 sm:pb-0" : ""}`}>
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className={`flex-1 ${!isAdmin ? "pb-20 sm:pb-0" : ""}`}
+        >
           <Outlet />
         </main>
 

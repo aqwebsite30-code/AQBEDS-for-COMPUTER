@@ -56,13 +56,13 @@ export const Route = createFileRoute("/shop")({
       {
         name: "description",
         content:
-          "Browse every AQ Beds product — ottoman, divan and storage beds, velvet sofas, sofa beds and wardrobes. Free UK delivery, 30-day returns.",
+          "Browse every AQ Beds product — ottoman, divan and storage beds, velvet sofas, sofa beds and wardrobes. Free UK delivery. Cash on delivery available.",
       },
       { property: "og:title", content: "Shop Beds, Sofas & Wardrobes | AQ Beds" },
       {
         property: "og:description",
         content:
-          "Browse every AQ Beds product — ottoman, divan and storage beds, velvet sofas, sofa beds and wardrobes. Free UK delivery, 30-day returns.",
+          "Browse every AQ Beds product — ottoman, divan and storage beds, velvet sofas, sofa beds and wardrobes. Free UK delivery. Cash on delivery available.",
       },
       {
         property: "og:image",

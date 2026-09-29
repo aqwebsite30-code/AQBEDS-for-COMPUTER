@@ -26,10 +26,10 @@ export const CATEGORIES: {
   {
     slug: "all-beds",
     name: "All Beds",
-    image: "/all products img/Ambessador/1.webp",
+    image: "/all products img/Panel wing back/1.webp",
     blurb: "Our entire collection of handcrafted beds",
     intro:
-      "Every AQ Beds frame in one place - ottoman, divan, storage and luxury beds in crushed and plush velvet, with a mattress included and free UK delivery. Filter by size, style and budget from £185, with 30-day returns and a 1-year frame warranty on every bed.",
+      "Every AQ Beds frame in one place - ottoman, divan, storage and luxury beds in crushed and plush velvet, with a mattress included and free UK delivery. Filter by size, style and budget from £185.",
   },
   {
     slug: "luxury-beds",
@@ -37,7 +37,7 @@ export const CATEGORIES: {
     image: "/all products img/Ambessador/1.webp",
     blurb: "Velvet, wingback & sleigh frames that anchor the room",
     intro:
-      "Statement beds for the room everyone remembers. Wingback headboards, sleigh frames and gold-strip detailing in crushed and plush velvet - handcrafted, made to order, from £210. Free UK delivery and a 1-year warranty on every frame, with a mattress included.",
+      "Statement beds for the room everyone remembers. Wingback headboards, sleigh frames and gold-strip detailing in crushed and plush velvet - handcrafted, made to order, from £210. Free UK delivery and a mattress included on every frame.",
   },
   {
     slug: "ottoman-beds",
@@ -45,7 +45,7 @@ export const CATEGORIES: {
     image: "/all products img/Divan Ottoman bed/1.webp",
     blurb: "Gas-lift storage that hides a wardrobe's worth of clutter",
     intro:
-      "Ottoman beds lift up to reveal a full storage cavity - no drawers, no wasted floor space. One smooth gas-lift motion gives you room for bedding, seasonal clothes and suitcases. Upholstered in crushed or plush velvet, delivered free across the UK with a 30-day return window.",
+      "Ottoman beds lift up to reveal a full storage cavity - no drawers, no wasted floor space. One smooth gas-lift motion gives you room for bedding, seasonal clothes and suitcases. Upholstered in crushed or plush velvet, delivered free across the UK.",
   },
   {
     slug: "wardrobes",
@@ -53,7 +53,7 @@ export const CATEGORIES: {
     image: "/Wardrobes/alina-wardrobe-main.webp",
     blurb: "Free-standing wardrobes from £150 - doors that fit your space",
     intro:
-      "Wardrobes that fit the room - and the awkward alcove. Free-standing options with adjustable rails and shelving, from £150 with up to 32% off this week. Built flat-packed for easy upstairs delivery, with free UK shipping and 30-day returns.",
+      "Wardrobes that fit the room - and the awkward alcove. Free-standing options with adjustable rails and shelving, from £150 with up to 32% off this week. Built flat-packed for easy upstairs delivery, with free UK shipping.",
   },
   {
     slug: "sliding-wardrobes",
@@ -61,7 +61,7 @@ export const CATEGORIES: {
     image: "/Sliding wardrobe/sliding-wardrobe-main.webp",
     blurb: "Sliding-door wardrobes for tight spaces where doors won't swing",
     intro:
-      "Sliding-door wardrobes for bedrooms where a hinged door will never open. Wide panels glide on quiet runners, doubling your usable floor space, with mirrored or velvet finishes. Free UK delivery, 30-day returns and flat-packed for easy upstairs installation.",
+      "Sliding-door wardrobes for bedrooms where a hinged door will never open. Wide panels glide on quiet runners, doubling your usable floor space, with mirrored or velvet finishes. Free UK delivery and flat-packed for easy upstairs installation.",
   },
   {
     slug: "divan-beds",
@@ -69,7 +69,7 @@ export const CATEGORIES: {
     image: "/all products img/Divan/1 Panel line head board.webp",
     blurb: "Divan bases with drawers built in - the bedroom classic, upgraded",
     intro:
-      "Divan beds with built-in storage, made for British bedrooms. Choose a soft-touch or velvet finish, add one to four smooth-glide drawers, and pick your mattress - from orthopaedic support to 2000 pocket sprung. Free UK delivery, 1-year frame warranty, sizes from 3ft single to 6ft super king.",
+      "Divan beds with built-in storage, made for British bedrooms. Choose a soft-touch or velvet finish, add one to four smooth-glide drawers, and pick your mattress - from orthopaedic support to 2000 pocket sprung. Free UK delivery, sizes from 3ft single to 6ft super king.",
   },
   {
     slug: "storage-beds",
@@ -98,7 +98,7 @@ export const CATEGORIES: {
     image: "/Sofas/Chesterfield Sofa/chesterfield-sofa-main.webp",
     blurb: "Velvet sofas & sofa beds from £185",
     intro:
-      "Velvet sofas, sofa beds and corner sets - from £185. Deep-seat comfort with solid hardwood frames, in colours that match our beds (yes, you can coordinate the whole room). Free UK delivery, 30-day returns and Cash on Delivery available.",
+      "Velvet sofas, sofa beds and corner sets - from £185. Deep-seat comfort with solid hardwood frames, in colours that match our beds (yes, you can coordinate the whole room). Free UK delivery and Cash on Delivery available.",
   },
 ];
 
@@ -298,7 +298,7 @@ function product(
     images: opts.images ?? [image, image, image],
     description:
       opts.description ??
-      "Handcrafted in the UK, with free UK delivery, 30-day returns and a 1-year warranty.",
+      "Handcrafted in the UK. Free UK delivery · Pay on delivery available · Mattress included · Next Day Free Replacement.",
     colors: opts.colors ?? CRUSHED_VELVET_COLORS,
     sizes: opts.sizes ?? [],
     fabrics: opts.fabrics ?? STANDARD_FABRICS,
@@ -343,7 +343,7 @@ const baseProducts: Product[] = [
         { name: "6ft Super King – No Mattress", extraPrice: 50 },
       ],
       description:
-        "Your bedroom's new centrepiece — with a secret. The Ambessador pairs a deep-buttoned, hand-finished headboard with a solid timber frame you'll never hear creak. Choose crushed or plush velvet in 16 colours, then add gas-lift ottoman storage that swallows duvets, suitcases and everything else you'd rather not look at. Every Ambessador includes a comfort mattress free — so it's sleep-ready the day it arrives. Free UK delivery · 30-day returns · 1-year warranty · Pay on delivery available.",
+        "Your bedroom's new centrepiece — with a secret. The Ambessador pairs a deep-buttoned, hand-finished headboard with a solid timber frame you'll never hear creak. Choose crushed or plush velvet in 16 colours, then add gas-lift ottoman storage that swallows duvets, suitcases and everything else you'd rather not look at. Every Ambessador includes a comfort mattress free — so it's sleep-ready the day it arrives. Free UK delivery · Pay on delivery available · Mattress included · Next Day Free Replacement.",
       images: [
         "/all products img/Ambessador/1.webp",
         "/all products img/Ambessador/2.webp",
@@ -510,7 +510,7 @@ const baseProducts: Product[] = [
         "/all products img/Divan Ottoman bed/4.webp",
       ],
       description:
-        'A full storage room hiding under your mattress. One hand, one motion: the gas-lift base rises to reveal a full-width cavity — bedding, suitcases, winter coats, gone. Built on a solid timber frame with a 45" standard headboard (54" available), upholstered in 16 velvet and chenille shades, and delivered free with a mattress included from £350. Free UK delivery · 30-day returns · 1-year warranty · Pay on delivery available.',
+        'A full storage room hiding under your mattress. One hand, one motion: the gas-lift base rises to reveal a full-width cavity — bedding, suitcases, winter coats, gone. Built on a solid timber frame with a 45" standard headboard (54" available), upholstered in 16 velvet and chenille shades, and delivered free with a mattress included from £350. Free UK delivery · Pay on delivery available · Mattress included · Next Day Free Replacement.',
     },
   ),
 
@@ -1626,7 +1626,7 @@ export const PRODUCTS: Product[] = baseProducts
       name,
       description:
         copy.description ??
-        "Handcrafted in the UK with free UK delivery, 30-day returns and a 1-year warranty.",
+        "Handcrafted in the UK. Free UK delivery · Pay on delivery available · Mattress included · Next Day Free Replacement.",
       metaDescription: copy.meta ?? null,
       keywords,
     };

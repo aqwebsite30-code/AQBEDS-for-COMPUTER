@@ -5,7 +5,7 @@ import { TESTIMONIALS } from "@/features/home/data/testimonials";
 export const Route = createFileRoute("/reviews")({
   head: () => {
     const avg = TESTIMONIALS.reduce((sum, r) => sum + r.rating, 0) / TESTIMONIALS.length;
-    const description = `${avg.toFixed(1)} out of 5 from ${TESTIMONIALS.length} customer reviews of AQ Beds beds, sofas and wardrobes. Free UK delivery, 30-day returns.`;
+    const description = `${avg.toFixed(1)} out of 5 from ${TESTIMONIALS.length} customer reviews of AQ Beds beds, sofas and wardrobes. Free UK delivery. Cash on delivery available.`;
     return {
       meta: [
         { title: "Customer Reviews | AQ Beds" },

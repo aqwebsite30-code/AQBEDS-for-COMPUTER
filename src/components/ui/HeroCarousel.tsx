@@ -178,7 +178,7 @@ export function HeroCarousel() {
             className="hidden sm:block text-white/60 text-lg sm:text-xl max-w-2xl mx-auto mb-8 font-light leading-relaxed"
           >
             Handcrafted ottoman, divan and storage beds — premium fabrics, hidden storage and a
-            mattress included. Free UK delivery, 30-day returns.
+            mattress included. Free UK delivery and Next Day Free Replacement.
           </motion.p>
 
           <motion.div

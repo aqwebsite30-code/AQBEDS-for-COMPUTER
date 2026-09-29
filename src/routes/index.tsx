@@ -5,7 +5,7 @@ import { ProductCard } from "@/features/products/components/ProductCard";
 import { responsiveSrc } from "@/lib/responsive-image";
 import { TESTIMONIALS } from "@/features/home/data/testimonials";
 import { HeroCarousel } from "@/components/ui/HeroCarousel";
-import { ArrowRight, Truck, MessageCircle, Award, ShieldCheck, Wallet } from "lucide-react";
+import { ArrowRight, Truck, MessageCircle, ShieldCheck, Wallet } from "lucide-react";
 import React, { useRef, lazy, Suspense, useState, useEffect } from "react";
 
 const HOME_CATEGORIES = CATEGORIES.filter((c) => c.slug !== "all-beds" && !c.noindex).slice(0, 10);
@@ -18,13 +18,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Handcrafted ottoman, divan & luxury beds from £185, with mattresses included. Free UK delivery, 30-day returns & 1-year warranty. 10,000+ happy customers.",
+          "Handcrafted ottoman, divan & luxury beds from £185, with mattresses included. Free UK delivery. Cash on delivery available. 10,000+ happy customers.",
       },
       { property: "og:title", content: "AQ Beds | Handcrafted Ottoman, Divan & Storage Beds UK" },
       {
         property: "og:description",
         content:
-          "Handcrafted ottoman, divan & luxury beds from £185, with mattresses included. Free UK delivery, 30-day returns & 1-year warranty. 10,000+ happy customers.",
+          "Handcrafted ottoman, divan & luxury beds from £185, with mattresses included. Free UK delivery. Cash on delivery available. 10,000+ happy customers.",
       },
       {
         property: "og:image",
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/")({
       {
         name: "twitter:description",
         content:
-          "Handcrafted ottoman, divan & luxury beds from £185, with mattresses included. Free UK delivery, 30-day returns & 1-year warranty.",
+          "Handcrafted ottoman, divan & luxury beds from £185, with mattresses included. Free UK delivery. Cash on delivery available.",
       },
       {
         name: "twitter:image",
@@ -145,13 +145,16 @@ function Home() {
       ══════════════════════════════════════════════════════ */}
       <section className="mx-auto max-w-7xl px-4 py-14">
         <Reveal>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { icon: Award, t: "1-Year Warranty", s: "Frame covered, in writing" },
-              { icon: Truck, t: "Free UK Delivery", s: "Every bed, no minimum spend" },
-              { icon: ShieldCheck, t: "30-Day Returns", s: "Sleep on it, risk-free" },
+              { icon: Truck, t: "Free UK Delivery", s: "To your door" },
               { icon: Wallet, t: "Cash on Delivery", s: "Pay when it arrives" },
-              { icon: MessageCircle, t: "WhatsApp Support", s: "One message away, always" },
+              { icon: ShieldCheck, t: "At-Door Returns", s: "Check it when it arrives" },
+              {
+                icon: MessageCircle,
+                t: "Next Day Free Replacement",
+                s: "Free, the very next day",
+              },
             ].map(({ icon: Icon, t, s }) => (
               <div
                 key={t}
@@ -209,9 +212,11 @@ function Home() {
                     responsiveSrc(CATEGORIES.find((c) => c.slug === "all-beds")?.image ?? "").srcSet
                   }
                   sizes="(min-width: 768px) 50vw, 100vw"
-                  alt="All Beds"
+                  alt="Panel Line bed"
                   className="h-full w-full object-cover transition-transform duration-700 md:group-hover:scale-110"
-                  loading="lazy"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
                 />
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
@@ -279,7 +284,8 @@ function Home() {
             </p>
             <h2 className="font-display font-black text-3xl sm:text-5xl">Our Most Loved Beds</h2>
             <p className="text-muted-foreground mt-3 max-w-md">
-              Trusted by UK sleepers since 2018 — free UK delivery, 30-day returns.
+              Trusted by UK sleepers since 2018 — free UK delivery, Cash on Delivery and Next Day
+              Free Replacement.
             </p>
           </div>
           <Link

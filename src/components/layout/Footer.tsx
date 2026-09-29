@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { CATEGORIES } from "@/features/products/data/products";
 import { buildWhatsAppUrl } from "@/lib/utils/format";
-import { Mail, ArrowRight, MapPin, Phone, ShieldCheck, Truck, Award, MessageCircle } from "lucide-react";
+import { Mail, ArrowRight, MapPin, Phone, ShieldCheck, Truck, MessageCircle } from "lucide-react";
 
 export function Footer() {
   return (
@@ -90,12 +90,12 @@ export function Footer() {
           </h4>
           <ul className="space-y-3 text-sm text-white/60">
             {[
-    { label: "About AQ Beds", to: "/about" },
-    { label: "Contact Us", to: "/contact" },
-    { label: "Customer Reviews", to: "/reviews" },
-    { label: "FAQs", to: "/faqs" },
-    { label: "Delivery Info", to: "/delivery" },
-    { label: "Returns Policy", to: "/returns" },
+              { label: "About AQ Beds", to: "/about" },
+              { label: "Contact Us", to: "/contact" },
+              { label: "Customer Reviews", to: "/reviews" },
+              { label: "FAQs", to: "/faqs" },
+              { label: "Delivery Info", to: "/delivery" },
+              { label: "Returns Policy", to: "/returns" },
             ].map((l) => (
               <li key={l.label}>
                 <Link to={l.to as any} className="hover:text-white transition-colors">
@@ -148,11 +148,20 @@ export function Footer() {
         <div className="mx-auto max-w-7xl px-4 py-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-2xl bg-[#0d5ea6]/20 grid place-items-center flex-shrink-0">
+              <MessageCircle className="h-6 w-6 text-[#5b9bd5]" />
+            </div>
+            <div>
+              <p className="font-display font-bold text-sm text-white">Next Day Free Replacement</p>
+              <p className="text-xs text-white/40">Free, the very next day</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-[#0d5ea6]/20 grid place-items-center flex-shrink-0">
               <ShieldCheck className="h-6 w-6 text-[#5b9bd5]" />
             </div>
             <div>
-              <p className="font-display font-bold text-sm text-white">Secure Checkout</p>
-              <p className="text-xs text-white/40">Protected by SSL encryption</p>
+              <p className="font-display font-bold text-sm text-white">At-Door Returns</p>
+              <p className="text-xs text-white/40">Inspect before the courier leaves</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -161,16 +170,7 @@ export function Footer() {
             </div>
             <div>
               <p className="font-display font-bold text-sm text-white">Free UK Delivery</p>
-              <p className="text-xs text-white/40">On all bed orders</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-[#0d5ea6]/20 grid place-items-center flex-shrink-0">
-              <Award className="h-6 w-6 text-[#5b9bd5]" />
-            </div>
-            <div>
-              <p className="font-display font-bold text-sm text-white">Easy Returns</p>
-              <p className="text-xs text-white/40">30-day hassle-free returns</p>
+              <p className="text-xs text-white/40">On every bed</p>
             </div>
           </div>
         </div>
