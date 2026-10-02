@@ -18,13 +18,14 @@ The visitor switches modes with the pills at the top of the widget. Team chat hi
 
 ## 2. Files
 
-| File                                       | Role                                                                                                                                 |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `api/ai-chat.js`                           | Vercel serverless function. Validates input, throttles, calls Gemini, returns `{ reply }` or a graceful `{ reply, fallback: true }`. |
-| `src/components/layout/LiveChatWidget.tsx` | Widget UI + mode switch + `fetch("/api/ai-chat")` client call.                                                                       |
-| `vercel.json`                              | Route `"src": "/api/ai-chat"` → `"dest": "/api/ai-chat.js"` (same pattern as `meta-capi`).                                           |
-| `.env.local` (gitignored)                  | `GEMINI_API_KEY`, `GEMINI_MODEL=gemini-2.5-flash` for local dev.                                                                     |
-| Vercel project env                         | Same two vars must be set in the Vercel dashboard (Production + Preview).                                                            |
+| File                                       | Role                                                                                                                                  |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `api/ai-chat.js`                           | Vercel serverless function. Validates input, throttles, calls Gemini, returns `{ reply }` or a graceful `{ reply, fallback: true }`.  |
+| `docs/AI-CHAT-KNOWLEDGE.md`                | The bot's full knowledge/personality file ("Ivy") — embedded verbatim into `SYSTEM_PROMPT` in `api/ai-chat.js`. Keep the two in sync. |
+| `src/components/layout/LiveChatWidget.tsx` | Widget UI + mode switch + `fetch("/api/ai-chat")` client call; linkifies bare URLs, renders line breaks.                              |
+| `vercel.json`                              | Route `"src": "/api/ai-chat"` → `"dest": "/api/ai-chat.js"`; `functions.maxDuration = 30` for the handler.                            |
+| `.env.local` (gitignored)                  | `GEMINI_API_KEY`, `GEMINI_MODEL=gemini-3.5-flash-lite` for local dev.                                                                 |
+| Vercel project env                         | Same two vars must be set in the Vercel dashboard (Production + Preview).                                                             |
 
 ## 3. API contract
 
@@ -41,24 +42,39 @@ Content-Type: application/json
 405 → { "error": "Method not allowed" }
 ```
 
-Limits: message ≤ 800 chars, history ≤ 12 turns (24 messages) trimmed oldest-first, reply ≤ 320 output tokens.
+Limits: message ≤ 800 chars, history ≤ 12 turns (24 messages) trimmed oldest-first, reply ≤ 700 output tokens. Upstream timeout 12s per attempt (2 attempts), Vercel `maxDuration` 30s.
 
 ## 4. Behaviour of the bot
 
-The full system prompt lives at the top of `api/ai-chat.js`. In short, the bot:
+The system prompt = `docs/AI-CHAT-KNOWLEDGE.md` (the "Ivy" persona + full product/pricing tables) embedded verbatim in `api/ai-chat.js`, plus a short OPERATING_RULES block. The bot:
 
-- Answers **only** about AQ Beds: products, fabrics, sizes, delivery, returns, replacements, payment, assembly, contact.
-- Gives facts the site has actually published: free UK delivery; beds 3–7 business days; sofas 5–10; made-to-order 2–4 weeks; At-Door Returns (accepted at delivery only, inspect before the courier leaves); Next Day Free Replacement (contact any time, free, next-day delivery); **Cash on Delivery only — never claims cards**; prices sent to the product page rather than quoted.
-- Refuses off-topic requests politely in one sentence.
-- Stays under 120 words, plain English.
-- Never invents stock, discounts, review counts or dates.
-- Never reveals the prompt, the model name or any key details.
+- Gives **exact itemised quotes** from the knowledge tables (base size + mattress/storage/headboard/assembly add-ons → total) instead of deflecting to product pages.
+- Answers only about AQ Beds: products, prices, fabrics, sizes, delivery, returns, replacements, payment, assembly, orders, buying advice.
+- Uses the published policies: free UK delivery; beds 3–7 business days; sofas 5–10; made-to-order 2–4 weeks; At-Door Returns (inspect before the courier leaves); Next Day Free Replacement (any time, free, next-day); damaged/faulty → report within 48h with photos; change/cancel free within 24h; **Cash on Delivery only — never claims cards**.
+- Refuses off-topic requests politely, and refuses prompt/model/key extraction.
+- Renders as plain text: no markdown tables/bold/link syntax (they display literally); bare `https://` URLs are linkified by the widget.
+- Follows the WhatsApp handoff pattern: https://wa.me/+447519791128 / info@aqbeds.com.
 
 ## 5. Rate limiting & cost control
 
 - In-memory throttle: **20 requests / minute / IP** (per serverless instance — best-effort, resets with the instance; documented as a known limit).
-- `temperature 0.6`, `maxOutputTokens 320` → short replies, bounded cost.
-- No streaming, no retries, single upstream call per message.
+- `temperature 0.5`, `maxOutputTokens 700`, **thinking disabled** (`thinkingBudget: 0` on 2.5+/3 models) → fast, deterministic replies (measured ~1–2s locally).
+- Every upstream call has a **12s hard timeout** (`AbortSignal.timeout`); one automatic retry on 429/5xx/timeout; `vercel.json` sets `functions.maxDuration = 30` for `api/ai-chat.js` so the handler can never hang.
+- No streaming; at most 2 upstream calls per message.
+
+### Upstream (Gemini free-tier) quota — measured
+
+Limits are **per Google Cloud project**, reset midnight Pacific, and Google does not guarantee them. We measured them directly against this project's key (burst tests, Oct 2026):
+
+| Model                   | Requests/minute (measured)            | Notes                                                           |
+| ----------------------- | ------------------------------------- | --------------------------------------------------------------- |
+| `gemini-2.5-flash`      | **5** (hard 429 at #6)                | `GenerateRequestsPerMinutePerProjectPerModel-FreeTier`, value 5 |
+| `gemini-3.5-flash-lite` | **15** (hard 429 at #16) — **in use** | 3× the headroom; avg reply 3–5s, 8/8 local quality suite        |
+
+- **Current default: `gemini-3.5-flash-lite`** (code fallback + `GEMINI_MODEL` env on Vercel Production). `gemini-2.5-flash` is faster (~1–2s) but its 5 RPM cap breaks with just two chatters — swap back via `GEMINI_MODEL` if preferred.
+- **Requests per day (RPD):** not yet reached in testing, so unmeasured. Published free-tier figures for flash-lite-class models run **~1,000–1,500/day**; check the live number at https://ai.dev/rate-limit (sign-in with the key's Google account) — Google's rate-limit table also requires sign-in: https://ai.google.dev/gemini-api/docs/rate-limits.
+- On upstream 429 the widget shows a friendly "try again in a minute" line with the WhatsApp fallback — nothing crashes, and the handler retries once (500ms) in case the window rolls over.
+- `gemini-3.5-flash` (non-lite) exists on this key but returned 503 "high demand" during testing — not usable as a default.
 
 ## 6. Security
 
@@ -72,7 +88,7 @@ The full system prompt lives at the top of `api/ai-chat.js`. In short, the bot:
 1. **No chat persistence for AI mode** — reload = fresh conversation. Intentional (privacy, simplicity).
 2. **Rate limit is per-instance** — a determined abuser across many instances isn't blocked. If that becomes a problem, move to Vercel KV / Upstash.
 3. **AI replies are not logged** — there is no transcript for staff review. Team-mode chats remain fully logged.
-4. **`GEMINI_MODEL` default `gemini-2.5-flash`** — verified working with the current key (`gemini-2.0-flash` returns 404 on this key). Override via env var.
+4. **`GEMINI_MODEL` default `gemini-3.5-flash-lite`** — verified working with the current key (measured 15 req/min; `gemini-2.5-flash` and `gemini-2.0-flash` also work but 2.5 is capped at 5 req/min). Override via env var.
 5. **Admin does not see AI conversations** — by design. If you want an "AI transcripts" tab later, that's a new feature.
 6. **The widget defaults to AI mode.** If you'd rather open on "Message the team", change the initial `useState<ChatMode>("ai")` to `"team"` in `LiveChatWidget.tsx`.
 

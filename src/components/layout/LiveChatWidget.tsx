@@ -1,8 +1,25 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, type ReactNode } from "react";
 import { MessageCircle, X, Send, ChevronDown, Loader2, Sparkles, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { sendChatMessage } from "@/lib/chat";
 import { getChatMessages } from "@/lib/chat";
+
+// Bare URLs become clickable; everything else stays plain text.
+function linkify(text: string): ReactNode[] {
+  return text.split(/(https?:\/\/[^\s<>()]+)/g).map((part, i) => {
+    if (!/^https?:\/\//.test(part)) return part;
+    const url = part.replace(/[.,;:!?'"]+$/, "");
+    const trailing = part.slice(url.length);
+    return (
+      <span key={i}>
+        <a href={url} target="_blank" rel="noopener noreferrer" className="underline break-all">
+          {url}
+        </a>
+        {trailing}
+      </span>
+    );
+  });
+}
 
 // Generate or retrieve a persistent session ID for this browser
 function getSessionId(): string {
@@ -287,13 +304,13 @@ export function LiveChatWidget() {
                   className={`flex ${msg.fromSupport ? "justify-start" : "justify-end"}`}
                 >
                   <div
-                    className={`max-w-[80%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                    className={`max-w-[80%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
                       msg.fromSupport
                         ? "bg-muted text-foreground rounded-tl-sm"
                         : "bg-brand text-white rounded-tr-sm"
                     }`}
                   >
-                    {msg.content}
+                    {linkify(msg.content)}
                     {msg.isAi && (
                       <span className="block mt-1.5 text-[10px] text-muted-foreground">
                         AI assistant ·{" "}

@@ -4,6 +4,11 @@
   "framework": null,
   "installCommand": "npm install",
   "outputDirectory": "dist/client",
+  "functions": {
+    "api/ai-chat.js": {
+      "maxDuration": 30
+    }
+  },
   "routes": [
     {
       "src": "/api/meta-capi",
