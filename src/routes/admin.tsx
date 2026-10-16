@@ -14,6 +14,7 @@ import {
   X,
   Users,
   BarChart3,
+  LineChart,
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
@@ -27,6 +28,7 @@ const NAV_LINKS = [
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { name: "Sales Team", href: "/admin/sales", icon: Users },
   { name: "Sales Dashboard", href: "/admin/sales-dashboard", icon: BarChart3 },
+  { name: "Analytics", href: "/admin/analytics", icon: LineChart },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 

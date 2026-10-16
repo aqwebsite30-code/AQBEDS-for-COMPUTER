@@ -21,6 +21,7 @@ import { db } from "@/lib/db";
 import { z } from "zod";
 import { sendPageViewEvent } from "@/lib/meta-capi";
 import { generateEventId, getClientTrackingData } from "@/lib/meta-pixel";
+import { trackEvent } from "@/lib/analytics";
 
 const CartDrawer = lazy(() =>
   import("@/features/cart/components/CartDrawer").then((m) => ({ default: m.CartDrawer })),
@@ -331,6 +332,12 @@ function RootComponent() {
       client_user_agent: typeof navigator !== "undefined" ? navigator.userAgent : "",
     });
   }, [location.pathname]);
+
+  // First-party analytics (separate from the Meta Pixel above — never touches it).
+  // One PageView per SPA route change, tracked for the /admin/analytics dashboard.
+  useEffect(() => {
+    trackEvent("PageView", { path: window.location.pathname + window.location.search });
+  }, [location.pathname, location.search]);
 
   return (
     <QueryClientProvider client={queryClient}>

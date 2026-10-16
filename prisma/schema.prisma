@@ -106,3 +106,27 @@ model ChatMessage {
   isAdmin   Boolean  @default(false)
   createdAt DateTime @default(now())
 }
+
+// Own analytics funnel events (PageView / ViewContent / AddToCart /
+// InitiateCheckout / Purchase). Completely separate from the Meta Pixel + CAPI
+// pipeline — stored only for the /admin/analytics dashboard. Kept forever.
+model AnalyticsEvent {
+  id          String   @id @default(uuid())
+  visitorId   String
+  sessionId   String
+  event       String
+  path        String?
+  referrer    String?
+  productId   String?
+  productName String?
+  value       Float?
+  currency    String   @default("GBP")
+  device      String?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([event, createdAt])
+  @@index([visitorId, createdAt])
+  @@index([sessionId])
+  @@index([productId])
+}

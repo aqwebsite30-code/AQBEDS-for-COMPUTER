@@ -45,9 +45,8 @@ function Returns() {
         <div className="rounded-[32px] border border-brand/10 bg-brand/[0.03] p-8 backdrop-blur-md shadow-card">
           <h2 className="font-display font-bold text-xl text-brand">At-Door Returns</h2>
           <p className="mt-3 text-muted-foreground leading-relaxed">
-            Returns are accepted at the door only — when your order is delivered. Inspect the bed
-            before the courier leaves, and if anything is wrong, report it on the spot and we'll
-            take it back there and then.
+            At-Door Returns: returns are accepted at the time of delivery only. Please inspect your
+            item before the courier leaves and report any damage or issue on the spot.
           </p>
         </div>
 

@@ -14,7 +14,8 @@
     "optimize-images": "node scripts/process-images.js",
     "responsive-images": "node scripts/responsive-images.mjs",
     "check:prices": "node scripts/check-prices.cjs",
-    "verify:audit": "node scripts/verify-audit.mjs"
+    "verify:audit": "node scripts/verify-audit.mjs",
+    "test:delivery": "node scripts/test-delivery.mjs"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",

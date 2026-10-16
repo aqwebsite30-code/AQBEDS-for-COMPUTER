@@ -55,8 +55,11 @@ async function main() {
     const origW = meta.width || 0;
     const made = [];
     for (const w of WIDTHS) {
-      if (w > origW && w !== WIDTHS[0]) continue;
       const out = path.join(PUBLIC, decodeURIComponent(variantPath(relPath, w)));
+      if (w > origW && w !== WIDTHS[0]) {
+        if (fs.existsSync(out)) made.push(w);
+        continue;
+      }
       if (!fs.existsSync(out) || process.env.FORCE === "1") {
         await sharp(abs)
           .resize({ width: w, withoutEnlargement: true })

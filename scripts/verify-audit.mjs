@@ -72,7 +72,7 @@ check(
 );
 check("/", "no 50% OFF in body", !homeBody.includes("50% OFF"), "");
 const ANNOUNCE =
-  "✦ Free UK Delivery on Every Bed · Next Day Free Replacement · Cash on Delivery Available · Inspect on Delivery ✦";
+  "Free UK Delivery on Every Bed · Next Day Free Replacement · Cash on Delivery Available · Inspect on Delivery";
 check("/", "announcement bar canonical", homeBody.includes(ANNOUNCE), "");
 const STRIP = [
   "Free UK Delivery",
@@ -93,12 +93,12 @@ check(
     homeBody.indexOf("Check it when it arrives") < homeBody.indexOf("Free, the very next day"),
   "",
 );
-const tile = page.locator('img[alt="Panel Line bed"]').first();
+const tile = page.locator('img[alt="All Beds"]').first();
 const tileSrc = (await tile.count()) ? await tile.getAttribute("src") : null;
 check(
   "/",
-  "beds tile = Panel Wing Back image",
-  (await tile.count()) >= 1 && String(tileSrc).includes("Panel wing back"),
+  "beds tile = Panel Line image",
+  (await tile.count()) >= 1 && String(tileSrc).includes("Panel Line"),
   String(tileSrc),
 );
 check(
@@ -182,11 +182,33 @@ const productLd = pdpLd
     }
   })
   .find((j) => j && j["@type"] === "Product");
+// Real reviews data (data/reviews.json) — schema numbers must equal computed + visible values.
+const reviewsData = JSON.parse(
+  fs.readFileSync(path.join(process.cwd(), "data", "reviews.json"), "utf8"),
+);
+const rc = reviewsData.length;
+const rAvg = Math.round((reviewsData.reduce((s, r) => s + r.rating, 0) / rc) * 100) / 100;
+const agg = productLd?.aggregateRating;
 check(
   "/product/divan-ottoman-bed",
-  "Product schema has NO fake aggregateRating",
-  !(productLd && productLd.aggregateRating),
-  JSON.stringify(productLd?.aggregateRating || null),
+  "Product schema aggregateRating = computed reviews data",
+  !!agg &&
+    Number(agg.ratingValue) === rAvg &&
+    Number(agg.reviewCount) === rc &&
+    Number(agg.ratingCount) === rc,
+  JSON.stringify(agg || null),
+);
+check(
+  "/product/divan-ottoman-bed",
+  "Product schema lists 6 visible reviews",
+  Array.isArray(productLd?.review) && productLd.review.length === Math.min(6, rc),
+  String(Array.isArray(productLd?.review) ? productLd.review.length : 0),
+);
+check(
+  "/product/divan-ottoman-bed",
+  "PDP review badge = computed data",
+  pdpBody.includes(`★ ${rAvg.toFixed(2)} · ${rc} Reviews — AQ Beds`),
+  "",
 );
 
 const pdpHtml = await page.content();
@@ -194,8 +216,32 @@ check(
   "/product/divan-ottoman-bed",
   "PDP trust line canonical",
   pdpHtml.includes(
-    "🔒 Secure checkout · Pay on delivery available · Free UK delivery · Next Day Free Replacement",
+    "Secure checkout · Pay on delivery available · Free UK delivery · Next Day Free Replacement",
   ),
+  "",
+);
+check(
+  "/product/divan-ottoman-bed",
+  "PDP COD banner above Add To Basket",
+  pdpHtml.includes("Pay NOTHING online — Cash on Delivery"),
+  "",
+);
+check(
+  "/product/divan-ottoman-bed",
+  "PDP At-Door line",
+  pdpHtml.includes("At-Door Returns — courier waits while you check"),
+  "",
+);
+check(
+  "/product/divan-ottoman-bed",
+  "PDP RISK-FREE ORDERING block (5 plain lines)",
+  [
+    "RISK-FREE ORDERING",
+    "Pay NOTHING online",
+    "Inspect the bed at your door",
+    "Pay cash ONLY if you love it",
+    "Courier waits for your OK",
+  ].every((t) => pdpHtml.includes(t)),
   "",
 );
 check(
@@ -248,6 +294,14 @@ const ret = await page.locator("body").innerText();
 check("/returns", "At-Door Returns section", ret.includes("At-Door Returns"), "");
 check(
   "/returns",
+  "At-Door Returns section (full copy)",
+  ret.includes(
+    "At-Door Returns: returns are accepted at the time of delivery only. Please inspect your item before the courier leaves and report any damage or issue on the spot.",
+  ),
+  "",
+);
+check(
+  "/returns",
   "Next Day Free Replacement section (full copy)",
   ret.includes(
     "Next Day Free Replacement: if something is wrong with your order, contact us any time and we'll replace it free of charge with next-day delivery",
@@ -273,7 +327,7 @@ check(
 check(
   "/faqs",
   "At-Door return policy wording",
-  faq.includes("Returns are accepted at the door only"),
+  faq.includes("returns are accepted at the time of delivery only"),
   "",
 );
 check("/faqs", "no warranty claims", !/warranty/i.test(faq), "");
@@ -439,6 +493,39 @@ check(
   !/verified purchase/i.test(revBody),
   "",
 );
+check(
+  "/reviews",
+  "reviews header = computed data",
+  revBody.includes(`★ ${rAvg.toFixed(2)} out of 5 · ${rc} Reviews`),
+  "",
+);
+const revLdScripts = await page.locator('script[type="application/ld+json"]').allInnerTexts();
+let revAgg = null;
+let revItems = 0;
+for (const raw of revLdScripts) {
+  try {
+    const j = JSON.parse(raw);
+    if (j && j["@type"] === "CollectionPage") {
+      revAgg = j.aggregateRating || null;
+      revItems = Array.isArray(j.review) ? j.review.length : 0;
+    }
+  } catch {}
+}
+check(
+  "/reviews",
+  "reviews schema aggregateRating = computed reviews data",
+  !!revAgg &&
+    Number(revAgg.ratingValue) === rAvg &&
+    Number(revAgg.reviewCount) === rc &&
+    Number(revAgg.ratingCount) === rc,
+  JSON.stringify(revAgg),
+);
+check(
+  "/reviews",
+  "reviews schema lists all reviews",
+  revItems === rc,
+  `items=${revItems} expected=${rc}`,
+);
 
 await go("/");
 const emptyAnchors = await page.locator('a[href="#"]').count();
@@ -559,6 +646,111 @@ check(
   "first Tab = visible skip link",
   focused.text === "Skip to main content" && focused.visible,
   JSON.stringify(focused),
+);
+
+// ── GUEST CART → CHECKOUT (COD copy, emoji-free, arrival before Place Order) ──
+await go("/product/divan-ottoman-bed");
+await page.locator('button:has-text("Add To Basket")').first().click();
+await page.waitForTimeout(700);
+await go("/checkout");
+const checkoutBody = await page.locator("body").innerText();
+check(
+  "/checkout",
+  "checkout renders without login (guest)",
+  checkoutBody.includes("Place Order"),
+  "",
+);
+check(
+  "/checkout",
+  "payment step reassurance line",
+  checkoutBody.includes("No payment now — pay cash to the courier after you inspect your bed"),
+  "",
+);
+check(
+  "/checkout",
+  "Inspect Before You Pay next to Place Order",
+  checkoutBody.includes("Inspect Before You Pay") &&
+    checkoutBody.indexOf("Inspect Before You Pay") < checkoutBody.indexOf("Place Order"),
+  "",
+);
+check(
+  "/checkout",
+  "At-Door line on checkout",
+  checkoutBody.includes("At-Door Returns — courier waits while you check"),
+  "",
+);
+check(
+  "/checkout",
+  "checkout RISK-FREE ORDERING block (5 plain lines)",
+  [
+    "RISK-FREE ORDERING",
+    "Pay NOTHING online",
+    "Inspect the bed at your door",
+    "Pay cash ONLY if you love it",
+    "Courier waits for your OK",
+  ].every((t) => checkoutBody.includes(t)),
+  "",
+);
+check(
+  "/checkout",
+  "'Arrives:' visible before Place Order",
+  checkoutBody.includes("Arrives:") &&
+    checkoutBody.indexOf("Arrives:") < checkoutBody.indexOf("Place Order"),
+  "",
+);
+
+// ── SECTION 1 COPY IN SOURCE (HTTPS-gated / post-order strings not reachable over http) ──
+const footerSrc = fs.readFileSync("src/components/layout/Footer.tsx", "utf8");
+const checkoutSrc = fs.readFileSync("src/routes/checkout.tsx", "utf8");
+check(
+  "repo",
+  "footer 'Secure SSL Site' (HTTPS-gated)",
+  footerSrc.includes(">Secure SSL Site<"),
+  "",
+);
+check(
+  "repo",
+  "checkout 'Secure SSL Site' (HTTPS-gated)",
+  checkoutSrc.includes(">Secure SSL Site<"),
+  "",
+);
+check(
+  "repo",
+  "confirmation £0 line",
+  checkoutSrc.includes("£0 today. Pay the courier when it arrives."),
+  "",
+);
+
+// ── SECTION 2 EMOJI SWEEP (announcement, hero strip, PDP, checkout, confirmation, footer, /faqs, /returns) ──
+const EMOJI_SWEEP_FILES = [
+  "src/components/layout/Header.tsx",
+  "src/routes/index.tsx",
+  "src/routes/product.$slug.tsx",
+  "src/routes/checkout.tsx",
+  "src/components/layout/Footer.tsx",
+  "src/routes/faqs.tsx",
+  "src/routes/returns.tsx",
+  "src/lib/whatsapp-order.ts",
+  "src/components/OrderDetailsForm.tsx",
+];
+const EMOJI_OK = new Set([0x2605, 0x2606, 0xa9]); // ★ ☆ site star glyphs, © text copyright — not emoji
+const emojiHits = [];
+for (const f of EMOJI_SWEEP_FILES) {
+  const txt = fs.readFileSync(f, "utf8");
+  txt.split("\n").forEach((line, i) => {
+    for (const ch of line) {
+      const cp = ch.codePointAt(0);
+      if ((/\p{Extended_Pictographic}/u.test(ch) || cp === 0xfe0f) && !EMOJI_OK.has(cp)) {
+        emojiHits.push(`${f}:${i + 1}:${ch}`);
+      }
+    }
+  });
+}
+check(
+  "site",
+  "emoji sweep in Section 2 areas = 0",
+  emojiHits.length === 0,
+  emojiHits.slice(0, 8).join(", "),
 );
 
 // ==================== WP-2 BANNED PHRASE SWEEP ====================

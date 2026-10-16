@@ -2,7 +2,8 @@ import React from "react";
 import { motion, useInView } from "framer-motion";
 import { Star, ArrowRight, BadgeCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Review, formatReviewDate, shuffle } from "@/lib/reviews";
 
 function Reveal({
   children,
@@ -86,11 +87,26 @@ export function PromoBanner() {
   );
 }
 
-export default function Testimonials({ reviews }: { reviews: any[] }) {
+export default function Testimonials({ reviews }: { reviews: Review[] }) {
   const avg = reviews.length
     ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length
     : 0;
+  const avgLabel = (Math.round(avg * 100) / 100).toFixed(2);
   const stars = Math.round(avg);
+  const [order, setOrder] = useState<number[] | null>(null);
+  const [start, setStart] = useState(0);
+
+  useEffect(() => {
+    setOrder(shuffle(reviews.map((_, i) => i)));
+    const id = window.setInterval(() => setStart((s) => s + 1), 5000);
+    return () => window.clearInterval(id);
+  }, [reviews]);
+
+  const idx = order ?? reviews.map((_, i) => i);
+  const visible = Array.from(
+    { length: Math.min(3, reviews.length) },
+    (_, k) => reviews[idx[(start + k) % idx.length]],
+  );
   return (
     <section className="mx-auto max-w-7xl px-4 pb-24">
       <Reveal className="text-center mb-14">
@@ -107,14 +123,17 @@ export default function Testimonials({ reviews }: { reviews: any[] }) {
             {"☆".repeat(5 - stars)}
           </span>
           <span className="text-sm font-semibold text-foreground/80">
-            {avg.toFixed(1)}/5 from {reviews.length} review{reviews.length === 1 ? "" : "s"}
+            {avgLabel}/5 from {reviews.length} review{reviews.length === 1 ? "" : "s"}
           </span>
           <span className="text-xs text-muted-foreground">from customers on this site</span>
         </div>
+        <p className="text-sm text-muted-foreground mt-3">
+          {reviews.length} reviews across AQ Beds
+        </p>
       </Reveal>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {reviews.map((r, i) => (
-          <Reveal key={r.name} delay={(i % 3) * 0.1}>
+        {visible.map((r) => (
+          <Reveal key={`${r.author}-${r.date}`} delay={0.1}>
             <div className="relative h-full bg-card border border-border rounded-3xl p-8 hover:border-brand/30 hover:shadow-luxury transition-all duration-300 group overflow-hidden">
               <div className="absolute top-6 right-6 text-7xl text-brand/4 font-serif font-black leading-none select-none">
                 "
@@ -124,26 +143,37 @@ export default function Testimonials({ reviews }: { reviews: any[] }) {
                   <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
                 ))}
               </div>
-              <p className="text-foreground/85 leading-relaxed text-sm mb-7 italic relative z-10">
-                "{r.comment}"
+              <p className="font-semibold text-sm mb-2 relative z-10">{r.title}</p>
+              <p className="text-foreground/85 leading-relaxed text-sm mb-7 italic relative z-10 line-clamp-5">
+                "{r.body}"
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand to-blue-400 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                  {r.name.charAt(0)}
+                  {r.author.charAt(0)}
                 </div>
                 <div className="min-w-0">
-                  <p className="font-bold text-sm text-brand">{r.name}</p>
+                  <p className="font-bold text-sm text-brand truncate">{r.author}</p>
                   <p className="text-xs text-muted-foreground">
-                    {r.city}, UK{r.product ? ` · ${r.product}` : ""}
+                    {r.country} · {formatReviewDate(r.date)}
                   </p>
                 </div>
               </div>
-              <span className="mt-4 inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                <BadgeCheck className="w-3.5 h-3.5" /> Verified purchase
-              </span>
+              {r.verified && (
+                <span className="mt-4 inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                  <BadgeCheck className="w-3.5 h-3.5" /> Verified
+                </span>
+              )}
             </div>
           </Reveal>
         ))}
+      </div>
+      <div className="mt-10 text-center">
+        <Link
+          to="/reviews"
+          className="inline-flex h-11 items-center rounded-2xl bg-brand text-brand-foreground px-6 text-sm font-black hover:opacity-90 transition-opacity"
+        >
+          Read all {reviews.length} reviews
+        </Link>
       </div>
     </section>
   );

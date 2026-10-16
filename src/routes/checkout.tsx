@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { useCart } from "../features/cart/store/cart";
 import { formatGBP, WHATSAPP_NUMBER } from "../lib/utils/format";
-import { CheckCircle2, Loader2, MessageSquare, ArrowLeft } from "lucide-react";
+import { CheckCircle2, Loader2, MessageSquare, MessageCircle, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { sendOrderEmail } from "../lib/email";
 import { saveOrder } from "@/lib/orders";
@@ -10,6 +10,14 @@ import { getTrackingToken } from "@/hooks/useTracking";
 import { toast } from "sonner";
 import { trackPixelWithId, generateEventId, getClientTrackingData } from "@/lib/meta-pixel";
 import { sendInitiateCheckoutEvent } from "@/lib/meta-capi";
+import { trackEvent } from "@/lib/analytics";
+import { getDeliveryWindow, type ArrivalWindow } from "@/lib/delivery-date";
+import {
+  buildOrderMessage,
+  missingCustomerFields,
+  rowsFromOptionsRecord,
+  type CustomerDetails,
+} from "@/lib/whatsapp-order";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -24,8 +32,17 @@ function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [placed, setPlaced] = useState(false);
   const [whatsappUrl, setWhatsappUrl] = useState("");
+  const [arrival, setArrival] = useState<ArrivalWindow | null>(null);
+  const [secure, setSecure] = useState(false);
+  const [waMissing, setWaMissing] = useState<string[]>([]);
+  const [placedOrderNo, setPlacedOrderNo] = useState("");
   const purchaseFired = useRef(false);
   const checkoutEventId = useRef<string>("");
+
+  useEffect(() => {
+    setArrival(getDeliveryWindow(new Date()));
+    setSecure(window.location.protocol === "https:");
+  }, []);
 
   useEffect(() => {
     if (items.length > 0) {
@@ -49,6 +66,10 @@ function CheckoutPage() {
         client_user_agent: navigator.userAgent,
         ...trackingData,
       }).catch(() => {});
+      trackEvent("InitiateCheckout", {
+        value: total(),
+        productName: `${items.length} item(s)`,
+      });
     }
   }, []);
 
@@ -80,9 +101,7 @@ function CheckoutPage() {
       postcode: formData.get("postcode") as string,
     };
 
-    const orderSummary = items.map((i) => `- ${i.name} (x${i.qty})`).join("\n");
     const totalAmount = formatGBP(total());
-
     try {
       // Generate Purchase event_id upfront for deduplication (client + server)
       const purchaseEventId = generateEventId();
@@ -174,9 +193,30 @@ function CheckoutPage() {
 
       // 3. Prepare WhatsApp message with order number (opened manually by customer)
       const orderNumber = orderId ? `#${orderId.slice(0, 8).toUpperCase()}` : "";
-      const message = `Hello AQ Beds! I'd like to place an order:\n\n*Order No:* ${orderNumber}\n\n*Items:*\n${orderSummary}\n\n*Total:* ${totalAmount}\n\n*Customer Details:*\n- Name: ${customer.name}\n- Phone: ${customer.phone}\n- Address: ${customer.addr1}, ${customer.city}, ${customer.postcode}`;
+      const waDetails: CustomerDetails = {
+        name: customer.name,
+        phone: customer.phone,
+        address: customer.addr1,
+        city: customer.city,
+        postcode: customer.postcode,
+      };
+      const message = buildOrderMessage(
+        items.map((i) => ({
+          name: i.name,
+          qty: i.qty,
+          unitPrice: i.unitPrice,
+          rows: rowsFromOptionsRecord(i.options),
+          url:
+            typeof window !== "undefined"
+              ? `${window.location.origin}/product/${i.productId}`
+              : undefined,
+        })),
+        waDetails,
+        { arrival, orderNo: orderNumber },
+      );
       const waUrl = `https://wa.me/${WHATSAPP_NUMBER.replace(/\+/g, "")}?text=${encodeURIComponent(message)}`;
 
+      setPlacedOrderNo(orderNumber);
       setWhatsappUrl(waUrl);
       setPlaced(true);
       if (!purchaseFired.current) {
@@ -195,6 +235,10 @@ function CheckoutPage() {
             { eventID: purchaseEventId },
           );
         }
+        trackEvent("Purchase", {
+          value: total(),
+          productName: `${items.length} item(s)`,
+        });
       }
       clear();
     } catch (err) {
@@ -205,6 +249,56 @@ function CheckoutPage() {
     }
   };
 
+  const readCustomer = (form: HTMLFormElement): CustomerDetails => {
+    const fd = new FormData(form);
+    return {
+      name: String(fd.get("name") || "").trim(),
+      phone: String(fd.get("phone") || "").trim(),
+      address: String(fd.get("addr1") || "").trim(),
+      city: String(fd.get("city") || "").trim(),
+      postcode: String(fd.get("postcode") || "").trim(),
+    };
+  };
+
+  const highlightMissing = (missing: (keyof CustomerDetails)[]) => {
+    const toInputName = (key: keyof CustomerDetails) => (key === "address" ? "addr1" : key);
+    setWaMissing(missing.map(toInputName));
+    const first = document.querySelector<HTMLInputElement>(`[name="${toInputName(missing[0])}"]`);
+    if (first) {
+      first.scrollIntoView({ block: "center", behavior: "smooth" });
+      first.focus({ preventScroll: true });
+    }
+  };
+
+  // Builds the checkout WhatsApp URL from LIVE form values at click time.
+  // Returns null (and highlights the missing fields) when any of the five
+  // required details are empty — the WhatsApp tab never opens.
+  const checkoutWaUrl = (form: HTMLFormElement | null, orderNo?: string): string | null => {
+    if (!form) return null;
+    const details = readCustomer(form);
+    const missing = missingCustomerFields(details);
+    if (missing.length > 0) {
+      highlightMissing(missing);
+      return null;
+    }
+    setWaMissing([]);
+    const message = buildOrderMessage(
+      items.map((i) => ({
+        name: i.name,
+        qty: i.qty,
+        unitPrice: i.unitPrice,
+        rows: rowsFromOptionsRecord(i.options),
+        url:
+          typeof window !== "undefined"
+            ? `${window.location.origin}/product/${i.productId}`
+            : undefined,
+      })),
+      details,
+      { arrival, orderNo },
+    );
+    return `https://wa.me/${WHATSAPP_NUMBER.replace(/\+/g, "")}?text=${encodeURIComponent(message)}`;
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 animate-fade-in relative min-h-[600px]">
       <h1 className="font-display font-bold text-3xl sm:text-4xl">Checkout</h1>
@@ -213,16 +307,27 @@ function CheckoutPage() {
         <div className="space-y-8">
           <Card title="Contact">
             <div className="grid sm:grid-cols-2 gap-3">
-              <Field label="Full name" name="name" required />
+              <Field label="Full name" name="name" required error={waMissing.includes("name")} />
               <Field label="Email" name="email" type="email" required />
-              <Field label="Phone" name="phone" required />
+              <Field label="Phone" name="phone" required error={waMissing.includes("phone")} />
             </div>
           </Card>
           <Card title="Shipping address">
             <div className="grid sm:grid-cols-2 gap-3">
-              <Field label="Address line 1" name="addr1" required full />
-              <Field label="City" name="city" required />
-              <Field label="Postcode" name="postcode" required />
+              <Field
+                label="Address line 1"
+                name="addr1"
+                required
+                full
+                error={waMissing.includes("addr1")}
+              />
+              <Field label="City" name="city" required error={waMissing.includes("city")} />
+              <Field
+                label="Postcode"
+                name="postcode"
+                required
+                error={waMissing.includes("postcode")}
+              />
               <Field label="Country" name="country" defaultValue="United Kingdom" required />
             </div>
           </Card>
@@ -233,6 +338,12 @@ function CheckoutPage() {
                 <span className="font-medium text-brand">Cash on delivery</span>
               </label>
               {/* Card option removed as requested */}
+              <p className="text-xs font-bold text-brand leading-relaxed pt-1">
+                No payment now — pay cash to the courier after you inspect your bed
+              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed pt-1">
+                At-Door Returns — courier waits while you check
+              </p>
             </div>
           </Card>
         </div>
@@ -275,6 +386,25 @@ function CheckoutPage() {
               </span>
             </div>
           </div>
+          <div className="rounded-2xl border border-cta/30 bg-cta/5 p-4 space-y-1.5">
+            <div className="text-xs font-black uppercase tracking-wider text-brand">
+              RISK-FREE ORDERING
+            </div>
+            <div className="text-sm font-medium text-foreground/85">Pay NOTHING online</div>
+            <div className="text-sm font-medium text-foreground/85">
+              Inspect the bed at your door
+            </div>
+            <div className="text-sm font-medium text-foreground/85">
+              Pay cash ONLY if you love it
+            </div>
+            <div className="text-sm font-medium text-foreground/85">Courier waits for your OK</div>
+          </div>
+          {arrival && (
+            <p className="text-center text-sm font-black text-brand rounded-2xl border border-brand/20 bg-brand/[0.06] py-3">
+              {arrival.label}
+            </p>
+          )}
+          <p className="text-center text-xs font-bold text-brand/80">Inspect Before You Pay</p>
           <button
             type="submit"
             disabled={isSubmitting}
@@ -282,9 +412,22 @@ function CheckoutPage() {
           >
             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Place Order"}
           </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              const url = checkoutWaUrl((e.currentTarget as HTMLButtonElement).form);
+              if (url) window.open(url, "_blank", "noopener,noreferrer");
+            }}
+            className="w-full min-h-[48px] rounded-2xl bg-whatsapp text-white font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-lg"
+          >
+            <MessageCircle className="h-5 w-5" /> Order on WhatsApp
+          </button>
           <p className="text-[10px] text-center text-muted-foreground px-4">
             By placing an order you agree to our Terms of Service.
           </p>
+          {secure && (
+            <p className="text-[10px] text-center text-muted-foreground">Secure SSL Site</p>
+          )}
         </aside>
       </form>
 
@@ -328,6 +471,9 @@ function CheckoutPage() {
                   <p className="text-white/70 font-medium px-2">
                     Thank you for choosing AQ Beds. Your premium sleep experience is being prepared.
                   </p>
+                  <p className="text-white font-bold text-sm px-2">
+                    £0 today. Pay the courier when it arrives.
+                  </p>
                 </div>
 
                 <div className="w-full h-px bg-white/10" />
@@ -348,6 +494,15 @@ function CheckoutPage() {
                     href={whatsappUrl}
                     target="_blank"
                     rel="noreferrer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const url = checkoutWaUrl(
+                        document.querySelector<HTMLFormElement>("form"),
+                        placedOrderNo,
+                      );
+                      if (url) window.open(url, "_blank", "noopener,noreferrer");
+                      else setPlaced(false);
+                    }}
                     className="w-full h-14 rounded-2xl bg-whatsapp text-white font-bold flex items-center justify-center gap-2 hover:bg-whatsapp/90 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <MessageSquare className="w-5 h-5" />
@@ -386,6 +541,7 @@ function Field({
   required,
   full,
   defaultValue,
+  error,
 }: {
   label: string;
   name: string;
@@ -393,6 +549,7 @@ function Field({
   required?: boolean;
   full?: boolean;
   defaultValue?: string;
+  error?: boolean;
 }) {
   return (
     <label className={`block text-sm ${full ? "sm:col-span-2" : ""}`}>
@@ -404,7 +561,12 @@ function Field({
         name={name}
         required={required}
         defaultValue={defaultValue}
-        className="mt-2 w-full h-12 rounded-xl border border-brand/10 bg-brand/[0.02] px-4 text-brand text-sm outline-none focus:border-cta/50 focus:ring-4 focus:ring-cta/10 transition-all font-medium placeholder:text-brand/30"
+        aria-invalid={error || undefined}
+        className={`mt-2 w-full h-12 rounded-xl bg-brand/[0.02] px-4 text-brand text-sm outline-none transition-all font-medium placeholder:text-brand/30 ${
+          error
+            ? "border-2 border-red-500 ring-4 ring-red-500/20 focus:border-red-500 focus:ring-red-500/30"
+            : "border border-brand/10 focus:border-cta/50 focus:ring-4 focus:ring-cta/10"
+        }`}
       />
     </label>
   );

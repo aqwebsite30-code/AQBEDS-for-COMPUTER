@@ -26,7 +26,7 @@ export const CATEGORIES: {
   {
     slug: "all-beds",
     name: "All Beds",
-    image: "/all products img/Panel wing back/1.webp",
+    image: "/all products img/Panel Line/1.webp",
     blurb: "Our entire collection of handcrafted beds",
     intro:
       "Every AQ Beds frame in one place - ottoman, divan, storage and luxury beds in crushed and plush velvet, with a mattress included and free UK delivery. Filter by size, style and budget from £185.",
@@ -359,36 +359,28 @@ const baseProducts: Product[] = [
   // WITH mattress:  ss=250, sts=260, sd=290, std=300, k=330, sk=390
   // NO  mattress:   ss=210, sts=220, sd=250, std=260, k=280, sk=300
   // ══════════════════════════════════════════════════════════════════════════
-  product(
-    "arizona",
-    "Arizona Bed",
-    "luxury-beds",
-    250,
-    300,
-    "/all products img/Arizona/1.webp",
-    {
-      sizes: [
-        { name: "2ft Small Single – With Mattress", extraPrice: 0 },
-        { name: "3ft Standard Single – With Mattress", extraPrice: 10 },
-        { name: "4ft Small Double – With Mattress", extraPrice: 40 },
-        { name: "4'6ft Standard Double – With Mattress", extraPrice: 50 },
-        { name: "5ft King Size – With Mattress", extraPrice: 80 },
-        { name: "6ft Super King – With Mattress", extraPrice: 140 },
-        { name: "2ft Small Single – No Mattress", extraPrice: -40 },
-        { name: "3ft Standard Single – No Mattress", extraPrice: -30 },
-        { name: "4ft Small Double – No Mattress", extraPrice: 0 },
-        { name: "4'6ft Standard Double – No Mattress", extraPrice: 10 },
-        { name: "5ft King Size – No Mattress", extraPrice: 30 },
-        { name: "6ft Super King – No Mattress", extraPrice: 50 },
-      ],
-      images: [
-        "/all products img/Arizona/1.webp",
-        "/all products img/Arizona/2.webp",
-        "/all products img/Arizona/3.webp",
-        "/all products img/Arizona/4.webp",
-      ],
-    },
-  ),
+  product("arizona", "Arizona Bed", "luxury-beds", 250, 300, "/all products img/Arizona/1.webp", {
+    sizes: [
+      { name: "2ft Small Single – With Mattress", extraPrice: 0 },
+      { name: "3ft Standard Single – With Mattress", extraPrice: 10 },
+      { name: "4ft Small Double – With Mattress", extraPrice: 40 },
+      { name: "4'6ft Standard Double – With Mattress", extraPrice: 50 },
+      { name: "5ft King Size – With Mattress", extraPrice: 80 },
+      { name: "6ft Super King – With Mattress", extraPrice: 140 },
+      { name: "2ft Small Single – No Mattress", extraPrice: -40 },
+      { name: "3ft Standard Single – No Mattress", extraPrice: -30 },
+      { name: "4ft Small Double – No Mattress", extraPrice: 0 },
+      { name: "4'6ft Standard Double – No Mattress", extraPrice: 10 },
+      { name: "5ft King Size – No Mattress", extraPrice: 30 },
+      { name: "6ft Super King – No Mattress", extraPrice: 50 },
+    ],
+    images: [
+      "/all products img/Arizona/1.webp",
+      "/all products img/Arizona/2.webp",
+      "/all products img/Arizona/3.webp",
+      "/all products img/Arizona/4.webp",
+    ],
+  }),
 
   // ══════════════════════════════════════════════════════════════════════════
   // 3. BUNK BED
@@ -594,36 +586,28 @@ const baseProducts: Product[] = [
   // WITH: ss=210, sts=220, sd=240, std=250, k=270, sk=350
   // NO:   ss=175, sts=180, sd=200, std=210, k=220, sk=280
   // ══════════════════════════════════════════════════════════════════════════
-  product(
-    "hilton",
-    "Hilton Bed",
-    "luxury-beds",
-    210,
-    250,
-    "/all products img/Hilton/1.webp",
-    {
-      sizes: [
-        { name: "2ft Small Single – With Mattress", extraPrice: 0 },
-        { name: "3ft Standard Single – With Mattress", extraPrice: 10 },
-        { name: "4ft Small Double – With Mattress", extraPrice: 30 },
-        { name: "4'6ft Standard Double – With Mattress", extraPrice: 40 },
-        { name: "5ft King Size – With Mattress", extraPrice: 60 },
-        { name: "6ft Super King – With Mattress", extraPrice: 140 },
-        { name: "2ft Small Single – No Mattress", extraPrice: -35 },
-        { name: "3ft Standard Single – No Mattress", extraPrice: -30 },
-        { name: "4ft Small Double – No Mattress", extraPrice: -10 },
-        { name: "4'6ft Standard Double – No Mattress", extraPrice: 0 },
-        { name: "5ft King Size – No Mattress", extraPrice: 10 },
-        { name: "6ft Super King – No Mattress", extraPrice: 70 },
-      ],
-      images: [
-        "/all products img/Hilton/1.webp",
-        "/all products img/Hilton/2.webp",
-        "/all products img/Hilton/3.webp",
-        "/all products img/Hilton/4.webp",
-      ],
-    },
-  ),
+  product("hilton", "Hilton Bed", "luxury-beds", 210, 250, "/all products img/Hilton/1.webp", {
+    sizes: [
+      { name: "2ft Small Single – With Mattress", extraPrice: 0 },
+      { name: "3ft Standard Single – With Mattress", extraPrice: 10 },
+      { name: "4ft Small Double – With Mattress", extraPrice: 30 },
+      { name: "4'6ft Standard Double – With Mattress", extraPrice: 40 },
+      { name: "5ft King Size – With Mattress", extraPrice: 60 },
+      { name: "6ft Super King – With Mattress", extraPrice: 140 },
+      { name: "2ft Small Single – No Mattress", extraPrice: -35 },
+      { name: "3ft Standard Single – No Mattress", extraPrice: -30 },
+      { name: "4ft Small Double – No Mattress", extraPrice: -10 },
+      { name: "4'6ft Standard Double – No Mattress", extraPrice: 0 },
+      { name: "5ft King Size – No Mattress", extraPrice: 10 },
+      { name: "6ft Super King – No Mattress", extraPrice: 70 },
+    ],
+    images: [
+      "/all products img/Hilton/1.webp",
+      "/all products img/Hilton/2.webp",
+      "/all products img/Hilton/3.webp",
+      "/all products img/Hilton/4.webp",
+    ],
+  }),
 
   // ══════════════════════════════════════════════════════════════════════════
   // 9. LUXURY CUBE BED
@@ -848,36 +832,28 @@ const baseProducts: Product[] = [
   // WITH: ss=250, sts=260, sd=290, std=300, k=330, sk=390
   // NO:   ss=210, sts=220, sd=250, std=260, k=280, sk=300
   // ══════════════════════════════════════════════════════════════════════════
-  product(
-    "sleigh",
-    "Sleigh Bed",
-    "luxury-beds",
-    250,
-    300,
-    "/all products img/Sleigh/1.webp",
-    {
-      sizes: [
-        { name: "2ft Small Single – With Mattress", extraPrice: 0 },
-        { name: "3ft Standard Single – With Mattress", extraPrice: 10 },
-        { name: "4ft Small Double – With Mattress", extraPrice: 40 },
-        { name: "4'6ft Standard Double – With Mattress", extraPrice: 50 },
-        { name: "5ft King Size – With Mattress", extraPrice: 80 },
-        { name: "6ft Super King – With Mattress", extraPrice: 140 },
-        { name: "2ft Small Single – No Mattress", extraPrice: -40 },
-        { name: "3ft Standard Single – No Mattress", extraPrice: -30 },
-        { name: "4ft Small Double – No Mattress", extraPrice: 0 },
-        { name: "4'6ft Standard Double – No Mattress", extraPrice: 10 },
-        { name: "5ft King Size – No Mattress", extraPrice: 30 },
-        { name: "6ft Super King – No Mattress", extraPrice: 50 },
-      ],
-      images: [
-        "/all products img/Sleigh/1.webp",
-        "/all products img/Sleigh/2.webp",
-        "/all products img/Sleigh/3.webp",
-        "/all products img/Sleigh/4.webp",
-      ],
-    },
-  ),
+  product("sleigh", "Sleigh Bed", "luxury-beds", 250, 300, "/all products img/Sleigh/1.webp", {
+    sizes: [
+      { name: "2ft Small Single – With Mattress", extraPrice: 0 },
+      { name: "3ft Standard Single – With Mattress", extraPrice: 10 },
+      { name: "4ft Small Double – With Mattress", extraPrice: 40 },
+      { name: "4'6ft Standard Double – With Mattress", extraPrice: 50 },
+      { name: "5ft King Size – With Mattress", extraPrice: 80 },
+      { name: "6ft Super King – With Mattress", extraPrice: 140 },
+      { name: "2ft Small Single – No Mattress", extraPrice: -40 },
+      { name: "3ft Standard Single – No Mattress", extraPrice: -30 },
+      { name: "4ft Small Double – No Mattress", extraPrice: 0 },
+      { name: "4'6ft Standard Double – No Mattress", extraPrice: 10 },
+      { name: "5ft King Size – No Mattress", extraPrice: 30 },
+      { name: "6ft Super King – No Mattress", extraPrice: 50 },
+    ],
+    images: [
+      "/all products img/Sleigh/1.webp",
+      "/all products img/Sleigh/2.webp",
+      "/all products img/Sleigh/3.webp",
+      "/all products img/Sleigh/4.webp",
+    ],
+  }),
 
   // ══════════════════════════════════════════════════════════════════════════
   // 16. ALINA WARDROBE

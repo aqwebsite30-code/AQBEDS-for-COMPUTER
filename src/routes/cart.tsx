@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { useCart } from "@/features/cart/store/cart";
 import { formatGBP, buildWhatsAppUrl } from "@/lib/utils/format";
+import { getDeliveryWindow } from "@/lib/delivery-date";
+import {
+  buildOrderMessage,
+  rowsFromOptionsRecord,
+  type CustomerDetails,
+} from "@/lib/whatsapp-order";
+import { OrderDetailsForm } from "@/components/OrderDetailsForm";
 import { Trash2, Minus, Plus, MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/cart")({
@@ -35,10 +43,26 @@ export const Route = createFileRoute("/cart")({
 
 function CartPage() {
   const { items, updateQty, remove, subtotal, total } = useCart();
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
-  const waMessage = `Hello AQ Beds, I want to order:%0A%0A${items
-    .map((i) => `• ${i.name} x${i.qty} - ${formatGBP(i.unitPrice * i.qty)}`)
-    .join("%0A")}%0A%0ATotal: ${formatGBP(total())}`;
+  const handleDetailsSubmit = (details: CustomerDetails) => {
+    const message = buildOrderMessage(
+      items.map((i) => ({
+        name: i.name,
+        qty: i.qty,
+        unitPrice: i.unitPrice,
+        rows: rowsFromOptionsRecord(i.options),
+        url:
+          typeof window !== "undefined"
+            ? `${window.location.origin}/product/${i.productId}`
+            : undefined,
+      })),
+      details,
+      { arrival: getDeliveryWindow(new Date()) },
+    );
+    window.open(buildWhatsAppUrl(message), "_blank", "noopener,noreferrer");
+    setDetailsOpen(false);
+  };
 
   if (items.length === 0) {
     return (
@@ -118,14 +142,18 @@ function CartPage() {
           >
             Proceed to Checkout
           </Link>
-          <a
-            href={`https://wa.me/447519791128?text=${waMessage}`}
-            target="_blank"
-            rel="noreferrer"
+          <button
+            type="button"
+            onClick={() => setDetailsOpen(true)}
             className="flex items-center justify-center gap-2 h-12 rounded-2xl bg-whatsapp text-whatsapp-foreground font-semibold text-sm"
           >
             <MessageCircle className="h-4 w-4" /> Order via WhatsApp
-          </a>
+          </button>
+          <OrderDetailsForm
+            open={detailsOpen}
+            onClose={() => setDetailsOpen(false)}
+            onSubmit={handleDetailsSubmit}
+          />
         </aside>
       </div>
     </div>

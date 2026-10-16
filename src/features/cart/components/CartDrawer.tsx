@@ -1,21 +1,43 @@
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { X, Trash2, Minus, Plus } from "lucide-react";
 import { useCart, useUI } from "@/features/cart/store/cart";
 import { formatGBP, buildWhatsAppUrl } from "@/lib/utils/format";
+import { getDeliveryWindow } from "@/lib/delivery-date";
+import {
+  buildOrderMessage,
+  rowsFromOptionsRecord,
+  type CustomerDetails,
+} from "@/lib/whatsapp-order";
+import { OrderDetailsForm } from "@/components/OrderDetailsForm";
 
 export function CartDrawer() {
   const open = useUI((s) => s.cartOpen);
   const setOpen = useUI((s) => s.setCartOpen);
   const { items, updateQty, remove, subtotal, total } = useCart();
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
-  const waMessage = `Hello AQ Beds, I'd like to order:%0A%0A${items
-    .map(
-      (i) =>
-        `• ${i.name} (${Object.values(i.options).join(", ")}) x${i.qty} - ${formatGBP(
-          i.unitPrice * i.qty,
-        )}`,
-    )
-    .join("%0A")}%0A%0ATotal: ${formatGBP(total())}`;
+  const buildDrawerMessage = (details: CustomerDetails): string =>
+    buildOrderMessage(
+      items.map((i) => ({
+        name: i.name,
+        qty: i.qty,
+        unitPrice: i.unitPrice,
+        rows: rowsFromOptionsRecord(i.options),
+        url:
+          typeof window !== "undefined"
+            ? `${window.location.origin}/product/${i.productId}`
+            : undefined,
+      })),
+      details,
+      { arrival: getDeliveryWindow(new Date()) },
+    );
+
+  const handleDetailsSubmit = (details: CustomerDetails) => {
+    window.open(buildWhatsAppUrl(buildDrawerMessage(details)), "_blank", "noopener,noreferrer");
+    setDetailsOpen(false);
+    setOpen(false);
+  };
 
   return (
     <div className={`fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`}>
@@ -33,7 +55,11 @@ export function CartDrawer() {
       >
         <header className="flex items-center justify-between px-6 py-5 border-b border-border">
           <h2 className="font-display font-bold text-xl">Your Basket</h2>
-          <button onClick={() => setOpen(false)} aria-label="Close cart" className="min-h-[44px] min-w-[44px] grid place-items-center">
+          <button
+            onClick={() => setOpen(false)}
+            aria-label="Close cart"
+            className="min-h-[44px] min-w-[44px] grid place-items-center"
+          >
             <X className="h-5 w-5" />
           </button>
         </header>
@@ -61,7 +87,11 @@ export function CartDrawer() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-medium text-sm leading-tight">{i.name}</h3>
-                      <button onClick={() => remove(i.lineId)} aria-label="Remove item" className="min-h-[44px] min-w-[44px] grid place-items-center">
+                      <button
+                        onClick={() => remove(i.lineId)}
+                        aria-label="Remove item"
+                        className="min-h-[44px] min-w-[44px] grid place-items-center"
+                      >
                         <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
                       </button>
                     </div>
@@ -123,15 +153,19 @@ export function CartDrawer() {
               >
                 Checkout
               </Link>
-              <a
-                href={`https://wa.me/447519791128?text=${waMessage}`}
-                target="_blank"
-                rel="noreferrer"
+              <button
+                type="button"
+                onClick={() => setDetailsOpen(true)}
                 className="h-12 rounded-2xl bg-whatsapp text-whatsapp-foreground font-semibold text-sm grid place-items-center hover:opacity-90 transition"
               >
                 Order on WhatsApp
-              </a>
+              </button>
             </div>
+            <OrderDetailsForm
+              open={detailsOpen}
+              onClose={() => setDetailsOpen(false)}
+              onSubmit={handleDetailsSubmit}
+            />
           </footer>
         )}
       </aside>

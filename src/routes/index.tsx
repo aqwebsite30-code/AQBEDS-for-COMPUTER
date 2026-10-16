@@ -3,7 +3,7 @@ import { motion, useMotionValue, useTransform, useSpring, useInView } from "fram
 import { CATEGORIES, PRODUCTS } from "@/features/products/data/products";
 import { ProductCard } from "@/features/products/components/ProductCard";
 import { responsiveSrc } from "@/lib/responsive-image";
-import { TESTIMONIALS } from "@/features/home/data/testimonials";
+import { REVIEWS_SORTED } from "@/lib/reviews";
 import { HeroCarousel } from "@/components/ui/HeroCarousel";
 import { ArrowRight, Truck, MessageCircle, ShieldCheck, Wallet } from "lucide-react";
 import React, { useRef, lazy, Suspense, useState, useEffect } from "react";
@@ -134,7 +134,7 @@ function Home() {
     .filter(Boolean) as typeof PRODUCTS;
   const disableHero = typeof window !== "undefined" && (window as any).__AQ_FLAGS?.DISABLE_HERO;
 
-  const reviews = TESTIMONIALS;
+  const reviews = REVIEWS_SORTED;
 
   return (
     <div className="overflow-x-hidden">
@@ -212,7 +212,7 @@ function Home() {
                     responsiveSrc(CATEGORIES.find((c) => c.slug === "all-beds")?.image ?? "").srcSet
                   }
                   sizes="(min-width: 768px) 50vw, 100vw"
-                  alt="Panel Line bed"
+                  alt="All Beds"
                   className="h-full w-full object-cover transition-transform duration-700 md:group-hover:scale-110"
                   loading="eager"
                   fetchPriority="high"

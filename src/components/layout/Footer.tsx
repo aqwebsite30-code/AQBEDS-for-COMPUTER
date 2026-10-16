@@ -1,9 +1,14 @@
 import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { CATEGORIES } from "@/features/products/data/products";
 import { buildWhatsAppUrl } from "@/lib/utils/format";
 import { Mail, ArrowRight, MapPin, Phone, ShieldCheck, Truck, MessageCircle } from "lucide-react";
 
 export function Footer() {
+  const [secure, setSecure] = useState(false);
+  useEffect(() => {
+    setSecure(window.location.protocol === "https:");
+  }, []);
   return (
     <footer className="relative overflow-hidden bg-[#040d1a] text-white [content-visibility:auto] [contain-intrinsic-size:0_400px]">
       <div className="absolute -left-20 top-20 h-64 w-64 rounded-full bg-[#0B3C5D]/40 blur-3xl pointer-events-none" />
@@ -179,6 +184,7 @@ export function Footer() {
       <div className="relative border-t border-white/8">
         <div className="mx-auto max-w-7xl px-4 py-6 flex flex-wrap items-center justify-between gap-4">
           <span className="text-xs text-white/30">© 2018–2026 AQ Beds. All rights reserved.</span>
+          {secure && <span className="text-xs text-white/30">Secure SSL Site</span>}
           <div className="flex items-center gap-6 text-xs text-white/30">
             <Link to="/privacy" className="hover:text-white/60 transition-colors">
               Privacy Policy

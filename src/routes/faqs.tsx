@@ -52,7 +52,7 @@ const faqs = [
   {
     question: "What is your return policy?",
     answer:
-      "Returns are accepted at the door only — when your order is delivered. Inspect the bed before the courier leaves, and if anything is wrong, report it on the spot and we'll take it back there and then.",
+      "At-Door Returns: returns are accepted at the time of delivery only. Please inspect your item before the courier leaves and report any damage or issue on the spot.",
   },
   {
     question: "Do you offer replacements?",

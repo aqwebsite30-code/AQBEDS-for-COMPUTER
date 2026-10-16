@@ -2,12 +2,25 @@ import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { trackPixelWithId, getClientTrackingData } from "@/lib/meta-pixel";
 import { sendAddToCartEvent, sendViewContentEvent } from "@/lib/meta-capi";
+import { trackEvent } from "@/lib/analytics";
 
 import { getProduct, PRODUCTS, DISCOUNT_POSTCODES } from "@/features/products/data/products";
 import { getDbProductBySlug } from "@/lib/products";
-import { formatGBP } from "@/lib/utils/format";
+import { formatGBP, buildWhatsAppUrl } from "@/lib/utils/format";
+import { getDeliveryWindow } from "@/lib/delivery-date";
+import { buildOrderMessage, type CustomerDetails, type SelectionRow } from "@/lib/whatsapp-order";
+import { OrderDetailsForm } from "@/components/OrderDetailsForm";
 import { useCart, useUI, useWishlist } from "@/features/cart/store/cart";
 import { ProductCard } from "@/features/products/components/ProductCard";
+import { ReviewCard } from "@/components/reviews/ReviewCard";
+import {
+  REVIEW_AVG_LABEL,
+  REVIEW_COUNT,
+  TOP_REVIEWS,
+  shuffle,
+  aggregateRatingJsonLd,
+  reviewJsonLd,
+} from "@/lib/reviews";
 import { Truck, ShieldCheck, Heart, Minus, Plus, ShoppingBag, MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -120,6 +133,8 @@ export const Route = createFileRoute("/product/$slug")({
               description: loaderData.product.description,
               image: `https://www.aqbeds.com${loaderData.product.images[0]}`,
               brand: { "@type": "Brand", name: "AQ Beds" },
+              aggregateRating: aggregateRatingJsonLd(),
+              review: TOP_REVIEWS.map(reviewJsonLd),
               offers: {
                 "@type": "Offer",
                 price: loaderData.product.basePrice,
@@ -356,6 +371,11 @@ function ProductPage() {
       client_user_agent: typeof navigator !== "undefined" ? navigator.userAgent : "",
       ...trackingData,
     }).catch(() => {});
+    trackEvent("ViewContent", {
+      productId: product.id,
+      productName: product.name,
+      value: product.basePrice,
+    });
   }, [product.id]);
 
   const isSofa = product.category === "sofas";
@@ -386,6 +406,12 @@ function ProductPage() {
   const [qty, setQty] = useState(1);
   const [postalCode, setPostalCode] = useState("");
   const [instructions, setInstructions] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [displayReviews, setDisplayReviews] = useState(TOP_REVIEWS);
+
+  useEffect(() => {
+    setDisplayReviews(shuffle(TOP_REVIEWS));
+  }, []);
 
   const [showSummary, setShowSummary] = useState(false);
   const galleryRef = useRef<HTMLDivElement>(null);
@@ -573,16 +599,54 @@ function ProductPage() {
     }
   };
 
-  const selectedOptions: Record<string, string> = {
-    ...(size && { Size: size.name }),
-    ...(color && { Color: color.name }),
-    ...(fabric && { Fabric: fabric.name }),
-    ...(mattress && { Mattress: mattress.name }),
-    ...(headboardOpt && { Headboard: headboardOpt.name }),
-    ...(storage && { Storage: storage.name }),
-    ...(discount > 0 && { "Local Discount": "-£20 applied" }),
-    ...(instructions && { Instructions: instructions }),
+  const markValue = (name: string, delta: number, freeTier: boolean): string => {
+    if (delta > 0) return `${name} +£${delta}`;
+    if (freeTier && !/\(free/i.test(name)) return `${name} (Free)`;
+    return name;
   };
+
+  const storageDelta = (() => {
+    if (!storage || storage.name === "No Storage") return 0;
+    if ((storage as { included?: boolean }).included === true) return 0;
+    if (
+      storage.name.toLowerCase().includes("ottoman") ||
+      storage.name.toLowerCase().includes("gas lift")
+    ) {
+      return ottomanSurcharge;
+    }
+    return storage.extraPrice;
+  })();
+
+  const assemblyDelta = (() => {
+    if (!frame) return 0;
+    if (frame.name !== "No Assembly" && frame.name.toLowerCase().includes("assembly")) {
+      return assemblySurcharge;
+    }
+    return frame.extraPrice;
+  })();
+
+  // ONE SOURCE: renders "Your Selection" AND builds the WhatsApp message.
+  const selectionRows: SelectionRow[] = [
+    ...(size ? [{ label: "Size", value: size.name }] : []),
+    ...(color ? [{ label: "Colour", value: color.name }] : []),
+    ...(fabric
+      ? [{ label: "Fabric", value: markValue(fabric.name, fabric.extraPrice, false) }]
+      : []),
+    ...(mattress
+      ? [{ label: "Mattress", value: markValue(mattress.name, mattress.extraPrice, true) }]
+      : []),
+    ...(headboardOpt
+      ? [{ label: "Headboard", value: markValue(headboardOpt.name, headboardOpt.extraPrice, true) }]
+      : []),
+    ...(storage ? [{ label: "Storage", value: markValue(storage.name, storageDelta, false) }] : []),
+    ...(frame ? [{ label: "Assembly", value: markValue(frame.name, assemblyDelta, false) }] : []),
+    ...(discount > 0 ? [{ label: "Local Discount", value: "-£20 applied" }] : []),
+    ...(instructions ? [{ label: "Instructions", value: instructions }] : []),
+  ];
+
+  const selectedOptions: Record<string, string> = Object.fromEntries(
+    selectionRows.map((r) => [r.label, r.value]),
+  );
 
   const onAdd = () => {
     add({
@@ -611,14 +675,33 @@ function ProductPage() {
       client_user_agent: navigator.userAgent,
       ...trackingData,
     }).catch(() => {});
+    trackEvent("AddToCart", {
+      productId: product.id,
+      productName: product.name,
+      value: unitPrice,
+    });
     setCartOpen(true);
   };
 
-  const waMessage = `Hello AQ Beds, I want to order this bed:%0A%0A*${product.name}*%0A${Object.entries(
-    selectedOptions,
-  )
-    .map(([k, v]) => `• ${k}: ${v}`)
-    .join("%0A")}%0A• Qty: ${qty}%0A%0ATotal: ${formatGBP(total)}`;
+  const openWhatsAppOrder = () => setDetailsOpen(true);
+
+  const handleDetailsSubmit = (details: CustomerDetails) => {
+    const message = buildOrderMessage(
+      [
+        {
+          name: product.name,
+          qty,
+          unitPrice,
+          rows: selectionRows,
+          url: typeof window !== "undefined" ? window.location.href : undefined,
+        },
+      ],
+      details,
+      { arrival: getDeliveryWindow(new Date()) },
+    );
+    window.open(buildWhatsAppUrl(message), "_blank", "noopener,noreferrer");
+    setDetailsOpen(false);
+  };
 
   return (
     <div className="animate-fade-in bg-background">
@@ -1022,10 +1105,10 @@ function ProductPage() {
             >
               <h2 className="font-display font-semibold">Your Selection</h2>
               <ul className="text-sm space-y-1 text-muted-foreground">
-                {Object.entries(selectedOptions).map(([k, v]) => (
-                  <li key={k} className="flex justify-between">
-                    <span>{k}</span>
-                    <span className="text-foreground">{v}</span>
+                {selectionRows.map((row) => (
+                  <li key={row.label} className="flex justify-between gap-4">
+                    <span>{row.label}</span>
+                    <span className="text-foreground text-right">{row.value}</span>
                   </li>
                 ))}
               </ul>
@@ -1058,6 +1141,30 @@ function ProductPage() {
               </div>
             </div>
 
+            <Link
+              to="/reviews"
+              className="mt-5 block rounded-2xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-center text-sm font-black text-amber-600 transition-colors hover:bg-amber-400/20 dark:text-amber-400"
+            >
+              ★ {REVIEW_AVG_LABEL} · {REVIEW_COUNT} Reviews — AQ Beds
+            </Link>
+
+            <div className="mt-5 rounded-2xl border border-cta/30 bg-cta/5 px-4 py-3 text-center">
+              <p className="text-sm font-black text-brand">Pay NOTHING online — Cash on Delivery</p>
+              <p className="mt-1 text-xs font-medium text-muted-foreground">
+                At-Door Returns — courier waits while you check
+              </p>
+            </div>
+
+            <div className="mt-4 space-y-1.5">
+              <p className="text-xs font-black uppercase tracking-wider text-brand">
+                RISK-FREE ORDERING
+              </p>
+              <p className="text-sm font-medium text-foreground/85">Pay NOTHING online</p>
+              <p className="text-sm font-medium text-foreground/85">Inspect the bed at your door</p>
+              <p className="text-sm font-medium text-foreground/85">Pay cash ONLY if you love it</p>
+              <p className="text-sm font-medium text-foreground/85">Courier waits for your OK</p>
+            </div>
+
             <div className="mt-5 grid sm:grid-cols-2 gap-3">
               <button
                 onClick={onAdd}
@@ -1065,22 +1172,50 @@ function ProductPage() {
               >
                 <ShoppingBag className="h-5 w-5" /> Add To Basket
               </button>
-              <a
-                href={`https://wa.me/447519791128?text=${waMessage}`}
-                target="_blank"
-                rel="noreferrer"
+              <button
+                type="button"
+                onClick={openWhatsAppOrder}
                 className="h-14 rounded-2xl bg-whatsapp text-white font-black flex items-center justify-center gap-3 shadow-lg text-center leading-tight px-3"
               >
                 <MessageCircle className="h-5 w-5 shrink-0" /> Order via WhatsApp — we reply in
                 minutes
-              </a>
+              </button>
             </div>
             <p className="mt-3 text-[11px] text-muted-foreground text-center leading-relaxed">
-              🔒 Secure checkout · Pay on delivery available · Free UK delivery · Next Day Free
+              Secure checkout · Pay on delivery available · Free UK delivery · Next Day Free
               Replacement
             </p>
+            <OrderDetailsForm
+              open={detailsOpen}
+              onClose={() => setDetailsOpen(false)}
+              onSubmit={handleDetailsSubmit}
+            />
           </div>
         </div>
+
+        <section className="mt-16">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-brand/60">
+                Customer reviews
+              </p>
+              <h2 className="font-display text-2xl font-bold sm:text-3xl">
+                What our customers say
+              </h2>
+            </div>
+            <Link
+              to="/reviews"
+              className="inline-flex h-11 items-center rounded-2xl border border-border px-5 text-sm font-bold transition-colors hover:border-brand/40"
+            >
+              Read all {REVIEW_COUNT} reviews →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-3">
+            {displayReviews.map((r) => (
+              <ReviewCard key={`${r.author}-${r.date}`} review={r} clamp />
+            ))}
+          </div>
+        </section>
 
         {related.length > 0 && (
           <section className="mt-20">

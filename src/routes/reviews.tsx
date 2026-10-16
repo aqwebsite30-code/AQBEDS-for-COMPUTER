@@ -1,11 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { Star } from "lucide-react";
-import { TESTIMONIALS } from "@/features/home/data/testimonials";
+import { ReviewCard } from "@/components/reviews/ReviewCard";
+import {
+  REVIEWS_SORTED,
+  REVIEW_AVG,
+  REVIEW_COUNT,
+  REVIEW_AVG_LABEL,
+  aggregateRatingJsonLd,
+  reviewJsonLd,
+} from "@/lib/reviews";
 
 export const Route = createFileRoute("/reviews")({
   head: () => {
-    const avg = TESTIMONIALS.reduce((sum, r) => sum + r.rating, 0) / TESTIMONIALS.length;
-    const description = `${avg.toFixed(1)} out of 5 from ${TESTIMONIALS.length} customer reviews of AQ Beds beds, sofas and wardrobes. Free UK delivery. Cash on delivery available.`;
+    const description = `${REVIEW_AVG_LABEL} out of 5 from ${REVIEW_COUNT} customer reviews of AQ Beds beds, sofas and wardrobes. Free UK delivery. Cash on delivery available.`;
     return {
       meta: [
         { title: "Customer Reviews | AQ Beds" },
@@ -26,14 +34,36 @@ export const Route = createFileRoute("/reviews")({
         },
       ],
       links: [{ rel: "canonical", href: "https://www.aqbeds.com/reviews" }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: "Customer Reviews | AQ Beds",
+            url: "https://www.aqbeds.com/reviews",
+            aggregateRating: aggregateRatingJsonLd(),
+            review: REVIEWS_SORTED.map(reviewJsonLd),
+          }),
+        },
+      ],
     };
   },
   component: ReviewsPage,
 });
 
 function ReviewsPage() {
-  const avg = TESTIMONIALS.reduce((sum, r) => sum + r.rating, 0) / TESTIMONIALS.length;
-  const stars = Math.round(avg);
+  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
+  const [sort, setSort] = useState<"newest" | "highest">("newest");
+
+  const stars = Math.round(REVIEW_AVG);
+  const ratingOptions = [...new Set(REVIEWS_SORTED.map((r) => r.rating))].sort((a, b) => b - a);
+
+  let visible = REVIEWS_SORTED;
+  if (ratingFilter !== null) visible = visible.filter((r) => r.rating === ratingFilter);
+  if (sort === "highest") {
+    visible = [...visible].sort((a, b) => b.rating - a.rating || b.date.localeCompare(a.date));
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-16 sm:py-20 animate-fade-in">
@@ -45,6 +75,9 @@ function ReviewsPage() {
       </h1>
 
       <div className="mt-6 inline-flex items-center gap-3 rounded-full border border-brand/20 bg-brand/[0.06] px-5 py-2.5">
+        <span className="text-sm font-bold">
+          ★ {REVIEW_AVG_LABEL} out of 5 · {REVIEW_COUNT} Reviews
+        </span>
         <span className="flex gap-0.5" aria-hidden="true">
           {[0, 1, 2, 3, 4].map((i) => (
             <Star
@@ -53,34 +86,52 @@ function ReviewsPage() {
             />
           ))}
         </span>
-        <span className="text-sm font-bold">
-          {avg.toFixed(1)}/5 from {TESTIMONIALS.length} review{TESTIMONIALS.length === 1 ? "" : "s"}
-        </span>
       </div>
 
-      <div className="mt-10 grid gap-6 sm:grid-cols-2">
-        {TESTIMONIALS.map((r) => (
-          <figure
-            key={r.name}
-            className="rounded-3xl border border-border bg-card p-6 flex flex-col"
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by rating">
+          <button
+            onClick={() => setRatingFilter(null)}
+            className={`h-9 rounded-full border px-4 text-sm font-semibold transition-colors ${
+              ratingFilter === null
+                ? "border-brand bg-brand text-brand-foreground"
+                : "border-border bg-card hover:border-brand/40"
+            }`}
           >
-            <div className="flex gap-0.5 mb-4" aria-label={`${r.rating} out of 5 stars`}>
-              {[0, 1, 2, 3, 4].map((i) => (
-                <Star
-                  key={i}
-                  className={`h-4 w-4 ${i < r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`}
-                />
-              ))}
-            </div>
-            <blockquote className="text-sm text-foreground/85 leading-relaxed italic flex-1">
-              "{r.comment}"
-            </blockquote>
-            <figcaption className="mt-5 pt-4 border-t border-border/60 text-sm">
-              <span className="font-bold text-brand">{r.name}</span>
-              <span className="text-muted-foreground"> · {r.city}</span>
-              <p className="text-xs text-muted-foreground mt-1">Product: {r.product}</p>
-            </figcaption>
-          </figure>
+            All ({REVIEW_COUNT})
+          </button>
+          {ratingOptions.map((r) => (
+            <button
+              key={r}
+              onClick={() => setRatingFilter(r)}
+              className={`h-9 rounded-full border px-4 text-sm font-semibold transition-colors ${
+                ratingFilter === r
+                  ? "border-brand bg-brand text-brand-foreground"
+                  : "border-border bg-card hover:border-brand/40"
+              }`}
+            >
+              {r} ★ ({REVIEWS_SORTED.filter((x) => x.rating === r).length})
+            </button>
+          ))}
+        </div>
+        <label className="flex items-center gap-2 text-sm">
+          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Sort
+          </span>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as "newest" | "highest")}
+            className="h-9 rounded-xl border border-border bg-card px-3 text-sm font-semibold outline-none focus:border-brand"
+          >
+            <option value="newest">Newest first</option>
+            <option value="highest">Highest rated</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="mt-8 grid gap-6 sm:grid-cols-2">
+        {visible.map((r) => (
+          <ReviewCard key={`${r.author}-${r.date}`} review={r} />
         ))}
       </div>
 

@@ -23,6 +23,10 @@
       "dest": "/api/ai-chat.js"
     },
     {
+      "src": "/api/analytics",
+      "dest": "/api/analytics.js"
+    },
+    {
       "src": "/",
       "dest": "/api/index"
     },
