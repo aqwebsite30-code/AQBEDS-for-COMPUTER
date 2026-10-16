@@ -1,5 +1,7 @@
-import { formatGBP } from "./utils/format";
+import { buildWhatsAppUrl, formatGBP } from "./utils/format";
 import type { ArrivalWindow } from "./delivery-date";
+import { trackPixelWithId, getClientTrackingData } from "./meta-pixel";
+import { sendWhatsAppPurchaseEvent } from "./meta-capi";
 
 export type CustomerDetails = {
   name: string;
@@ -12,6 +14,7 @@ export type CustomerDetails = {
 export type SelectionRow = { label: string; value: string };
 
 export type OrderMessageItem = {
+  id: string;
   name: string;
   qty: number;
   unitPrice: number;
@@ -135,4 +138,63 @@ export function buildOrderMessage(
     message = assemble(false, rowCap);
   }
   return message;
+}
+
+// ─── WhatsApp open — Meta Purchase (Pixel + CAPI, deduplicated) ──────────────
+// Fire rule: ONLY at the moment a validated wa.me order tab actually opens —
+// never on button click, modal open, validation failure, or cancel.
+// Exactly one Purchase per open: the re-entry guard also suppresses duplicate
+// tabs when the same button is double-clicked. Pixel eventID === CAPI event_id.
+
+let lastWhatsAppOpenAt = 0;
+const OPEN_REENTRY_MS = 1500;
+
+export function openWhatsAppOrder(payload: {
+  items: OrderMessageItem[];
+  customer: CustomerDetails;
+  arrival?: ArrivalWindow | null;
+  orderNo?: string;
+}): void {
+  if (typeof window === "undefined") return;
+
+  const now = Date.now();
+  if (now - lastWhatsAppOpenAt < OPEN_REENTRY_MS) return;
+  lastWhatsAppOpenAt = now;
+
+  const message = buildOrderMessage(payload.items, payload.customer, {
+    arrival: payload.arrival,
+    orderNo: payload.orderNo,
+  });
+
+  const value = payload.items.reduce((sum, i) => sum + i.unitPrice * i.qty, 0);
+  const numItems = payload.items.reduce((sum, i) => sum + i.qty, 0);
+  const contents = payload.items.map((i) => ({
+    id: i.id,
+    quantity: i.qty,
+    item_price: i.unitPrice,
+  }));
+
+  const eventId = trackPixelWithId("Purchase", {
+    value,
+    currency: "GBP",
+    content_type: "product",
+    contents,
+    num_items: numItems,
+  });
+
+  const nameParts = payload.customer.name.trim().split(/\s+/);
+  void sendWhatsAppPurchaseEvent({
+    event_id: eventId,
+    value,
+    currency: "GBP",
+    contents,
+    customer_phone: payload.customer.phone,
+    customer_first_name: nameParts[0] || "",
+    customer_last_name: nameParts.slice(1).join(" "),
+    customer_city: payload.customer.city,
+    customer_postcode: payload.customer.postcode,
+    ...getClientTrackingData(),
+  });
+
+  window.open(buildWhatsAppUrl(message), "_blank", "noopener,noreferrer");
 }

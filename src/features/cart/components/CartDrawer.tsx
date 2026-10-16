@@ -2,10 +2,10 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { X, Trash2, Minus, Plus } from "lucide-react";
 import { useCart, useUI } from "@/features/cart/store/cart";
-import { formatGBP, buildWhatsAppUrl } from "@/lib/utils/format";
+import { formatGBP } from "@/lib/utils/format";
 import { getDeliveryWindow } from "@/lib/delivery-date";
 import {
-  buildOrderMessage,
+  openWhatsAppOrder,
   rowsFromOptionsRecord,
   type CustomerDetails,
 } from "@/lib/whatsapp-order";
@@ -17,9 +17,10 @@ export function CartDrawer() {
   const { items, updateQty, remove, subtotal, total } = useCart();
   const [detailsOpen, setDetailsOpen] = useState(false);
 
-  const buildDrawerMessage = (details: CustomerDetails): string =>
-    buildOrderMessage(
-      items.map((i) => ({
+  const handleDetailsSubmit = (details: CustomerDetails) => {
+    openWhatsAppOrder({
+      items: items.map((i) => ({
+        id: i.productId,
         name: i.name,
         qty: i.qty,
         unitPrice: i.unitPrice,
@@ -29,12 +30,9 @@ export function CartDrawer() {
             ? `${window.location.origin}/product/${i.productId}`
             : undefined,
       })),
-      details,
-      { arrival: getDeliveryWindow(new Date()) },
-    );
-
-  const handleDetailsSubmit = (details: CustomerDetails) => {
-    window.open(buildWhatsAppUrl(buildDrawerMessage(details)), "_blank", "noopener,noreferrer");
+      customer: details,
+      arrival: getDeliveryWindow(new Date()),
+    });
     setDetailsOpen(false);
     setOpen(false);
   };

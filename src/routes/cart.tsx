@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useCart } from "@/features/cart/store/cart";
-import { formatGBP, buildWhatsAppUrl } from "@/lib/utils/format";
+import { formatGBP } from "@/lib/utils/format";
 import { getDeliveryWindow } from "@/lib/delivery-date";
 import {
-  buildOrderMessage,
+  openWhatsAppOrder,
   rowsFromOptionsRecord,
   type CustomerDetails,
 } from "@/lib/whatsapp-order";
@@ -46,8 +46,9 @@ function CartPage() {
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   const handleDetailsSubmit = (details: CustomerDetails) => {
-    const message = buildOrderMessage(
-      items.map((i) => ({
+    openWhatsAppOrder({
+      items: items.map((i) => ({
+        id: i.productId,
         name: i.name,
         qty: i.qty,
         unitPrice: i.unitPrice,
@@ -57,10 +58,9 @@ function CartPage() {
             ? `${window.location.origin}/product/${i.productId}`
             : undefined,
       })),
-      details,
-      { arrival: getDeliveryWindow(new Date()) },
-    );
-    window.open(buildWhatsAppUrl(message), "_blank", "noopener,noreferrer");
+      customer: details,
+      arrival: getDeliveryWindow(new Date()),
+    });
     setDetailsOpen(false);
   };
 

@@ -15,6 +15,7 @@ import { getDeliveryWindow, type ArrivalWindow } from "@/lib/delivery-date";
 import {
   buildOrderMessage,
   missingCustomerFields,
+  openWhatsAppOrder,
   rowsFromOptionsRecord,
   type CustomerDetails,
 } from "@/lib/whatsapp-order";
@@ -202,6 +203,7 @@ function CheckoutPage() {
       };
       const message = buildOrderMessage(
         items.map((i) => ({
+          id: i.productId,
           name: i.name,
           qty: i.qty,
           unitPrice: i.unitPrice,
@@ -284,6 +286,7 @@ function CheckoutPage() {
     setWaMissing([]);
     const message = buildOrderMessage(
       items.map((i) => ({
+        id: i.productId,
         name: i.name,
         qty: i.qty,
         unitPrice: i.unitPrice,
@@ -297,6 +300,37 @@ function CheckoutPage() {
       { arrival, orderNo },
     );
     return `https://wa.me/${WHATSAPP_NUMBER.replace(/\+/g, "")}?text=${encodeURIComponent(message)}`;
+  };
+
+  // Pre-order "Order on WhatsApp": validates live form values, then — only when
+  // all five required details are present — fires the shared Purchase events
+  // (Pixel eventID + CAPI event_id) and opens the wa.me tab. Returns false with
+  // the missing fields highlighted; no events fire on validation failure.
+  const openCheckoutWhatsApp = (form: HTMLFormElement | null): boolean => {
+    if (!form) return false;
+    const details = readCustomer(form);
+    const missing = missingCustomerFields(details);
+    if (missing.length > 0) {
+      highlightMissing(missing);
+      return false;
+    }
+    setWaMissing([]);
+    openWhatsAppOrder({
+      items: items.map((i) => ({
+        id: i.productId,
+        name: i.name,
+        qty: i.qty,
+        unitPrice: i.unitPrice,
+        rows: rowsFromOptionsRecord(i.options),
+        url:
+          typeof window !== "undefined"
+            ? `${window.location.origin}/product/${i.productId}`
+            : undefined,
+      })),
+      customer: details,
+      arrival,
+    });
+    return true;
   };
 
   return (
@@ -415,8 +449,7 @@ function CheckoutPage() {
           <button
             type="button"
             onClick={(e) => {
-              const url = checkoutWaUrl((e.currentTarget as HTMLButtonElement).form);
-              if (url) window.open(url, "_blank", "noopener,noreferrer");
+              openCheckoutWhatsApp((e.currentTarget as HTMLButtonElement).form);
             }}
             className="w-full min-h-[48px] rounded-2xl bg-whatsapp text-white font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-lg"
           >

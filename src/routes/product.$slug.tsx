@@ -6,9 +6,9 @@ import { trackEvent } from "@/lib/analytics";
 
 import { getProduct, PRODUCTS, DISCOUNT_POSTCODES } from "@/features/products/data/products";
 import { getDbProductBySlug } from "@/lib/products";
-import { formatGBP, buildWhatsAppUrl } from "@/lib/utils/format";
+import { formatGBP } from "@/lib/utils/format";
 import { getDeliveryWindow } from "@/lib/delivery-date";
-import { buildOrderMessage, type CustomerDetails, type SelectionRow } from "@/lib/whatsapp-order";
+import { openWhatsAppOrder, type CustomerDetails, type SelectionRow } from "@/lib/whatsapp-order";
 import { OrderDetailsForm } from "@/components/OrderDetailsForm";
 import { useCart, useUI, useWishlist } from "@/features/cart/store/cart";
 import { ProductCard } from "@/features/products/components/ProductCard";
@@ -683,12 +683,13 @@ function ProductPage() {
     setCartOpen(true);
   };
 
-  const openWhatsAppOrder = () => setDetailsOpen(true);
+  const openDetailsForm = () => setDetailsOpen(true);
 
   const handleDetailsSubmit = (details: CustomerDetails) => {
-    const message = buildOrderMessage(
-      [
+    openWhatsAppOrder({
+      items: [
         {
+          id: product.id,
           name: product.name,
           qty,
           unitPrice,
@@ -696,10 +697,9 @@ function ProductPage() {
           url: typeof window !== "undefined" ? window.location.href : undefined,
         },
       ],
-      details,
-      { arrival: getDeliveryWindow(new Date()) },
-    );
-    window.open(buildWhatsAppUrl(message), "_blank", "noopener,noreferrer");
+      customer: details,
+      arrival: getDeliveryWindow(new Date()),
+    });
     setDetailsOpen(false);
   };
 
@@ -1174,7 +1174,7 @@ function ProductPage() {
               </button>
               <button
                 type="button"
-                onClick={openWhatsAppOrder}
+                onClick={openDetailsForm}
                 className="h-14 rounded-2xl bg-whatsapp text-white font-black flex items-center justify-center gap-3 shadow-lg text-center leading-tight px-3"
               >
                 <MessageCircle className="h-5 w-5 shrink-0" /> Order via WhatsApp — we reply in

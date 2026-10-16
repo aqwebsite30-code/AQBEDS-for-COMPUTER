@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X } from "lucide-react";
 import {
@@ -61,7 +62,11 @@ export function OrderDetailsForm({
     onSubmit(details);
   };
 
-  return (
+  // Portal to document.body: page containers carry a filled `animate-fade-in`
+  // animation whose stacking context would trap this z-[10000] modal under the
+  // site footer (footer paints above the modal — Continue becomes unclickable).
+  if (typeof document === "undefined") return null;
+  return createPortal(
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
@@ -150,6 +155,7 @@ export function OrderDetailsForm({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

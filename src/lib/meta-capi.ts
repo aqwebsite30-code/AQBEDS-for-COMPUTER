@@ -318,3 +318,51 @@ export async function sendPageViewEvent(payload: {
   });
   return { success: true };
 }
+
+// ─── Purchase — WhatsApp open (deduped with the Pixel Purchase) ──────────────
+// Fires ONLY when a validated wa.me order tab actually opens. Shares the
+// pixel's event_id (same field set as every other event here — no extras).
+
+export async function sendWhatsAppPurchaseEvent(payload: {
+  event_id?: string;
+  value: number;
+  currency: "GBP";
+  contents: { id: string; quantity: number; item_price: number }[];
+  client_user_agent?: string;
+  customer_email?: string;
+  customer_phone?: string;
+  customer_first_name?: string;
+  customer_last_name?: string;
+  customer_city?: string;
+  customer_postcode?: string;
+  external_id?: string;
+  fbp?: string;
+  fbc?: string;
+  test_event_code?: string;
+}): Promise<{ success: boolean }> {
+  await postToCAPI({
+    event_name: "Purchase",
+    event_time: Math.floor(Date.now() / 1000),
+    event_id: payload.event_id,
+    user_data: {
+      em: payload.customer_email || "",
+      ph: payload.customer_phone || "",
+      fn: payload.customer_first_name || "",
+      ln: payload.customer_last_name || "",
+      ct: payload.customer_city || "",
+      zp: payload.customer_postcode || "",
+      external_id: payload.external_id || "",
+      fbp: payload.fbp || "",
+      fbc: payload.fbc || "",
+    },
+    custom_data: {
+      value: payload.value,
+      currency: payload.currency,
+      contents: payload.contents,
+    },
+    action_source: "website",
+    client_user_agent: payload.client_user_agent,
+    test_event_code: payload.test_event_code,
+  });
+  return { success: true };
+}
