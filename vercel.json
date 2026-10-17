@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "aqbeds",
   "buildCommand": "npm run build",
   "framework": null,

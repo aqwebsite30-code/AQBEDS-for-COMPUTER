@@ -1,4 +1,4 @@
-﻿// WhatsApp order lead capture — admin sales data for /admin/analytics.
+// WhatsApp order lead capture — admin sales data for /admin/analytics.
 //
 // IMPORTANT: completely separate from the Meta Pixel + CAPI pipeline. The
 // browser fire-and-forgets this beacon at the same moment the deduped Meta
