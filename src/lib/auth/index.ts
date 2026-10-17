@@ -25,14 +25,17 @@ const changePassSchema = z.object({
   newPass: z.string().min(6, "New key must be at least 6 characters."),
 });
 
-const JWT_SECRET = process.env.JWT_SECRET;
+// Read lazily: Vite dev does not load .env into process.env at module-load time
+// (Vercel injects env at process start). Prisma self-loads .env during init, so
+// by request time the secret is present. Prod behavior is unchanged.
+const getJwtSecret = () => process.env.JWT_SECRET;
 
 // ─── AUTH MIDDLEWARE ──────────────────────────────────────────────────────────
 export async function verifyAuth(token?: string) {
-  if (!token || !JWT_SECRET || typeof window !== "undefined") return null;
+  if (!token || !getJwtSecret() || typeof window !== "undefined") return null;
   try {
     const jwt = await import("jsonwebtoken");
-    const decoded = jwt.default.verify(token, JWT_SECRET) as { id: string; role: string };
+    const decoded = jwt.default.verify(token, getJwtSecret()!) as { id: string; role: string };
     return decoded;
   } catch (err) {
     return null;
@@ -69,7 +72,7 @@ export const loginAdmin = createServerFn({ method: "POST" }).handler(
       const jwt = await import("jsonwebtoken");
       const token = jwt.default.sign(
         { id: admin.id, role: admin.role },
-        JWT_SECRET || "fallback_only_for_dev",
+        getJwtSecret() || "fallback_only_for_dev",
         { expiresIn: "1d" },
       );
       return { success: true as const, token };

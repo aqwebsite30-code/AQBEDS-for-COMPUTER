@@ -699,6 +699,7 @@ function ProductPage() {
       ],
       customer: details,
       arrival: getDeliveryWindow(new Date()),
+      source: "pdp",
     });
     setDetailsOpen(false);
   };

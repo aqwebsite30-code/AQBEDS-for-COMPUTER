@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useCart } from "../features/cart/store/cart";
 import { formatGBP, WHATSAPP_NUMBER } from "../lib/utils/format";
 import { CheckCircle2, Loader2, MessageSquare, MessageCircle, ArrowLeft } from "lucide-react";
@@ -329,6 +330,7 @@ function CheckoutPage() {
       })),
       customer: details,
       arrival,
+      source: "checkout",
     });
     return true;
   };
@@ -464,93 +466,97 @@ function CheckoutPage() {
         </aside>
       </form>
 
-      <AnimatePresence>
-        {placed && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-brand/40 backdrop-blur-md"
-            />
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 30 }}
-              animate={{
-                scale: 1,
-                opacity: 1,
-                y: 0,
-                transition: {
-                  type: "spring",
-                  damping: 20,
-                  stiffness: 300,
-                },
-              }}
-              exit={{ scale: 0.95, opacity: 0, y: 10 }}
-              className="relative w-full max-w-md bg-gradient-to-br from-brand to-brand-accent border border-white/20 rounded-[40px] p-10 overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.4)]"
-            >
-              <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12">
-                <CheckCircle2 className="w-40 h-40 text-white" />
+      {placed && typeof document !== "undefined"
+        ? createPortal(
+            <AnimatePresence>
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-brand/40 backdrop-blur-md"
+                />
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0, y: 30 }}
+                  animate={{
+                    scale: 1,
+                    opacity: 1,
+                    y: 0,
+                    transition: {
+                      type: "spring",
+                      damping: 20,
+                      stiffness: 300,
+                    },
+                  }}
+                  exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                  className="relative w-full max-w-md bg-gradient-to-br from-brand to-brand-accent border border-white/20 rounded-[40px] p-10 overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.4)]"
+                >
+                  <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12">
+                    <CheckCircle2 className="w-40 h-40 text-white" />
+                  </div>
+
+                  <div className="flex flex-col items-center text-center space-y-8 relative z-10">
+                    <div className="w-24 h-24 bg-white/10 rounded-3xl flex items-center justify-center border border-white/20 shadow-inner rotate-3">
+                      <CheckCircle2 className="w-12 h-12 text-white" />
+                    </div>
+
+                    <div className="space-y-3">
+                      <h2 className="text-3xl font-display font-bold text-white tracking-tight leading-tight">
+                        Order confirmed!
+                      </h2>
+                      <p className="text-white/70 font-medium px-2">
+                        Thank you for choosing AQ Beds. Your premium sleep experience is being
+                        prepared.
+                      </p>
+                      <p className="text-white font-bold text-sm px-2">
+                        £0 today. Pay the courier when it arrives.
+                      </p>
+                    </div>
+
+                    <div className="w-full h-px bg-white/10" />
+
+                    <div className="space-y-4 w-full">
+                      <p className="text-white/60 text-sm font-medium italic">
+                        You will be notified shortly via WhatsApp.
+                      </p>
+
+                      <Link
+                        to="/"
+                        className="w-full h-14 rounded-2xl bg-white text-brand font-bold flex items-center justify-center gap-2 hover:bg-secondary transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
+                        Return Home
+                      </Link>
+                      <a
+                        href={whatsappUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const url = checkoutWaUrl(
+                            document.querySelector<HTMLFormElement>("form"),
+                            placedOrderNo,
+                          );
+                          if (url) window.open(url, "_blank", "noopener,noreferrer");
+                          else setPlaced(false);
+                        }}
+                        className="w-full h-14 rounded-2xl bg-whatsapp text-white font-bold flex items-center justify-center gap-2 hover:bg-whatsapp/90 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        <MessageSquare className="w-5 h-5" />
+                        Open WhatsApp
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Decorative elements */}
+                  <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-white/10 rounded-full blur-3xl" />
+                  <div className="absolute -top-12 -right-12 w-48 h-48 bg-cta/20 rounded-full blur-3xl" />
+                </motion.div>
               </div>
-
-              <div className="flex flex-col items-center text-center space-y-8 relative z-10">
-                <div className="w-24 h-24 bg-white/10 rounded-3xl flex items-center justify-center border border-white/20 shadow-inner rotate-3">
-                  <CheckCircle2 className="w-12 h-12 text-white" />
-                </div>
-
-                <div className="space-y-3">
-                  <h2 className="text-3xl font-display font-bold text-white tracking-tight leading-tight">
-                    Order confirmed!
-                  </h2>
-                  <p className="text-white/70 font-medium px-2">
-                    Thank you for choosing AQ Beds. Your premium sleep experience is being prepared.
-                  </p>
-                  <p className="text-white font-bold text-sm px-2">
-                    £0 today. Pay the courier when it arrives.
-                  </p>
-                </div>
-
-                <div className="w-full h-px bg-white/10" />
-
-                <div className="space-y-4 w-full">
-                  <p className="text-white/60 text-sm font-medium italic">
-                    You will be notified shortly via WhatsApp.
-                  </p>
-
-                  <Link
-                    to="/"
-                    className="w-full h-14 rounded-2xl bg-white text-brand font-bold flex items-center justify-center gap-2 hover:bg-secondary transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-                    Return Home
-                  </Link>
-                  <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      const url = checkoutWaUrl(
-                        document.querySelector<HTMLFormElement>("form"),
-                        placedOrderNo,
-                      );
-                      if (url) window.open(url, "_blank", "noopener,noreferrer");
-                      else setPlaced(false);
-                    }}
-                    className="w-full h-14 rounded-2xl bg-whatsapp text-white font-bold flex items-center justify-center gap-2 hover:bg-whatsapp/90 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <MessageSquare className="w-5 h-5" />
-                    Open WhatsApp
-                  </a>
-                </div>
-              </div>
-
-              {/* Decorative elements */}
-              <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-white/10 rounded-full blur-3xl" />
-              <div className="absolute -top-12 -right-12 w-48 h-48 bg-cta/20 rounded-full blur-3xl" />
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+            </AnimatePresence>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

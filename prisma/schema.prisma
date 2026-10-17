@@ -130,3 +130,28 @@ model AnalyticsEvent {
   @@index([sessionId])
   @@index([productId])
 }
+
+
+// WhatsApp order leads — captured exactly once per actual wa.me open, at the
+// same moment the deduped Meta Purchase fires (shares its event_id). Admin-only
+// sales data for /admin/analytics; completely separate from the Meta pipeline.
+// status starts as "new" (automatic) and is set manually to confirmed|lost.
+model WhatsAppLead {
+  id               String   @id @default(uuid())
+  eventId          String   @unique // dedupe key — shared with pixel/CAPI Purchase
+  source           String   // pdp | checkout | drawer | cart
+  value            Float?
+  currency         String   @default("GBP")
+  contents         String? // JSON: [{id,name,quantity,item_price}]
+  customerName     String?
+  customerPhone    String?
+  customerAddress  String?
+  customerCity     String?
+  customerPostcode String?
+  pageUrl          String?
+  status           String   @default("new") // new | confirmed | lost
+  createdAt        DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([status, createdAt])
+}

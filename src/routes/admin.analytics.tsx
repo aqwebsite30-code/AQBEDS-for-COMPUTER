@@ -12,26 +12,83 @@ import {
   Users,
   Clock,
   Package,
+  MessageCircle,
+  Banknote,
+  Layers,
+  Radio,
+  type LucideIcon,
 } from "lucide-react";
 import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
+  Legend,
 } from "recharts";
 import { db } from "@/lib/db";
 import { useState, useEffect } from "react";
 import { verifyAuth, adminToken } from "@/lib/auth";
 
+// --- Time helpers - all ranges and day grouping use Europe/London -----------
+
+/** Real instant when the London wall clock last hit 00:00 (DST-aware). */
+function londonDayStart(now: Date): Date {
+  const dtf = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+  const p: Record<string, string> = {};
+  for (const part of dtf.formatToParts(now)) p[part.type] = part.value;
+  const wall = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second);
+  const offset = wall - now.getTime();
+  const wallMidnight = Date.UTC(+p.year, +p.month - 1, +p.day);
+  return new Date(wallMidnight - offset);
+}
+
+/** Start instant for a range: 0 = All (epoch), 1 = Today, N = last N London days. */
+function sinceForRange(days: number, now: Date): Date {
+  if (days <= 0) return new Date(0);
+  const start = londonDayStart(now);
+  if (days === 1) return start;
+  return new Date(start.getTime() - (days - 1) * 864e5);
+}
+
+const VALID_RANGES = [0, 1, 7, 30, 90];
+
+function parseItemsJson(raw: string | null): { name?: string; qty?: number; quantity?: number }[] {
+  try {
+    const arr = JSON.parse(raw || "[]");
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+// Badge labels for the four WhatsApp order entry points.
+const SOURCE_BADGE: Record<string, string> = {
+  pdp: "WhatsApp-PDP",
+  checkout: "WhatsApp-Checkout",
+  drawer: "WhatsApp-Cart",
+  cart: "WhatsApp-Cart",
+};
+
 export const getAnalytics = createServerFn({ method: "GET" }).handler(
   async (opts?: { data?: { token?: string; days?: number } }) => {
     if (!(await verifyAuth(opts?.data?.token))) return null;
     const daysRaw = Number(opts?.data?.days);
-    const days = [7, 30, 90, 365].includes(daysRaw) ? daysRaw : 30;
-    const since = new Date(Date.now() - days * 864e5);
+    const days = VALID_RANGES.includes(daysRaw) ? daysRaw : 1;
+    const since = sinceForRange(days, new Date());
     try {
       // Counts are done in SQL so we never pull the whole table into memory.
       const counts = await db.$queryRaw<
@@ -63,6 +120,7 @@ export const getAnalytics = createServerFn({ method: "GET" }).handler(
         revenue: 0,
       };
 
+      // Daily buckets are London calendar days (not the DB server's timezone).
       const dailyRaw = await db.$queryRaw<
         {
           day: Date;
@@ -74,7 +132,7 @@ export const getAnalytics = createServerFn({ method: "GET" }).handler(
         }[]
       >`
         SELECT
-          date_trunc('day', "createdAt") AS day,
+          (timezone('Europe/London', "createdAt"))::date AS day,
           count(*) FILTER (WHERE event = 'PageView')::int         AS pageviews,
           count(*) FILTER (WHERE event = 'AddToCart')::int        AS addtocart,
           count(*) FILTER (WHERE event = 'InitiateCheckout')::int AS checkout,
@@ -156,9 +214,81 @@ export const getAnalytics = createServerFn({ method: "GET" }).handler(
         conversion: p.views > 0 ? (p.adds / p.views) * 100 : 0,
       }));
 
+      // -- Sales split: website checkout (existing pipeline) vs WhatsApp ----
+      const waAgg = await db.$queryRaw<{ cnt: number; sum: number }[]>`
+        SELECT count(*)::int AS cnt, COALESCE(sum(value), 0)::float AS sum
+        FROM "WhatsAppLead"
+        WHERE "createdAt" >= ${since}
+      `;
+      const waC = waAgg[0] ?? { cnt: 0, sum: 0 };
+
+      const waDailyRaw = await db.$queryRaw<{ day: Date; cnt: number; sum: number }[]>`
+        SELECT
+          (timezone('Europe/London', "createdAt"))::date AS day,
+          count(*)::int AS cnt,
+          COALESCE(sum(value), 0)::float AS sum
+        FROM "WhatsAppLead"
+        WHERE "createdAt" >= ${since}
+        GROUP BY 1 ORDER BY 1
+      `;
+
+      const waLeadsRaw = await db.$queryRaw<
+        {
+          id: string;
+          source: string;
+          value: number | null;
+          contents: string | null;
+          customerName: string | null;
+          customerCity: string | null;
+          customerPostcode: string | null;
+          status: string;
+          createdAt: Date;
+        }[]
+      >`
+        SELECT id, source, value, contents, "customerName", "customerCity",
+               "customerPostcode", status, "createdAt"
+        FROM "WhatsAppLead"
+        WHERE "createdAt" >= ${since}
+        ORDER BY "createdAt" DESC
+        LIMIT 100
+      `;
+
+      const waLeads = waLeadsRaw.map((l) => ({
+        id: l.id,
+        ts: new Date(l.createdAt),
+        source: l.source,
+        badge: SOURCE_BADGE[l.source] || "WhatsApp",
+        value: Number(l.value) || 0,
+        items: parseItemsJson(l.contents).map((it) => ({
+          name: it.name || "",
+          qty: Number(it.quantity) || 0,
+        })),
+        customerName: l.customerName || "",
+        customerCity: l.customerCity || "",
+        customerPostcode: l.customerPostcode || "",
+        status: l.status,
+      }));
+
+      const waDailyMap = new Map(
+        waDailyRaw.map((r) => [
+          new Date(r.day).toISOString().slice(0, 10),
+          { cnt: r.cnt, sum: Number(r.sum) || 0 },
+        ]),
+      );
+      const daySet = new Set<string>([...daily.map((d) => d.day), ...waDailyMap.keys()]);
+      const salesDaily = Array.from(daySet)
+        .sort()
+        .map((day) => ({
+          day,
+          website: daily.find((d) => d.day === day)?.revenue ?? 0,
+          whatsapp: waDailyMap.get(day)?.sum ?? 0,
+        }));
+
       const pageviews = c.pageviews;
       const purchases = c.purchases;
       const revenue = Number(c.revenue) || 0;
+      const waRevenue = Number(waC.sum) || 0;
+      const waLeadsCount = waC.cnt;
 
       return {
         days,
@@ -173,19 +303,226 @@ export const getAnalytics = createServerFn({ method: "GET" }).handler(
           checkoutRate: pageviews > 0 ? (c.checkout / pageviews) * 100 : 0,
           cartRate: pageviews > 0 ? (c.addtocart / pageviews) * 100 : 0,
         },
+        sales: {
+          website: { revenue, orders: purchases },
+          whatsapp: {
+            revenue: waRevenue,
+            leads: waLeadsCount,
+            new: waLeads.filter((l) => l.status === "new").length,
+          },
+          total: { revenue: revenue + waRevenue },
+          daily: salesDaily,
+          leads: waLeads,
+        },
+        // Conversion funnel (product spec): Product views -> Added to cart ->
+        // Started checkout -> [Website purchase | WhatsApp order] -> Total orders.
+        // Units stay honest - funnel steps are on-site events, order steps are
+        // real orders (website purchases + WhatsApp leads). Reconciles with the
+        // Sales cards and Live feed because all three read the same range.
         funnel: [
-          { name: "Page View", value: pageviews },
-          { name: "View Content", value: c.viewcontent },
-          { name: "Add to Cart", value: c.addtocart },
-          { name: "Checkout", value: c.checkout },
-          { name: "Purchase", value: purchases },
+          { name: "Product views", value: c.viewcontent, unit: "events" as const },
+          { name: "Added to cart", value: c.addtocart, unit: "events" as const },
+          { name: "Started checkout", value: c.checkout, unit: "events" as const },
+          { name: "Website purchase", value: purchases, unit: "orders" as const },
+          { name: "WhatsApp order", value: waLeadsCount, unit: "orders" as const },
+          { name: "Total orders", value: purchases + waLeadsCount, unit: "orders" as const },
         ],
         daily,
         products,
         sessions,
       };
-    } catch (err: any) {
-      console.error("getAnalytics error:", err?.message || err);
+    } catch (err) {
+      console.error("getAnalytics error:", (err as Error)?.message || err);
+      return null;
+    }
+  },
+);
+
+// --- WhatsApp lead status — manual New ? Confirmed / Lost toggle ------------
+
+export const setLeadStatus = createServerFn({ method: "POST" }).handler(
+  async (opts?: { data?: { token?: string; id?: string; status?: string } }) => {
+    if (!(await verifyAuth(opts?.data?.token))) return null;
+    const id = String(opts?.data?.id || "");
+    const status = String(opts?.data?.status || "");
+    if (!id || !["new", "confirmed", "lost"].includes(status)) return null;
+    try {
+      await db.whatsAppLead.update({ where: { id }, data: { status } });
+      return { success: true, status };
+    } catch {
+      return null;
+    }
+  },
+);
+
+// --- Live feed - last 24h of website events + WhatsApp leads + orders -------
+
+const LIVE_CHIP: Record<string, string> = {
+  PageView: "pageview",
+  AddToCart: "cart",
+  InitiateCheckout: "checkout",
+  Purchase: "purchase",
+  OrderPlaced: "purchase",
+};
+
+export const getLiveFeed = createServerFn({ method: "GET" }).handler(
+  async (opts?: { data?: { token?: string } }) => {
+    if (!(await verifyAuth(opts?.data?.token))) return null;
+    const now = new Date();
+    const since24 = new Date(now.getTime() - 24 * 36e5);
+    const todayStart = londonDayStart(now);
+    try {
+      const eventsRaw = await db.$queryRaw<
+        {
+          id: string;
+          event: string;
+          path: string | null;
+          productName: string | null;
+          value: number | null;
+          createdAt: Date;
+        }[]
+      >`
+        SELECT id, event, path, "productName", value, "createdAt"
+        FROM "AnalyticsEvent"
+        WHERE "createdAt" >= ${since24}
+          AND event IN ('PageView', 'AddToCart', 'InitiateCheckout', 'Purchase')
+        ORDER BY "createdAt" DESC
+        LIMIT 120
+      `;
+
+      const leadsRaw = await db.$queryRaw<
+        {
+          id: string;
+          source: string;
+          value: number | null;
+          contents: string | null;
+          customerCity: string | null;
+          pageUrl: string | null;
+          createdAt: Date;
+        }[]
+      >`
+        SELECT id, source, value, contents, "customerCity", "pageUrl", "createdAt"
+        FROM "WhatsAppLead"
+        WHERE "createdAt" >= ${since24}
+        ORDER BY "createdAt" DESC
+        LIMIT 100
+      `;
+
+      const ordersRaw = await db.$queryRaw<
+        { id: string; total: number; items: string; createdAt: Date }[]
+      >`
+        SELECT id, total, items, "createdAt"
+        FROM "Order"
+        WHERE "createdAt" >= ${since24}
+        ORDER BY "createdAt" DESC
+        LIMIT 60
+      `;
+
+      const rows: {
+        id: string;
+        ts: Date;
+        type: string;
+        chip: string;
+        badge: string;
+        value: number | null;
+        summary: string;
+        path: string | null;
+        city: string | null;
+      }[] = [];
+
+      for (const e of eventsRaw) {
+        rows.push({
+          id: `ae-${e.id}`,
+          ts: new Date(e.createdAt),
+          type: e.event,
+          chip: LIVE_CHIP[e.event] || "other",
+          badge: "Website",
+          value: e.value != null ? Number(e.value) : null,
+          summary: e.productName || "",
+          path: e.path || "",
+          city: null,
+        });
+      }
+
+      for (const l of leadsRaw) {
+        let path = "";
+        try {
+          path = l.pageUrl ? new URL(l.pageUrl).pathname : "";
+        } catch {
+          path = "";
+        }
+        rows.push({
+          id: `wl-${l.id}`,
+          ts: new Date(l.createdAt),
+          type: "Purchase",
+          chip: "purchase",
+          badge: SOURCE_BADGE[l.source] || "WhatsApp",
+          value: l.value != null ? Number(l.value) : null,
+          summary: parseItemsJson(l.contents)
+            .map((it) => `${Number(it.quantity) || 0}× ${it.name || "item"}`)
+            .join(", "),
+          path,
+          city: l.customerCity || null,
+        });
+      }
+
+      for (const o of ordersRaw) {
+        rows.push({
+          id: `ord-${o.id}`,
+          ts: new Date(o.createdAt),
+          type: "OrderPlaced",
+          chip: "purchase",
+          badge: "Website",
+          value: Number(o.total) || 0,
+          summary: parseItemsJson(o.items)
+            .map((it) => `${Number(it.qty) || 0}× ${it.name || "item"}`)
+            .join(", "),
+          path: null,
+          city: null,
+        });
+      }
+
+      rows.sort((a, b) => b.ts.getTime() - a.ts.getTime());
+
+      // Header totals - today, Europe/London, by type.
+      const todayRaw = await db.$queryRaw<
+        {
+          pageview: number;
+          addtocart: number;
+          initiatecheckout: number;
+          purchase: number;
+        }[]
+      >`
+        SELECT
+          count(*) FILTER (WHERE event = 'PageView')::int         AS pageview,
+          count(*) FILTER (WHERE event = 'AddToCart')::int        AS addtocart,
+          count(*) FILTER (WHERE event = 'InitiateCheckout')::int AS initiatecheckout,
+          count(*) FILTER (WHERE event = 'Purchase')::int         AS purchase
+        FROM "AnalyticsEvent"
+        WHERE "createdAt" >= ${todayStart}
+      `;
+      const t = todayRaw[0] ?? { pageview: 0, addtocart: 0, initiatecheckout: 0, purchase: 0 };
+
+      const todayWa = await db.$queryRaw<{ cnt: number }[]>`
+        SELECT count(*)::int AS cnt FROM "WhatsAppLead" WHERE "createdAt" >= ${todayStart}
+      `;
+      const todayOrders = await db.$queryRaw<{ cnt: number }[]>`
+        SELECT count(*)::int AS cnt FROM "Order" WHERE "createdAt" >= ${todayStart}
+      `;
+
+      return {
+        rows: rows.slice(0, 150),
+        today: {
+          pageview: t.pageview,
+          addtocart: t.addtocart,
+          initiateCheckout: t.initiatecheckout,
+          purchase: t.purchase,
+          whatsapp: todayWa[0]?.cnt ?? 0,
+          ordersPlaced: todayOrders[0]?.cnt ?? 0,
+        },
+      };
+    } catch (err) {
+      console.error("getLiveFeed error:", (err as Error)?.message || err);
       return null;
     }
   },
@@ -200,14 +537,126 @@ const card = {
   border: "1px solid rgba(255,255,255,0.06)",
 };
 
+// TanStack types GET server-fns as taking `undefined` in this version, but the
+// handler still receives the `{ data }` envelope at runtime. This helper keeps
+// call sites fully typed while passing the real envelope the handler reads.
+const withData = <T,>(data: T): undefined => ({ data }) as unknown as undefined;
+
 const RANGES = [
+  { days: 1, label: "Today" },
   { days: 7, label: "7 days" },
   { days: 30, label: "30 days" },
   { days: 90, label: "90 days" },
-  { days: 365, label: "1 year" },
+  { days: 0, label: "All" },
 ];
 
-function StatCard({ title, value, sub, Icon, color, bg, delay }: any) {
+type StatCardProps = {
+  title: string;
+  value: string | number;
+  sub?: string;
+  Icon: LucideIcon;
+  color: string;
+  bg: string;
+  delay: number;
+};
+
+type FunnelBarProps = {
+  name: string;
+  value: number;
+  max: number;
+  delay: number;
+  unit: "events" | "orders";
+  pctAbove: number | null;
+  pctBase: number | null;
+  accent?: boolean;
+};
+
+type StatusPillsProps = {
+  id: string;
+  status: string;
+  busy: boolean;
+  onSet: (id: string, status: string) => void;
+};
+
+type LiveRow = {
+  id: string;
+  ts: Date | string;
+  type: string;
+  chip: string;
+  badge: string;
+  value: number | null;
+  summary: string;
+  path: string | null;
+  city: string | null;
+};
+
+type LiveToday = {
+  pageview: number;
+  addtocart: number;
+  initiateCheckout: number;
+  purchase: number;
+  whatsapp: number;
+  ordersPlaced: number;
+};
+
+type LiveFeed = { rows: LiveRow[]; today: LiveToday };
+
+type LeadRow = {
+  id: string;
+  ts: Date | string;
+  source: string;
+  badge: string;
+  value: number;
+  items: { name: string; qty: number }[];
+  customerName: string;
+  customerCity: string;
+  customerPostcode: string;
+  status: string;
+};
+
+type AnalyticsData = {
+  days: number;
+  totals: {
+    pageviews: number;
+    viewcontent: number;
+    addtocart: number;
+    initiateCheckout: number;
+    purchases: number;
+    revenue: number;
+    conversion: number;
+    checkoutRate: number;
+    cartRate: number;
+  };
+  sales: {
+    website: { revenue: number; orders: number };
+    whatsapp: { revenue: number; leads: number; new: number };
+    total: { revenue: number };
+    daily: { day: string; website: number; whatsapp: number }[];
+    leads: LeadRow[];
+  };
+  funnel: { name: string; value: number; unit: "events" | "orders" }[];
+  daily: {
+    day: string;
+    pageviews: number;
+    addtocart: number;
+    checkout: number;
+    purchases: number;
+    revenue: number;
+  }[];
+  products: { productId: string; name: string; views: number; adds: number; conversion: number }[];
+  sessions: {
+    sessionId: string;
+    visitorId: string;
+    firstSeen: Date | string;
+    lastSeen: Date | string;
+    eventCount: number;
+    purchases: number;
+    events: string[];
+    path: string | null;
+  }[];
+};
+
+function StatCard({ title, value, sub, Icon, color, bg, delay }: StatCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -231,7 +680,7 @@ function StatCard({ title, value, sub, Icon, color, bg, delay }: any) {
   );
 }
 
-function FunnelBar({ name, value, max, delay }: any) {
+function FunnelBar({ name, value, max, delay, unit, pctAbove, pctBase, accent }: FunnelBarProps) {
   const pct = max > 0 ? Math.max((value / max) * 100, 0.5) : 0;
   return (
     <motion.div
@@ -242,16 +691,29 @@ function FunnelBar({ name, value, max, delay }: any) {
     >
       <div className="flex justify-between items-baseline">
         <span className="text-xs text-gray-400 font-medium">{name}</span>
-        <span className="text-sm font-bold text-white">{value.toLocaleString()}</span>
+        <span className="text-sm font-bold text-white">
+          {value.toLocaleString()}{" "}
+          <span className="text-[10px] text-gray-500 font-medium">{unit}</span>
+        </span>
       </div>
       <div className="h-2.5 rounded-full bg-white/[0.04] overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
           transition={{ delay: delay + 0.1, duration: 0.7, ease: "easeOut" }}
-          className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500"
+          className={
+            accent
+              ? "h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400"
+              : "h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500"
+          }
         />
       </div>
+      {(pctAbove != null || pctBase != null) && (
+        <div className="flex flex-wrap gap-x-3 text-[10px] text-gray-500">
+          {pctAbove != null && <span>{pctAbove}% of step above</span>}
+          {pctBase != null && <span>{pctBase}% of step 1</span>}
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -262,9 +724,30 @@ const EVENT_STYLE: Record<string, string> = {
   AddToCart: "bg-amber-500/10 text-amber-300",
   InitiateCheckout: "bg-purple-500/10 text-purple-300",
   Purchase: "bg-emerald-500/10 text-emerald-300",
+  OrderPlaced: "bg-cyan-500/10 text-cyan-300",
 };
 
-function fmtTime(d: Date) {
+const TYPE_LABEL: Record<string, string> = {
+  PageView: "Page view",
+  AddToCart: "Add to cart",
+  InitiateCheckout: "Initiate checkout",
+  Purchase: "Purchase",
+  OrderPlaced: "Order placed",
+};
+
+const STATUS_STYLES: Record<string, { label: string; cls: string }> = {
+  new: { label: "New", cls: "bg-sky-500/15 text-sky-300" },
+  confirmed: { label: "Confirmed", cls: "bg-emerald-500/15 text-emerald-300" },
+  lost: { label: "Lost", cls: "bg-red-500/15 text-red-300" },
+};
+
+function badgeClass(badge: string): string {
+  return badge === "Website"
+    ? "bg-sky-500/10 text-sky-300 border border-sky-500/20"
+    : "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20";
+}
+
+function fmtTime(d: Date | string) {
   const diff = Date.now() - new Date(d).getTime();
   const m = Math.floor(diff / 60000);
   if (m < 1) return "just now";
@@ -274,16 +757,229 @@ function fmtTime(d: Date) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-function AdminAnalytics() {
-  const [data, setData] = useState<any>(null);
+function fmtClock(d: Date | string) {
+  return new Date(d).toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function StatusPills({ status, onSet, busy, id }: StatusPillsProps) {
+  return (
+    <div className="flex gap-1">
+      {["new", "confirmed", "lost"].map((key) => (
+        <button
+          key={key}
+          type="button"
+          disabled={busy}
+          onClick={() => onSet(id, key)}
+          className={`px-2 py-0.5 rounded-full text-[10px] font-bold transition-all disabled:opacity-50 ${
+            status === key
+              ? STATUS_STYLES[key].cls
+              : "bg-white/[0.04] text-gray-500 hover:text-gray-300"
+          }`}
+        >
+          {STATUS_STYLES[key].label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// --- Live Events view (Analytics ? Live) ------------------------------------
+
+const LIVE_CHIPS = [
+  { key: "all", label: "All" },
+  { key: "purchase", label: "Purchases" },
+  { key: "cart", label: "Add to cart" },
+  { key: "checkout", label: "Checkout" },
+  { key: "pageview", label: "Page views" },
+];
+
+function LiveEvents() {
+  const [feed, setFeed] = useState<LiveFeed | null>(null);
   const [loading, setLoading] = useState(true);
-  const [days, setDays] = useState(30);
-  const [tab, setTab] = useState<"products" | "sessions">("products");
+  const [tick, setTick] = useState(0);
+  const [updatedAt, setUpdatedAt] = useState<number | null>(null);
+  const [clock, setClock] = useState(() => Date.now());
+  const [chip, setChip] = useState("all");
+
+  useEffect(() => {
+    const refresh = setInterval(() => setTick((t) => t + 1), 15000);
+    const clockId = setInterval(() => setClock(Date.now()), 1000);
+    return () => {
+      clearInterval(refresh);
+      clearInterval(clockId);
+    };
+  }, []);
 
   useEffect(() => {
     let alive = true;
+    getLiveFeed(withData({ token: adminToken() }))
+      .then((res) => {
+        if (!alive) return;
+        if (res) {
+          setFeed(res);
+          setUpdatedAt(Date.now());
+        }
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [tick]);
+
+  const rows: LiveRow[] = feed?.rows ?? [];
+  const visible = chip === "all" ? rows : rows.filter((r) => r.chip === chip);
+  const today = feed?.today ?? {
+    pageview: 0,
+    addtocart: 0,
+    initiateCheckout: 0,
+    purchase: 0,
+    whatsapp: 0,
+    ordersPlaced: 0,
+  };
+  const age = updatedAt != null ? Math.max(0, Math.round((clock - updatedAt) / 1000)) : null;
+
+  return (
+    <div className="space-y-5">
+      {/* Today's totals header (Europe/London) */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="rounded-2xl p-5"
+        style={card}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+            <Radio className="w-4 h-4 text-emerald-400" /> Today (Europe/London)
+          </h2>
+          <p className="text-[11px] text-gray-500">
+            {age != null ? `Updated ${age}s ago` : loading ? "Loading..." : "Waiting..."}
+            {!loading && (
+              <button
+                type="button"
+                onClick={() => setTick((t) => t + 1)}
+                className="ml-3 text-blue-400 hover:text-blue-300 font-semibold"
+              >
+                Refresh now
+              </button>
+            )}
+          </p>
+        </div>
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {[
+            { label: "Page views", value: today.pageview },
+            { label: "Add to cart", value: today.addtocart },
+            { label: "Checkouts", value: today.initiateCheckout },
+            { label: "Purchases", value: today.purchase },
+            { label: "WhatsApp", value: today.whatsapp },
+            { label: "Orders placed", value: today.ordersPlaced },
+          ].map((s) => (
+            <div
+              key={s.label}
+              className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3"
+            >
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider">{s.label}</p>
+              <p className="text-xl font-bold text-white mt-0.5">{s.value}</p>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Filter chips */}
+      <div className="flex flex-wrap gap-1">
+        {LIVE_CHIPS.map((c) => (
+          <button
+            key={c.key}
+            type="button"
+            onClick={() => setChip(c.key)}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              chip === c.key
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
+                : "bg-white/[0.03] border border-white/[0.06] text-gray-400 hover:text-white"
+            }`}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Feed */}
+      <div className="rounded-2xl overflow-hidden" style={card}>
+        {loading && rows.length === 0 ? (
+          <div className="py-20 text-center text-gray-600 text-sm">Loading live feed...</div>
+        ) : visible.length === 0 ? (
+          <div className="py-20 text-center text-gray-600 text-sm">
+            {chip === "all" ? "No activity today" : "No activity today"}
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-[90px_110px_140px_2fr_1.2fr_100px_80px] gap-2 px-5 py-3 text-[10px] font-bold text-gray-600 uppercase tracking-widest border-b border-white/[0.04]">
+              <span>Time</span>
+              <span>Type</span>
+              <span>Source</span>
+              <span>Summary</span>
+              <span>Path</span>
+              <span>City</span>
+              <span className="text-right">Value</span>
+            </div>
+            <div className="max-h-[520px] overflow-y-auto">
+              {visible.map((r) => (
+                <div
+                  key={r.id}
+                  className="grid grid-cols-[90px_110px_140px_2fr_1.2fr_100px_80px] gap-2 items-center px-5 py-3 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
+                >
+                  <span className="text-[11px] text-gray-500 font-mono">{fmtClock(r.ts)}</span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold w-fit ${
+                      EVENT_STYLE[r.type] ?? "bg-gray-500/10 text-gray-300"
+                    }`}
+                  >
+                    {TYPE_LABEL[r.type] || r.type}
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold w-fit ${badgeClass(r.badge)}`}
+                  >
+                    {r.badge}
+                  </span>
+                  <span className="text-xs text-gray-300 truncate pr-2">{r.summary || "-"}</span>
+                  <span className="text-[11px] text-gray-500 font-mono truncate">
+                    {r.path || "-"}
+                  </span>
+                  <span className="text-[11px] text-gray-500 truncate">{r.city || "-"}</span>
+                  <span className="text-xs text-gray-200 font-semibold text-right">
+                    {r.value != null ? `£${Math.round(r.value).toLocaleString()}` : "-"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// --- Main analytics page -----------------------------------------------------
+
+function AdminAnalytics() {
+  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [days, setDays] = useState(1);
+  const [tab, setTab] = useState<"products" | "sessions">("products");
+  const [view, setView] = useState<"overview" | "live">("overview");
+  const [leadBusy, setLeadBusy] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (view !== "overview") return;
+    let alive = true;
     setLoading(true);
-    getAnalytics({ data: { token: adminToken(), days } })
+    getAnalytics(withData({ token: adminToken(), days }))
       .then((res) => {
         if (alive) setData(res);
       })
@@ -293,18 +989,104 @@ function AdminAnalytics() {
     return () => {
       alive = false;
     };
-  }, [days]);
+  }, [days, view]);
+
+  const handleLeadStatus = async (id: string, status: string) => {
+    setLeadBusy(id);
+    try {
+      const res = await setLeadStatus(withData({ token: adminToken(), id, status }));
+      if (res?.success && data?.sales?.leads) {
+        setData({
+          ...data,
+          sales: {
+            ...data.sales,
+            leads: data.sales.leads.map((l) => (l.id === id ? { ...l, status } : l)),
+          },
+        });
+      }
+    } finally {
+      setLeadBusy(null);
+    }
+  };
+
+  const header = (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="flex flex-wrap justify-between items-center gap-4"
+    >
+      <div>
+        <h1 className="text-2xl font-bold text-white tracking-tight">Analytics</h1>
+        <p className="text-gray-500 text-sm mt-0.5">
+          {view === "live"
+            ? "Live event stream - the last 24 hours, auto-refreshing."
+            : "On-site funnel and sales - website checkout vs WhatsApp orders."}
+        </p>
+      </div>
+      <div className="flex gap-3 flex-wrap">
+        {view === "overview" && (
+          <div className="flex gap-1 p-1 rounded-full bg-white/[0.03] border border-white/[0.06]">
+            {RANGES.map((r) => (
+              <button
+                key={r.days}
+                onClick={() => setDays(r.days)}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                  days === r.days
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-1 p-1 rounded-full bg-white/[0.03] border border-white/[0.06]">
+          {(
+            [
+              { key: "overview", label: "Overview" },
+              { key: "live", label: "Live" },
+            ] as const
+          ).map((v) => (
+            <button
+              key={v.key}
+              onClick={() => setView(v.key)}
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                view === v.key
+                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              {v.key === "live" && <Radio className="w-3 h-3" />}
+              {v.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  if (view === "live") {
+    return (
+      <div className="p-8 max-w-7xl mx-auto space-y-6">
+        {header}
+        <LiveEvents />
+      </div>
+    );
+  }
 
   if (!data) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
+      <div className="p-8 max-w-7xl mx-auto space-y-6">
+        {header}
         {loading ? (
-          <>
+          <div className="flex flex-col items-center justify-center min-h-[40vh] p-8 text-center">
             <div className="w-8 h-8 rounded-full border-2 border-blue-500/30 border-t-blue-500 animate-spin" />
-            <p className="text-gray-500 text-sm mt-4">Loading analytics…</p>
-          </>
+            <p className="text-gray-500 text-sm mt-4">Loading analytics...</p>
+          </div>
         ) : (
-          <>
+          <div className="flex flex-col items-center justify-center min-h-[40vh] p-8 text-center">
             <div className="p-4 bg-red-500/10 rounded-2xl mb-4 text-red-500">
               <TrendingUp className="w-8 h-8 mx-auto mb-2" />
               <h2 className="text-xl font-bold">Analytics Error</h2>
@@ -318,45 +1100,19 @@ function AdminAnalytics() {
             >
               Try Refreshing
             </button>
-          </>
+          </div>
         )}
       </div>
     );
   }
 
   const t = data.totals;
-  const funnelMax = Math.max(...data.funnel.map((f: any) => f.value), 1);
+  const s = data.sales;
+  const funnelMax = Math.max(...data.funnel.map((f) => f.value), 1);
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-        className="flex flex-wrap justify-between items-center gap-4"
-      >
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Analytics</h1>
-          <p className="text-gray-500 text-sm mt-0.5">
-            On-site funnel — page views, carts, checkouts and purchases.
-          </p>
-        </div>
-        <div className="flex gap-1 p-1 rounded-full bg-white/[0.03] border border-white/[0.06]">
-          {RANGES.map((r) => (
-            <button
-              key={r.days}
-              onClick={() => setDays(r.days)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                days === r.days
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
-                  : "text-gray-400 hover:text-white"
-              }`}
-            >
-              {r.label}
-            </button>
-          ))}
-        </div>
-      </motion.div>
+      {header}
 
       {loading && <div className="h-0.5 w-full bg-blue-500/40 rounded-full animate-pulse" />}
 
@@ -399,12 +1155,12 @@ function AdminAnalytics() {
           delay={0.21}
         />
         <StatCard
-          title="Revenue"
+          title="Website Revenue"
           value={`£${Math.round(t.revenue).toLocaleString()}`}
           sub={
             t.purchases > 0
               ? `£${Math.round(t.revenue / t.purchases)} avg order`
-              : "No purchases yet"
+              : "No website purchases yet"
           }
           Icon={PoundSterling}
           color="text-amber-400"
@@ -414,12 +1170,166 @@ function AdminAnalytics() {
         <StatCard
           title="Conversion"
           value={`${t.conversion.toFixed(2)}%`}
-          sub="Purchases per page view"
+          sub="Website purchases per page view"
           Icon={Percent}
           color="text-emerald-400"
           bg="bg-emerald-500/10"
           delay={0.35}
         />
+      </div>
+
+      {/* -- Sales split: website checkout vs WhatsApp -------------------- */}
+      <div className="space-y-5">
+        <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+          <Banknote className="w-4 h-4 text-amber-400" /> Sales
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <StatCard
+            title="Website Checkout"
+            value={`£${Math.round(s.website.revenue).toLocaleString()}`}
+            sub={`${s.website.orders} order${s.website.orders === 1 ? "" : "s"}  - checkout flow`}
+            Icon={PoundSterling}
+            color="text-sky-400"
+            bg="bg-sky-500/10"
+            delay={0}
+          />
+          <StatCard
+            title="WhatsApp Orders"
+            value={`£${Math.round(s.whatsapp.revenue).toLocaleString()}`}
+            sub={`${s.whatsapp.leads} lead${s.whatsapp.leads === 1 ? "" : "s"} · ${s.whatsapp.new} new`}
+            Icon={MessageCircle}
+            color="text-emerald-400"
+            bg="bg-emerald-500/10"
+            delay={0.07}
+          />
+          <StatCard
+            title="Total Sales"
+            value={`£${Math.round(s.total.revenue).toLocaleString()}`}
+            sub="Both channels combined"
+            Icon={Layers}
+            color="text-amber-400"
+            bg="bg-amber-500/10"
+            delay={0.14}
+          />
+        </div>
+
+        {/* Stacked daily breakdown */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12, duration: 0.4 }}
+          className="rounded-2xl p-6"
+          style={card}
+        >
+          <h2 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-amber-400" /> Daily Sales by Source
+          </h2>
+          <div className="h-[240px]">
+            {s.daily.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-gray-600 text-sm">
+                No sales in this range yet.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={s.daily} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                  <XAxis
+                    dataKey="day"
+                    tick={{ fill: "#6b7280", fontSize: 10 }}
+                    tickFormatter={(v: string) => v.slice(5)}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: "#6b7280", fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "#111827",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      borderRadius: 12,
+                      fontSize: 12,
+                    }}
+                    labelStyle={{ color: "#9ca3af" }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 11, color: "#9ca3af" }} />
+                  <Bar dataKey="website" name="Website Checkout" stackId="sales" fill="#38bdf8" />
+                  <Bar
+                    dataKey="whatsapp"
+                    name="WhatsApp"
+                    stackId="sales"
+                    fill="#22c55e"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </motion.div>
+
+        {/* WhatsApp order leads */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18, duration: 0.4 }}
+          className="rounded-2xl overflow-hidden"
+          style={card}
+        >
+          <div className="px-5 py-4 border-b border-white/[0.04] flex items-center gap-2">
+            <MessageCircle className="w-4 h-4 text-emerald-400" />
+            <h2 className="text-sm font-semibold text-white">WhatsApp Orders</h2>
+          </div>
+          {s.leads.length === 0 ? (
+            <div className="py-14 text-center text-gray-600 text-sm">
+              No WhatsApp orders in this range yet - leads appear the moment a customer opens a
+              WhatsApp order.
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-[90px_140px_80px_2fr_2fr_150px] gap-2 px-5 py-3 text-[10px] font-bold text-gray-600 uppercase tracking-widest border-b border-white/[0.04]">
+                <span>Time</span>
+                <span>Source</span>
+                <span className="text-right">Value</span>
+                <span>Products</span>
+                <span>Customer</span>
+                <span>Status</span>
+              </div>
+              {s.leads.map((l) => (
+                <div
+                  key={l.id}
+                  className="grid grid-cols-[90px_140px_80px_2fr_2fr_150px] gap-2 items-center px-5 py-3 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
+                >
+                  <span className="text-[11px] text-gray-500 font-mono">{fmtClock(l.ts)}</span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold w-fit ${badgeClass(l.badge)}`}
+                  >
+                    {l.badge}
+                  </span>
+                  <span className="text-xs text-gray-200 font-semibold text-right">
+                    £{Math.round(l.value).toLocaleString()}
+                  </span>
+                  <span className="text-xs text-gray-300 truncate pr-2">
+                    {l.items.map((it) => `${it.qty}× ${it.name || "item"}`).join(", ") || "-"}
+                  </span>
+                  <span className="text-xs text-gray-300 truncate pr-2">
+                    {l.customerName || "-"}
+                    {l.customerCity || l.customerPostcode
+                      ? ` · ${[l.customerCity, l.customerPostcode].filter(Boolean).join(" ")}`
+                      : ""}
+                  </span>
+                  <StatusPills
+                    status={l.status}
+                    onSet={handleLeadStatus}
+                    busy={leadBusy === l.id}
+                    id={l.id}
+                  />
+                </div>
+              ))}
+            </>
+          )}
+        </motion.div>
       </div>
 
       {/* Funnel + trend */}
@@ -435,15 +1345,30 @@ function AdminAnalytics() {
             <Activity className="w-4 h-4 text-blue-400" /> Conversion Funnel
           </h2>
           <div className="space-y-4">
-            {data.funnel.map((f: any, i: number) => (
-              <FunnelBar
-                key={f.name}
-                name={f.name}
-                value={f.value}
-                max={funnelMax}
-                delay={i * 0.08}
-              />
-            ))}
+            {data.funnel.map((f, i) => {
+              const base = data.funnel[0]?.value ?? 0;
+              const above =
+                i === 0
+                  ? 0
+                  : i >= 3
+                    ? (data.funnel[2]?.value ?? 0)
+                    : (data.funnel[i - 1]?.value ?? 0);
+              const pctAbove = i > 0 && above > 0 ? Math.round((f.value / above) * 100) : null;
+              const pctBase = i > 0 && base > 0 ? Math.round((f.value / base) * 100) : null;
+              return (
+                <FunnelBar
+                  key={f.name}
+                  name={f.name}
+                  value={f.value}
+                  max={funnelMax}
+                  delay={i * 0.08}
+                  unit={f.unit}
+                  pctAbove={pctAbove}
+                  pctBase={pctBase}
+                  accent={i >= 3}
+                />
+              );
+            })}
           </div>
         </motion.div>
 
@@ -565,7 +1490,7 @@ function AdminAnalytics() {
                   <span>Adds</span>
                   <span>Conv.</span>
                 </div>
-                {data.products.map((p: any) => (
+                {data.products.map((p) => (
                   <div
                     key={p.productId}
                     className="grid grid-cols-[3fr_1fr_1fr_1fr] items-center px-5 py-4 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
@@ -602,21 +1527,21 @@ function AdminAnalytics() {
                   <span>Bought</span>
                   <span>Last seen</span>
                 </div>
-                {data.sessions.map((s: any) => (
+                {data.sessions.map((s2) => (
                   <div
-                    key={s.sessionId}
+                    key={s2.sessionId}
                     className="grid grid-cols-[2fr_3fr_1fr_1fr_1fr] items-center px-5 py-4 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
                   >
                     <div className="min-w-0 pr-3">
                       <p className="text-xs text-gray-300 font-mono truncate">
-                        {s.visitorId.slice(0, 8)}…
+                        {s2.visitorId.slice(0, 8)}…
                       </p>
                       <p className="text-[10px] text-gray-600 truncate flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> {fmtTime(s.lastSeen)}
+                        <Clock className="w-3 h-3" /> {fmtTime(s2.lastSeen)}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-1 pr-3">
-                      {s.events
+                      {s2.events
                         .sort((a: string, b: string) =>
                           a === "Purchase" ? -1 : b === "Purchase" ? 1 : 0,
                         )
@@ -631,9 +1556,9 @@ function AdminAnalytics() {
                           </span>
                         ))}
                     </div>
-                    <span className="text-sm text-gray-300 font-semibold">{s.eventCount}</span>
+                    <span className="text-sm text-gray-300 font-semibold">{s2.eventCount}</span>
                     <span>
-                      {s.purchases > 0 ? (
+                      {s2.purchases > 0 ? (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300">
                           Yes
                         </span>
@@ -643,7 +1568,7 @@ function AdminAnalytics() {
                         </span>
                       )}
                     </span>
-                    <span className="text-xs text-gray-500">{fmtTime(s.lastSeen)}</span>
+                    <span className="text-xs text-gray-500">{fmtTime(s2.lastSeen)}</span>
                   </div>
                 ))}
               </>

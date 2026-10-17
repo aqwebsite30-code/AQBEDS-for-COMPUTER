@@ -13,6 +13,10 @@ export type CustomerDetails = {
 
 export type SelectionRow = { label: string; value: string };
 
+// Admin lead-capture origin of a WhatsApp order open — mapped to distinct
+// badges in /admin/analytics (WhatsApp-PDP / Checkout / Drawer / Cart).
+export type WhatsAppSource = "pdp" | "checkout" | "drawer" | "cart";
+
 export type OrderMessageItem = {
   id: string;
   name: string;
@@ -154,6 +158,7 @@ export function openWhatsAppOrder(payload: {
   customer: CustomerDetails;
   arrival?: ArrivalWindow | null;
   orderNo?: string;
+  source?: WhatsAppSource;
 }): void {
   if (typeof window === "undefined") return;
 
@@ -197,4 +202,48 @@ export function openWhatsAppOrder(payload: {
   });
 
   window.open(buildWhatsAppUrl(message), "_blank", "noopener,noreferrer");
+  // ── Admin lead capture (additive, isolated) ─────────────────────────────
+  // Fire-and-forget beacon to the admin analytics endpoint so /admin/analytics
+  // can show WhatsApp sales next to website sales. Strictly isolated from the
+  // Meta Purchase above: own try/catch, swallows every error — a failure here
+  // can never affect the pixel event, the CAPI event, or the wa.me tab.
+  // Dedupes server-side on event_id (shared with the Meta Purchase).
+  try {
+    const leadBody = JSON.stringify({
+      event_id: eventId,
+      timestamp: Date.now(),
+      source_button: payload.source || "",
+      value,
+      currency: "GBP",
+      contents: payload.items.map((i) => ({
+        id: i.id,
+        name: i.name,
+        quantity: i.qty,
+        item_price: i.unitPrice,
+      })),
+      customer: {
+        name: payload.customer.name,
+        phone: payload.customer.phone,
+        address: payload.customer.address,
+        city: payload.customer.city,
+        postcode: payload.customer.postcode,
+      },
+      page_url: window.location.href,
+    });
+    if (typeof navigator.sendBeacon === "function") {
+      navigator.sendBeacon(
+        "/api/admin/whatsapp-lead",
+        new Blob([leadBody], { type: "application/json" }),
+      );
+    } else {
+      void fetch("/api/admin/whatsapp-lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: leadBody,
+        keepalive: true,
+      }).catch(() => {});
+    }
+  } catch {
+    /* lead capture must never break the WhatsApp open or the Meta events */
+  }
 }

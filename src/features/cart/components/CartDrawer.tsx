@@ -32,6 +32,7 @@ export function CartDrawer() {
       })),
       customer: details,
       arrival: getDeliveryWindow(new Date()),
+      source: "drawer",
     });
     setDetailsOpen(false);
     setOpen(false);

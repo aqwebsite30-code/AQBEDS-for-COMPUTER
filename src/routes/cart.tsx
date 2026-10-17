@@ -60,6 +60,7 @@ function CartPage() {
       })),
       customer: details,
       arrival: getDeliveryWindow(new Date()),
+      source: "cart",
     });
     setDetailsOpen(false);
   };
