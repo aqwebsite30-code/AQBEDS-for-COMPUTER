@@ -1,6 +1,6 @@
 import { buildWhatsAppUrl, formatGBP } from "./utils/format";
 import type { ArrivalWindow } from "./delivery-date";
-import { trackPixelWithId, getClientTrackingData } from "./meta-pixel";
+import { trackPixelWithId, getClientTrackingData, getVisitorId } from "./meta-pixel";
 import { sendWhatsAppPurchaseEvent } from "./meta-capi";
 
 export type CustomerDetails = {
@@ -212,6 +212,7 @@ export function openWhatsAppOrder(payload: {
     const leadBody = JSON.stringify({
       event_id: eventId,
       timestamp: Date.now(),
+      visitor_id: getVisitorId(),
       source_button: payload.source || "",
       value,
       currency: "GBP",

@@ -96,7 +96,9 @@ function CategoryPage() {
   const { category, dbProducts } = Route.useLoaderData();
   const staticProducts = getByCategory(category.slug as Category) as any[];
   const dbFiltered = (dbProducts || []).filter((p) => p.category === category.slug);
-  const products = [...dbFiltered, ...staticProducts];
+  // Render each slug once - DB wins over the static fallback (same fix as /shop).
+  const dbFilteredSlugs = new Set(dbFiltered.map((p: { slug?: string }) => p.slug));
+  const products = [...dbFiltered, ...staticProducts.filter((p) => !dbFilteredSlugs.has(p.slug))];
 
   // Count label uses the right noun for the category (WP-B.3)
   const noun = category.slug.includes("wardrobe")

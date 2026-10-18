@@ -100,7 +100,10 @@ function ShopPage() {
   const catalogue = useMemo(() => {
     const staticProducts = PRODUCTS as any[];
     const dbList = (dbProducts || []) as any[];
-    return [...dbList, ...staticProducts];
+    // DB is canonical when present - render each slug exactly once (the shop
+    // doubled every card as soon as products were seeded into the database).
+    const dbSlugs = new Set(dbList.map((p: { slug?: string }) => p.slug));
+    return [...dbList, ...staticProducts.filter((p) => !dbSlugs.has(p.slug))];
   }, [dbProducts]);
 
   const priceBounds = useMemo(() => {
@@ -147,9 +150,9 @@ function ShopPage() {
     let filtered = catalogue;
 
     if (search.q) {
-      const results = searchProducts(search.q);
-      const allowed = new Set(catalogue.map((p) => p.id));
-      filtered = results.filter((p) => allowed.has(p.id));
+      // Match on slug - static and DB products have different id spaces.
+      const resultSlugs = new Set(searchProducts(search.q).map((p) => p.slug));
+      filtered = catalogue.filter((p) => resultSlugs.has(p.slug));
     }
 
     filtered = filtered.filter((p) => p.basePrice <= maxPrice);

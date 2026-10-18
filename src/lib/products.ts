@@ -53,6 +53,14 @@ function mapDbProduct(p: any): DbProductData {
   }));
   const allColors: Color[] = [];
   fabrics.forEach((f) => allColors.push(...f.colors));
+  // Products imported without an options payload store their size list as
+  // ProductVariant rows - fall back to them so size facets / PDP sizes work.
+  const variantSizes: Option[] = (p.variants || [])
+    .filter((v: { size?: string | null }) => v.size)
+    .map((v: { size: string; priceModifier?: number }) => ({
+      name: v.size,
+      extraPrice: v.priceModifier || 0,
+    }));
   return {
     id: p.id,
     slug: p.slug,
@@ -66,7 +74,7 @@ function mapDbProduct(p: any): DbProductData {
     rating: p.rating || 0,
     featured: p.featured || false,
     colors: allColors,
-    sizes: opts.sizes || [],
+    sizes: opts.sizes?.length ? opts.sizes : variantSizes,
     fabrics,
     mattressOptions: opts.mattressOptions || [],
     frameOptions: opts.frameOptions || [],
@@ -80,7 +88,7 @@ export const getDbProductBySlug = createServerFn({ method: "GET" }).handler(
     try {
       const product = await db.product.findUnique({
         where: { slug: data },
-        include: { images: { orderBy: { sortOrder: "asc" } } },
+        include: { images: { orderBy: { sortOrder: "asc" } }, variants: true },
       });
       if (!product) return null;
       return mapDbProduct(product);
@@ -94,7 +102,7 @@ export const getDbProducts = createServerFn({ method: "GET" }).handler(async () 
   try {
     const products = await db.product.findMany({
       orderBy: { createdAt: "desc" },
-      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
+      include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, variants: true },
     });
     return products.map(mapDbProduct);
   } catch {

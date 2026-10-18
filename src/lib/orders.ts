@@ -99,6 +99,7 @@ export const saveOrder = createServerFn({ method: "POST" }).handler(
         event_id: z.string().optional().or(z.literal("")),
         client_user_agent: z.string().optional().or(z.literal("")),
         external_id: z.string().optional().or(z.literal("")),
+        visitorId: z.string().optional().or(z.literal("")),
         fbp: z.string().optional().or(z.literal("")),
         fbc: z.string().optional().or(z.literal("")),
       });
@@ -126,6 +127,7 @@ export const saveOrder = createServerFn({ method: "POST" }).handler(
           status: "pending",
           salespersonId,
           trackingToken: parsed.trackingToken || null,
+          visitorId: parsed.visitorId || null,
         },
       });
 

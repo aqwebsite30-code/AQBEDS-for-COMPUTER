@@ -91,6 +91,8 @@ export default async function handler(req, res) {
         value,
         currency: cap(parsed.currency, 8) || "GBP",
         device: cap(parsed.device, 16) || null,
+        // Europe/London calendar day persisted with the event (Day View reads it).
+        date: new Date().toLocaleDateString("en-CA", { timeZone: "Europe/London" }),
       },
     });
   } catch (err) {

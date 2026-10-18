@@ -5,6 +5,7 @@ import { sendAddToCartEvent, sendViewContentEvent } from "@/lib/meta-capi";
 import { trackEvent } from "@/lib/analytics";
 
 import { getProduct, PRODUCTS, DISCOUNT_POSTCODES } from "@/features/products/data/products";
+import productCopy from "@/features/products/data/product-copy.json";
 import { getDbProductBySlug } from "@/lib/products";
 import { formatGBP } from "@/lib/utils/format";
 import { getDeliveryWindow } from "@/lib/delivery-date";
@@ -65,8 +66,12 @@ export const Route = createFileRoute("/product/$slug")({
   loader: async ({ params }) => {
     const dbProduct = await getDbProductBySlug({ data: params.slug });
     if (dbProduct) {
+      const copy = (productCopy as Record<string, { meta?: string }>)[dbProduct.slug] ?? {};
       const product = {
         ...dbProduct,
+        // Canonical SEO meta - static products get this from product-copy too;
+        // without it the description-derived meta loses the risk tail.
+        metaDescription: copy.meta ?? null,
         id: dbProduct.slug,
         reviews: 0,
         isNew: false,

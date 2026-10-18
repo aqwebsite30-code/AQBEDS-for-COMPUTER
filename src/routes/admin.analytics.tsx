@@ -9,8 +9,6 @@ import {
   Percent,
   TrendingUp,
   Activity,
-  Users,
-  Clock,
   Package,
   MessageCircle,
   Banknote,
@@ -65,6 +63,25 @@ function sinceForRange(days: number, now: Date): Date {
 }
 
 const VALID_RANGES = [0, 1, 7, 30, 90];
+
+/** Midnight (London) for a calendar date given as YYYY-MM-DD. DST-safe. */
+function londonDayStartFor(iso: string): Date {
+  // Noon UTC on a date is always that same calendar date in London, so
+  // londonDayStart resolves to its 00:00 even across DST boundaries.
+  const [y, m, d] = iso.split("-").map(Number);
+  return londonDayStart(new Date(Date.UTC(y, m - 1, d, 12)));
+}
+
+/** Next calendar date (YYYY-MM-DD) - used as the exclusive day-window end. */
+function nextIsoDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
+}
+
+/** Today's calendar date in Europe/London (client-side; server compares too). */
+function todayLondonISO(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Europe/London" });
+}
 
 function parseItemsJson(raw: string | null): { name?: string; qty?: number; quantity?: number }[] {
   try {
@@ -166,45 +183,6 @@ export const getAnalytics = createServerFn({ method: "GET" }).handler(
         ORDER BY views DESC
         LIMIT 15
       `;
-
-      const sessionsRaw = await db.$queryRaw<
-        {
-          sessionId: string;
-          visitorId: string;
-          firstSeen: Date;
-          lastSeen: Date;
-          eventCount: number;
-          purchases: number;
-          events: string[];
-          path: string | null;
-        }[]
-      >`
-        SELECT
-          "sessionId",
-          min("visitorId") AS "visitorId",
-          min("createdAt") AS "firstSeen",
-          max("createdAt") AS "lastSeen",
-          count(*)::int AS eventCount,
-          count(*) FILTER (WHERE event = 'Purchase')::int AS purchases,
-          array_agg(DISTINCT event) AS events,
-          min(path) AS path
-        FROM "AnalyticsEvent"
-        WHERE "createdAt" >= ${since}
-        GROUP BY "sessionId"
-        ORDER BY max("createdAt") DESC
-        LIMIT 40
-      `;
-
-      const sessions = sessionsRaw.map((s) => ({
-        sessionId: s.sessionId,
-        visitorId: s.visitorId,
-        firstSeen: new Date(s.firstSeen),
-        lastSeen: new Date(s.lastSeen),
-        eventCount: s.eventCount,
-        purchases: s.purchases,
-        events: Array.isArray(s.events) ? s.events : [],
-        path: s.path,
-      }));
 
       const products = productsRaw.map((p) => ({
         productId: p.productId,
@@ -329,7 +307,6 @@ export const getAnalytics = createServerFn({ method: "GET" }).handler(
         ],
         daily,
         products,
-        sessions,
       };
     } catch (err) {
       console.error("getAnalytics error:", (err as Error)?.message || err);
@@ -379,10 +356,11 @@ export const getLiveFeed = createServerFn({ method: "GET" }).handler(
           path: string | null;
           productName: string | null;
           value: number | null;
+          visitorId: string | null;
           createdAt: Date;
         }[]
       >`
-        SELECT id, event, path, "productName", value, "createdAt"
+        SELECT id, event, path, "productName", value, "visitorId", "createdAt"
         FROM "AnalyticsEvent"
         WHERE "createdAt" >= ${since24}
           AND event IN ('PageView', 'AddToCart', 'InitiateCheckout', 'Purchase')
@@ -398,10 +376,11 @@ export const getLiveFeed = createServerFn({ method: "GET" }).handler(
           contents: string | null;
           customerCity: string | null;
           pageUrl: string | null;
+          visitorId: string | null;
           createdAt: Date;
         }[]
       >`
-        SELECT id, source, value, contents, "customerCity", "pageUrl", "createdAt"
+        SELECT id, source, value, contents, "customerCity", "pageUrl", "visitorId", "createdAt"
         FROM "WhatsAppLead"
         WHERE "createdAt" >= ${since24}
         ORDER BY "createdAt" DESC
@@ -409,9 +388,9 @@ export const getLiveFeed = createServerFn({ method: "GET" }).handler(
       `;
 
       const ordersRaw = await db.$queryRaw<
-        { id: string; total: number; items: string; createdAt: Date }[]
+        { id: string; total: number; items: string; visitorId: string | null; createdAt: Date }[]
       >`
-        SELECT id, total, items, "createdAt"
+        SELECT id, total, items, "visitorId", "createdAt"
         FROM "Order"
         WHERE "createdAt" >= ${since24}
         ORDER BY "createdAt" DESC
@@ -428,6 +407,7 @@ export const getLiveFeed = createServerFn({ method: "GET" }).handler(
         summary: string;
         path: string | null;
         city: string | null;
+        visitorId: string | null;
       }[] = [];
 
       for (const e of eventsRaw) {
@@ -441,6 +421,7 @@ export const getLiveFeed = createServerFn({ method: "GET" }).handler(
           summary: e.productName || "",
           path: e.path || "",
           city: null,
+          visitorId: e.visitorId || null,
         });
       }
 
@@ -463,6 +444,7 @@ export const getLiveFeed = createServerFn({ method: "GET" }).handler(
             .join(", "),
           path,
           city: l.customerCity || null,
+          visitorId: l.visitorId || null,
         });
       }
 
@@ -479,10 +461,11 @@ export const getLiveFeed = createServerFn({ method: "GET" }).handler(
             .join(", "),
           path: null,
           city: null,
+          visitorId: o.visitorId || null,
         });
       }
 
-      rows.sort((a, b) => b.ts.getTime() - a.ts.getTime());
+      rows.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
 
       // Header totals - today, Europe/London, by type.
       const todayRaw = await db.$queryRaw<
@@ -523,6 +506,141 @@ export const getLiveFeed = createServerFn({ method: "GET" }).handler(
       };
     } catch (err) {
       console.error("getLiveFeed error:", (err as Error)?.message || err);
+      return null;
+    }
+  },
+);
+
+// --- Day View - one calendar day's full stored activity ---------------------
+
+export const getDayView = createServerFn({ method: "GET" }).handler(
+  async (opts?: { data?: { token?: string; date?: string } }) => {
+    if (!(await verifyAuth(opts?.data?.token))) return null;
+    const date = String(opts?.data?.date || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+    const start = londonDayStartFor(date);
+    const end = londonDayStartFor(nextIsoDate(date));
+    try {
+      const eventsRaw = await db.$queryRaw<
+        {
+          id: string;
+          event: string;
+          path: string | null;
+          productName: string | null;
+          value: number | null;
+          visitorId: string | null;
+          createdAt: Date;
+        }[]
+      >`
+        SELECT id, event, path, "productName", value, "visitorId", "createdAt"
+        FROM "AnalyticsEvent"
+        WHERE ("date" = ${date} OR ("date" IS NULL AND "createdAt" >= ${start} AND "createdAt" < ${end}))
+          AND event IN ('PageView', 'AddToCart', 'InitiateCheckout', 'Purchase')
+        ORDER BY "createdAt" DESC
+        LIMIT 5000
+      `;
+
+      const leadsRaw = await db.$queryRaw<
+        {
+          id: string;
+          source: string;
+          value: number | null;
+          contents: string | null;
+          customerCity: string | null;
+          pageUrl: string | null;
+          visitorId: string | null;
+          createdAt: Date;
+        }[]
+      >`
+        SELECT id, source, value, contents, "customerCity", "pageUrl", "visitorId", "createdAt"
+        FROM "WhatsAppLead"
+        WHERE "createdAt" >= ${start} AND "createdAt" < ${end}
+        ORDER BY "createdAt" DESC
+        LIMIT 1000
+      `;
+
+      const evAgg = await db.$queryRaw<
+        {
+          pageview: number;
+          addtocart: number;
+          checkouts: number;
+          orders: number;
+          revenue: number;
+        }[]
+      >`
+        SELECT
+          count(*) FILTER (WHERE event = 'PageView')::int         AS pageview,
+          count(*) FILTER (WHERE event = 'AddToCart')::int        AS addtocart,
+          count(*) FILTER (WHERE event = 'InitiateCheckout')::int AS checkouts,
+          count(*) FILTER (WHERE event = 'Purchase')::int         AS orders,
+          COALESCE(sum(value) FILTER (WHERE event = 'Purchase'), 0)::float AS revenue
+        FROM "AnalyticsEvent"
+        WHERE ("date" = ${date} OR ("date" IS NULL AND "createdAt" >= ${start} AND "createdAt" < ${end}))
+          AND event IN ('PageView', 'AddToCart', 'InitiateCheckout', 'Purchase')
+      `;
+      const waAgg = await db.$queryRaw<{ cnt: number; revenue: number }[]>`
+        SELECT count(*)::int AS cnt,
+               COALESCE(sum(value), 0)::float AS revenue
+        FROM "WhatsAppLead"
+        WHERE "createdAt" >= ${start} AND "createdAt" < ${end}
+      `;
+
+      const rows: LiveRow[] = [];
+      for (const e of eventsRaw) {
+        rows.push({
+          id: `ae-${e.id}`,
+          ts: new Date(e.createdAt),
+          type: e.event,
+          chip: LIVE_CHIP[e.event] || "other",
+          badge: "Website",
+          value: e.value != null ? Number(e.value) : null,
+          summary: e.productName || "",
+          path: e.path || "",
+          city: null,
+          visitorId: e.visitorId || null,
+        });
+      }
+      for (const l of leadsRaw) {
+        let path = "";
+        try {
+          path = l.pageUrl ? new URL(l.pageUrl).pathname : "";
+        } catch {
+          path = "";
+        }
+        rows.push({
+          id: `wl-${l.id}`,
+          ts: new Date(l.createdAt),
+          type: "WhatsAppOrder",
+          chip: "purchase",
+          badge: SOURCE_BADGE[l.source] || "WhatsApp",
+          value: l.value != null ? Number(l.value) : null,
+          summary: parseItemsJson(l.contents)
+            .map((it) => `${Number(it.quantity) || 0}× ${it.name || "item"}`)
+            .join(", "),
+          path,
+          city: l.customerCity || null,
+          visitorId: l.visitorId || null,
+        });
+      }
+      rows.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
+
+      const ev = evAgg[0] ?? { pageview: 0, addtocart: 0, checkouts: 0, orders: 0, revenue: 0 };
+      const wa = waAgg[0] ?? { cnt: 0, revenue: 0 };
+      return {
+        date,
+        isToday: date === todayLondonISO(),
+        rows,
+        summary: {
+          pageviews: ev.pageview,
+          addtocart: ev.addtocart,
+          checkouts: ev.checkouts,
+          websiteOrders: ev.orders,
+          whatsappOrders: wa.cnt,
+          revenue: Number(ev.revenue || 0) + Number(wa.revenue || 0),
+        },
+      };
+    } catch (err) {
+      console.error("getDayView error:", (err as Error)?.message || err);
       return null;
     }
   },
@@ -588,6 +706,7 @@ type LiveRow = {
   summary: string;
   path: string | null;
   city: string | null;
+  visitorId: string | null;
 };
 
 type LiveToday = {
@@ -600,6 +719,22 @@ type LiveToday = {
 };
 
 type LiveFeed = { rows: LiveRow[]; today: LiveToday };
+
+type DaySummary = {
+  pageviews: number;
+  addtocart: number;
+  checkouts: number;
+  websiteOrders: number;
+  whatsappOrders: number;
+  revenue: number;
+};
+
+type DayViewData = {
+  date: string;
+  isToday: boolean;
+  rows: LiveRow[];
+  summary: DaySummary;
+};
 
 type LeadRow = {
   id: string;
@@ -644,16 +779,6 @@ type AnalyticsData = {
     revenue: number;
   }[];
   products: { productId: string; name: string; views: number; adds: number; conversion: number }[];
-  sessions: {
-    sessionId: string;
-    visitorId: string;
-    firstSeen: Date | string;
-    lastSeen: Date | string;
-    eventCount: number;
-    purchases: number;
-    events: string[];
-    path: string | null;
-  }[];
 };
 
 function StatCard({ title, value, sub, Icon, color, bg, delay }: StatCardProps) {
@@ -725,6 +850,7 @@ const EVENT_STYLE: Record<string, string> = {
   InitiateCheckout: "bg-purple-500/10 text-purple-300",
   Purchase: "bg-emerald-500/10 text-emerald-300",
   OrderPlaced: "bg-cyan-500/10 text-cyan-300",
+  WhatsAppOrder: "bg-teal-500/10 text-teal-300",
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -733,6 +859,15 @@ const TYPE_LABEL: Record<string, string> = {
   InitiateCheckout: "Initiate checkout",
   Purchase: "Purchase",
   OrderPlaced: "Order placed",
+};
+
+// Day View labels - exactly the five event types the brief lists.
+const DAY_TYPE_LABEL: Record<string, string> = {
+  PageView: "PageView",
+  AddToCart: "AddToCart",
+  InitiateCheckout: "Checkout",
+  Purchase: "Website Purchase",
+  WhatsAppOrder: "WhatsApp Order",
 };
 
 const STATUS_STYLES: Record<string, { label: string; cls: string }> = {
@@ -747,22 +882,49 @@ function badgeClass(badge: string): string {
     : "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20";
 }
 
-function fmtTime(d: Date | string) {
-  const diff = Date.now() - new Date(d).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+const MONTH_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/** Axis label for a YYYY-MM-DD bucket: "2026-10-17" -> "17 Oct". */
+function dayTick(v: string): string {
+  const [, m, d] = v.split("-");
+  const dd = Number(d);
+  const mm = MONTH_SHORT[Number(m) - 1];
+  return mm ? `${dd} ${mm}` : v;
 }
 
+/** Chart/row timestamp - 12-hour clock in Europe/London, e.g. "3:42 PM". */
 function fmtClock(d: Date | string) {
-  return new Date(d).toLocaleTimeString("en-GB", {
-    hour: "2-digit",
+  return new Date(d).toLocaleTimeString("en-US", {
+    hour: "numeric",
     minute: "2-digit",
-    second: "2-digit",
+    hour12: true,
+    timeZone: "Europe/London",
   });
+}
+
+/** Visitor ID shortened to its stable first 8 chars (full value on hover). */
+function shortId(id?: string | null): string {
+  return id ? id.slice(0, 8) : "";
+}
+
+/** Human day label for the picker: "2026-10-17" -> "17 Oct 2026". */
+function dayLabel(iso: string): string {
+  const [y, m, d] = iso.split("-");
+  const mm = MONTH_SHORT[Number(m) - 1];
+  return mm ? `${Number(d)} ${mm} ${y}` : iso;
 }
 
 function StatusPills({ status, onSet, busy, id }: StatusPillsProps) {
@@ -919,12 +1081,13 @@ function LiveEvents() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-[90px_110px_140px_2fr_1.2fr_100px_80px] gap-2 px-5 py-3 text-[10px] font-bold text-gray-600 uppercase tracking-widest border-b border-white/[0.04]">
+            <div className="grid grid-cols-[90px_110px_140px_2fr_1.2fr_90px_100px_80px] gap-2 px-5 py-3 text-[10px] font-bold text-gray-600 uppercase tracking-widest border-b border-white/[0.04]">
               <span>Time</span>
               <span>Type</span>
               <span>Source</span>
               <span>Summary</span>
               <span>Path</span>
+              <span>Visitor</span>
               <span>City</span>
               <span className="text-right">Value</span>
             </div>
@@ -932,7 +1095,7 @@ function LiveEvents() {
               {visible.map((r) => (
                 <div
                   key={r.id}
-                  className="grid grid-cols-[90px_110px_140px_2fr_1.2fr_100px_80px] gap-2 items-center px-5 py-3 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
+                  className="grid grid-cols-[90px_110px_140px_2fr_1.2fr_90px_100px_80px] gap-2 items-center px-5 py-3 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
                 >
                   <span className="text-[11px] text-gray-500 font-mono">{fmtClock(r.ts)}</span>
                   <span
@@ -951,6 +1114,12 @@ function LiveEvents() {
                   <span className="text-[11px] text-gray-500 font-mono truncate">
                     {r.path || "-"}
                   </span>
+                  <span
+                    className="text-[11px] text-gray-500 font-mono truncate"
+                    title={r.visitorId || undefined}
+                  >
+                    {shortId(r.visitorId) || "-"}
+                  </span>
                   <span className="text-[11px] text-gray-500 truncate">{r.city || "-"}</span>
                   <span className="text-xs text-gray-200 font-semibold text-right">
                     {r.value != null ? `£${Math.round(r.value).toLocaleString()}` : "-"}
@@ -965,14 +1134,217 @@ function LiveEvents() {
   );
 }
 
+// --- Day View - pick one calendar date, see everything that happened -------
+
+function DayView() {
+  const [picked, setPicked] = useState(() => todayLondonISO());
+  const [feed, setFeed] = useState<DayViewData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [tick, setTick] = useState(0);
+  const [updatedAt, setUpdatedAt] = useState<number | null>(null);
+  const [clock, setClock] = useState(() => Date.now());
+  const [chip, setChip] = useState("all");
+
+  const isToday = picked === todayLondonISO();
+
+  // Auto-refresh ONLY while the picked date is today (brief requirement).
+  useEffect(() => {
+    if (!isToday) return;
+    const refresher = setInterval(() => setTick((n) => n + 1), 15_000);
+    const ticker = setInterval(() => setClock(Date.now()), 1_000);
+    return () => {
+      clearInterval(refresher);
+      clearInterval(ticker);
+    };
+  }, [isToday]);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    setError(false);
+    setFeed((f) => (f && f.date === picked ? f : null));
+    getDayView(withData({ token: adminToken(), date: picked }))
+      .then((res) => {
+        if (!alive) return;
+        if (res) {
+          setFeed(res);
+          setUpdatedAt(Date.now());
+        } else {
+          setError(true);
+        }
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [picked, tick]);
+
+  const s = feed?.summary;
+  const rows = (feed?.rows ?? []).filter((r) => chip === "all" || r.chip === chip);
+  const age = updatedAt != null ? Math.max(0, Math.round((clock - updatedAt) / 1000)) : null;
+  const displayDate = dayLabel(picked);
+
+  const summaryChips: { label: string; value: string | number }[] = s
+    ? [
+        { label: "Page views", value: s.pageviews },
+        { label: "Add to carts", value: s.addtocart },
+        { label: "Checkouts", value: s.checkouts },
+        { label: "Website orders", value: s.websiteOrders },
+        { label: "WhatsApp orders", value: s.whatsappOrders },
+        { label: "Revenue", value: `£${Math.round(s.revenue).toLocaleString()}` },
+      ]
+    : [];
+
+  return (
+    <div className="space-y-5">
+      {/* Date picker + freshness */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <label
+            htmlFor="day-view-date"
+            className="text-[10px] text-gray-500 uppercase tracking-widest font-bold"
+          >
+            Date
+          </label>
+          <input
+            id="day-view-date"
+            type="date"
+            value={picked}
+            max={todayLondonISO()}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v) setPicked(v);
+            }}
+            style={{ colorScheme: "dark" }}
+            className="bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-emerald-500/40"
+          />
+          <span className="text-xs text-gray-400 font-semibold">{displayDate}</span>
+        </div>
+        <p className="text-[11px] text-gray-500">
+          {isToday ? (
+            <>
+              {age != null ? `Updated ${age}s ago` : loading ? "Loading..." : "Waiting..."}
+              {!loading && (
+                <button
+                  type="button"
+                  onClick={() => setTick((n) => n + 1)}
+                  className="ml-3 text-blue-400 hover:text-blue-300 font-semibold"
+                >
+                  Refresh now
+                </button>
+              )}
+            </>
+          ) : (
+            <span className="text-gray-600">Static snapshot - past date</span>
+          )}
+        </p>
+      </div>
+
+      {/* Day summary chips */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {(loading && !s ? [] : summaryChips).map((c) => (
+          <div key={c.label} className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3">
+            <p className="text-[10px] text-gray-500 uppercase tracking-wider">{c.label}</p>
+            <p className="text-xl font-bold text-white mt-0.5">{c.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Filter chips - same keys as Live */}
+      <div className="flex flex-wrap gap-1">
+        {LIVE_CHIPS.map((c) => (
+          <button
+            key={c.key}
+            type="button"
+            onClick={() => setChip(c.key)}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              chip === c.key
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
+                : "bg-white/[0.03] border border-white/[0.06] text-gray-400 hover:text-white"
+            }`}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Activity table - identical 8-column format to Live (Time/Type/Source/Summary/Path/Visitor/City/Value). */}
+      <div className="rounded-2xl overflow-hidden" style={card}>
+        {error ? (
+          <div className="py-20 text-center text-red-400/80 text-sm">
+            Could not load {displayDate} - try again.
+          </div>
+        ) : loading && !feed ? (
+          <div className="py-20 text-center text-gray-600 text-sm">Loading day...</div>
+        ) : rows.length === 0 ? (
+          <div className="py-20 text-center text-gray-600 text-sm">
+            No activity on {displayDate}
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-[90px_110px_140px_2fr_1.2fr_90px_100px_80px] gap-2 px-5 py-3 text-[10px] font-bold text-gray-600 uppercase tracking-widest border-b border-white/[0.04]">
+              <span>Time</span>
+              <span>Type</span>
+              <span>Source</span>
+              <span>Summary</span>
+              <span>Path</span>
+              <span>Visitor</span>
+              <span>City</span>
+              <span className="text-right">Value</span>
+            </div>
+            <div className="max-h-[520px] overflow-y-auto">
+              {rows.map((r) => (
+                <div
+                  key={r.id}
+                  className="grid grid-cols-[90px_110px_140px_2fr_1.2fr_90px_100px_80px] gap-2 items-center px-5 py-3 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
+                >
+                  <span className="text-[11px] text-gray-500 font-mono">{fmtClock(r.ts)}</span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold w-fit ${
+                      EVENT_STYLE[r.type] ?? "bg-gray-500/10 text-gray-300"
+                    }`}
+                  >
+                    {DAY_TYPE_LABEL[r.type] || r.type}
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold w-fit ${badgeClass(r.badge)}`}
+                  >
+                    {r.badge}
+                  </span>
+                  <span className="text-xs text-gray-300 truncate pr-2">{r.summary || "-"}</span>
+                  <span className="text-[11px] text-gray-500 font-mono truncate">
+                    {r.path || "-"}
+                  </span>
+                  <span
+                    className="text-[11px] text-gray-500 font-mono truncate"
+                    title={r.visitorId || undefined}
+                  >
+                    {shortId(r.visitorId) || "-"}
+                  </span>
+                  <span className="text-[11px] text-gray-500 truncate">{r.city || "-"}</span>
+                  <span className="text-xs text-gray-200 font-semibold text-right">
+                    {r.value != null ? `£${Math.round(r.value).toLocaleString()}` : "-"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 // --- Main analytics page -----------------------------------------------------
 
 function AdminAnalytics() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(1);
-  const [tab, setTab] = useState<"products" | "sessions">("products");
-  const [view, setView] = useState<"overview" | "live">("overview");
+
+  const [view, setView] = useState<"overview" | "live" | "day">("overview");
   const [leadBusy, setLeadBusy] = useState<string | null>(null);
 
   useEffect(() => {
@@ -1019,9 +1391,11 @@ function AdminAnalytics() {
       <div>
         <h1 className="text-2xl font-bold text-white tracking-tight">Analytics</h1>
         <p className="text-gray-500 text-sm mt-0.5">
-          {view === "live"
-            ? "Live event stream - the last 24 hours, auto-refreshing."
-            : "On-site funnel and sales - website checkout vs WhatsApp orders."}
+          {view === "day"
+            ? "One calendar day - every stored event, order and lead for the picked date."
+            : view === "live"
+              ? "Live event stream - the last 24 hours, auto-refreshing."
+              : "On-site funnel and sales - website checkout vs WhatsApp orders."}
         </p>
       </div>
       <div className="flex gap-3 flex-wrap">
@@ -1047,6 +1421,7 @@ function AdminAnalytics() {
             [
               { key: "overview", label: "Overview" },
               { key: "live", label: "Live" },
+              { key: "day", label: "Day View" },
             ] as const
           ).map((v) => (
             <button
@@ -1072,6 +1447,15 @@ function AdminAnalytics() {
       <div className="p-8 max-w-7xl mx-auto space-y-6">
         {header}
         <LiveEvents />
+      </div>
+    );
+  }
+
+  if (view === "day") {
+    return (
+      <div className="p-8 max-w-7xl mx-auto space-y-6">
+        {header}
+        <DayView />
       </div>
     );
   }
@@ -1236,7 +1620,7 @@ function AdminAnalytics() {
                   <XAxis
                     dataKey="day"
                     tick={{ fill: "#6b7280", fontSize: 10 }}
-                    tickFormatter={(v: string) => v.slice(5)}
+                    tickFormatter={dayTick}
                     axisLine={false}
                     tickLine={false}
                   />
@@ -1266,6 +1650,30 @@ function AdminAnalytics() {
                 </BarChart>
               </ResponsiveContainer>
             )}
+          </div>
+          {/* Breakdown - mirrors the two Sales cards above, always visible. */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 pb-4 text-xs">
+            <span className="text-gray-400">
+              Website Checkout:{" "}
+              <span className="text-sky-300 font-bold">
+                {s.website.orders} order{s.website.orders === 1 ? "" : "s"}
+              </span>
+              {" \u00b7 "}
+              <span className="text-white font-bold">
+                £{Math.round(s.website.revenue).toLocaleString()}
+              </span>
+            </span>
+            <span className="text-gray-700 font-bold">|</span>
+            <span className="text-gray-400">
+              WhatsApp:{" "}
+              <span className="text-emerald-300 font-bold">
+                {s.whatsapp.leads} order{s.whatsapp.leads === 1 ? "" : "s"}
+              </span>
+              {" \u00b7 "}
+              <span className="text-white font-bold">
+                £{Math.round(s.whatsapp.revenue).toLocaleString()}
+              </span>
+            </span>
           </div>
         </motion.div>
 
@@ -1404,7 +1812,7 @@ function AdminAnalytics() {
                   <XAxis
                     dataKey="day"
                     tick={{ fill: "#6b7280", fontSize: 10 }}
-                    tickFormatter={(v: string) => v.slice(5)}
+                    tickFormatter={dayTick}
                     axisLine={false}
                     tickLine={false}
                   />
@@ -1445,136 +1853,47 @@ function AdminAnalytics() {
         </motion.div>
       </div>
 
-      {/* Products / Sessions toggle */}
+      {/* Top products */}
       <div>
-        <div className="flex items-center gap-1 mb-3">
-          <button
-            onClick={() => setTab("products")}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 ${
-              tab === "products"
-                ? "bg-blue-600/15 text-blue-300 border border-blue-500/20"
-                : "text-gray-500 hover:text-gray-300 border border-transparent"
-            }`}
-          >
-            <Package className="w-4 h-4" /> Top Products
-          </button>
-          <button
-            onClick={() => setTab("sessions")}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 ${
-              tab === "sessions"
-                ? "bg-blue-600/15 text-blue-300 border border-blue-500/20"
-                : "text-gray-500 hover:text-gray-300 border border-transparent"
-            }`}
-          >
-            <Users className="w-4 h-4" /> Recent Sessions
-          </button>
-        </div>
-
-        {tab === "products" ? (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="rounded-2xl overflow-hidden"
-            style={card}
-          >
-            {data.products.length === 0 ? (
-              <div className="py-16 text-center text-gray-600 text-sm">
-                No product activity yet — events appear here once visitors start viewing items.
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="rounded-2xl overflow-hidden"
+          style={card}
+        >
+          <div className="px-5 py-4 border-b border-white/[0.04] flex items-center gap-2">
+            <Package className="w-4 h-4 text-blue-400" />
+            <h2 className="text-sm font-semibold text-white">Top Products</h2>
+          </div>
+          {data.products.length === 0 ? (
+            <div className="py-16 text-center text-gray-600 text-sm">
+              No product activity yet - events appear here once visitors start viewing items.
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-[3fr_1fr_1fr_1fr] px-5 py-3 text-[10px] font-bold text-gray-600 uppercase tracking-widest border-b border-white/[0.04]">
+                <span>Product</span>
+                <span>Views</span>
+                <span>Adds</span>
+                <span>Conv.</span>
               </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-[3fr_1fr_1fr_1fr] px-5 py-3 text-[10px] font-bold text-gray-600 uppercase tracking-widest border-b border-white/[0.04]">
-                  <span>Product</span>
-                  <span>Views</span>
-                  <span>Adds</span>
-                  <span>Conv.</span>
+              {data.products.map((p) => (
+                <div
+                  key={p.productId}
+                  className="grid grid-cols-[3fr_1fr_1fr_1fr] items-center px-5 py-4 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
+                >
+                  <span className="text-sm text-white font-semibold truncate pr-3">{p.name}</span>
+                  <span className="text-sm text-gray-300 font-semibold">{p.views}</span>
+                  <span className="text-sm text-gray-300 font-semibold">{p.adds}</span>
+                  <span className="text-xs text-emerald-400 font-semibold">
+                    {p.conversion.toFixed(1)}%
+                  </span>
                 </div>
-                {data.products.map((p) => (
-                  <div
-                    key={p.productId}
-                    className="grid grid-cols-[3fr_1fr_1fr_1fr] items-center px-5 py-4 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
-                  >
-                    <span className="text-sm text-white font-semibold truncate pr-3">{p.name}</span>
-                    <span className="text-sm text-gray-300 font-semibold">{p.views}</span>
-                    <span className="text-sm text-gray-300 font-semibold">{p.adds}</span>
-                    <span className="text-xs text-emerald-400 font-semibold">
-                      {p.conversion.toFixed(1)}%
-                    </span>
-                  </div>
-                ))}
-              </>
-            )}
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="rounded-2xl overflow-hidden"
-            style={card}
-          >
-            {data.sessions.length === 0 ? (
-              <div className="py-16 text-center text-gray-600 text-sm">
-                No sessions yet — activity trails show up here as people browse.
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-[2fr_3fr_1fr_1fr_1fr] px-5 py-3 text-[10px] font-bold text-gray-600 uppercase tracking-widest border-b border-white/[0.04]">
-                  <span>Visitor</span>
-                  <span>Activity</span>
-                  <span>Events</span>
-                  <span>Bought</span>
-                  <span>Last seen</span>
-                </div>
-                {data.sessions.map((s2) => (
-                  <div
-                    key={s2.sessionId}
-                    className="grid grid-cols-[2fr_3fr_1fr_1fr_1fr] items-center px-5 py-4 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
-                  >
-                    <div className="min-w-0 pr-3">
-                      <p className="text-xs text-gray-300 font-mono truncate">
-                        {s2.visitorId.slice(0, 8)}…
-                      </p>
-                      <p className="text-[10px] text-gray-600 truncate flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> {fmtTime(s2.lastSeen)}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-1 pr-3">
-                      {s2.events
-                        .sort((a: string, b: string) =>
-                          a === "Purchase" ? -1 : b === "Purchase" ? 1 : 0,
-                        )
-                        .map((ev: string) => (
-                          <span
-                            key={ev}
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                              EVENT_STYLE[ev] ?? "bg-gray-500/10 text-gray-300"
-                            }`}
-                          >
-                            {ev}
-                          </span>
-                        ))}
-                    </div>
-                    <span className="text-sm text-gray-300 font-semibold">{s2.eventCount}</span>
-                    <span>
-                      {s2.purchases > 0 ? (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300">
-                          Yes
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/[0.04] text-gray-500">
-                          No
-                        </span>
-                      )}
-                    </span>
-                    <span className="text-xs text-gray-500">{fmtTime(s2.lastSeen)}</span>
-                  </div>
-                ))}
-              </>
-            )}
-          </motion.div>
-        )}
+              ))}
+            </>
+          )}
+        </motion.div>
       </div>
     </div>
   );

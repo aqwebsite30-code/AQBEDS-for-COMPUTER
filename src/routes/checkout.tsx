@@ -9,7 +9,12 @@ import { sendOrderEmail } from "../lib/email";
 import { saveOrder } from "@/lib/orders";
 import { getTrackingToken } from "@/hooks/useTracking";
 import { toast } from "sonner";
-import { trackPixelWithId, generateEventId, getClientTrackingData } from "@/lib/meta-pixel";
+import {
+  trackPixelWithId,
+  generateEventId,
+  getClientTrackingData,
+  getVisitorId,
+} from "@/lib/meta-pixel";
 import { sendInitiateCheckoutEvent } from "@/lib/meta-capi";
 import { trackEvent } from "@/lib/analytics";
 import { getDeliveryWindow, type ArrivalWindow } from "@/lib/delivery-date";
@@ -152,6 +157,7 @@ function CheckoutPage() {
           total: total(),
           instructions: (formData.get("instructions") as string) || "",
           trackingToken,
+          visitorId: getVisitorId(),
           event_id: purchaseEventId,
           client_user_agent: navigator.userAgent,
           ...trackingData,

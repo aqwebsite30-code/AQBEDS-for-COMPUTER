@@ -64,6 +64,7 @@ model Order {
   salespersonId   String?
   salesperson     Salesperson?  @relation(fields: [salespersonId], references: [id])
   trackingToken   String?
+  visitorId       String? // aqbeds_vid - lets Live rows trace the whole journey
   createdAt       DateTime      @default(now())
 }
 
@@ -109,7 +110,7 @@ model ChatMessage {
 
 // Own analytics funnel events (PageView / ViewContent / AddToCart /
 // InitiateCheckout / Purchase). Completely separate from the Meta Pixel + CAPI
-// pipeline — stored only for the /admin/analytics dashboard. Kept forever.
+// pipeline — stored only for the /admin/analytics dashboard. Retained forever,
 model AnalyticsEvent {
   id          String   @id @default(uuid())
   visitorId   String
@@ -122,6 +123,7 @@ model AnalyticsEvent {
   value       Float?
   currency    String   @default("GBP")
   device      String?
+  date        String? // Europe/London calendar day (YYYY-MM-DD), persisted at capture
   createdAt   DateTime @default(now())
 
   @@index([createdAt])
@@ -129,6 +131,7 @@ model AnalyticsEvent {
   @@index([visitorId, createdAt])
   @@index([sessionId])
   @@index([productId])
+  @@index([date])
 }
 
 
@@ -149,6 +152,7 @@ model WhatsAppLead {
   customerCity     String?
   customerPostcode String?
   pageUrl          String?
+  visitorId        String? // aqbeds_vid of the buyer - shown in Live / Day View rows
   status           String   @default("new") // new | confirmed | lost
   createdAt        DateTime @default(now())
 

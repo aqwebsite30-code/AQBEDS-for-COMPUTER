@@ -81,6 +81,8 @@ export default async function handler(req, res) {
   }
 
   const value = typeof parsed.value === "number" && isFinite(parsed.value) ? parsed.value : null;
+  // Optional aqbeds_vid of the buyer (Live / Day View visitor column).
+  const visitorId = cap(parsed && parsed.visitor_id, 64) || null;
 
   let contents = null;
   try {
@@ -116,6 +118,7 @@ export default async function handler(req, res) {
         customerCity: cap(customer.city, MAX.city) || null,
         customerPostcode: cap(customer.postcode, MAX.postcode) || null,
         pageUrl: cap(parsed.page_url, MAX.pageUrl) || null,
+        visitorId,
       },
     });
   } catch (err) {
