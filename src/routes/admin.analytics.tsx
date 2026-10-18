@@ -32,12 +32,12 @@ import { db } from "@/lib/db";
 import { useState, useEffect } from "react";
 import { verifyAuth, adminToken } from "@/lib/auth";
 
-// --- Time helpers - all ranges and day grouping use Europe/London -----------
+// --- Time helpers - all ranges and day grouping use Asia/Karachi (PKT, UTC+5) --
 
-/** Real instant when the London wall clock last hit 00:00 (DST-aware). */
-function londonDayStart(now: Date): Date {
+/** Real instant when the Karachi wall clock last hit 00:00 (PKT = UTC+5, no DST). */
+function karachiDayStart(now: Date): Date {
   const dtf = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Europe/London",
+    timeZone: "Asia/Karachi",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -54,22 +54,22 @@ function londonDayStart(now: Date): Date {
   return new Date(wallMidnight - offset);
 }
 
-/** Start instant for a range: 0 = All (epoch), 1 = Today, N = last N London days. */
+/** Start instant for a range: 0 = All (epoch), 1 = Today, N = last N PKT days. */
 function sinceForRange(days: number, now: Date): Date {
   if (days <= 0) return new Date(0);
-  const start = londonDayStart(now);
+  const start = karachiDayStart(now);
   if (days === 1) return start;
   return new Date(start.getTime() - (days - 1) * 864e5);
 }
 
 const VALID_RANGES = [0, 1, 7, 30, 90];
 
-/** Midnight (London) for a calendar date given as YYYY-MM-DD. DST-safe. */
-function londonDayStartFor(iso: string): Date {
-  // Noon UTC on a date is always that same calendar date in London, so
-  // londonDayStart resolves to its 00:00 even across DST boundaries.
+/** Midnight (Karachi) for a calendar date given as YYYY-MM-DD (PKT, no DST). */
+function karachiDayStartFor(iso: string): Date {
+  // Noon UTC on a date is always that same calendar date in Karachi, so
+  // karachiDayStart resolves to its 00:00 (PKT is a fixed UTC+5 offset).
   const [y, m, d] = iso.split("-").map(Number);
-  return londonDayStart(new Date(Date.UTC(y, m - 1, d, 12)));
+  return karachiDayStart(new Date(Date.UTC(y, m - 1, d, 12)));
 }
 
 /** Next calendar date (YYYY-MM-DD) - used as the exclusive day-window end. */
@@ -78,9 +78,9 @@ function nextIsoDate(iso: string): string {
   return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
 }
 
-/** Today's calendar date in Europe/London (client-side; server compares too). */
-function todayLondonISO(): string {
-  return new Date().toLocaleDateString("en-CA", { timeZone: "Europe/London" });
+/** Today's calendar date in Asia/Karachi (client-side; server compares too). */
+function todayKarachiISO(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Karachi" });
 }
 
 function parseItemsJson(raw: string | null): { name?: string; qty?: number; quantity?: number }[] {
@@ -137,7 +137,7 @@ export const getAnalytics = createServerFn({ method: "GET" }).handler(
         revenue: 0,
       };
 
-      // Daily buckets are London calendar days (not the DB server's timezone).
+      // Daily buckets are PKT (Asia/Karachi) calendar days, converted from UTC storage.
       const dailyRaw = await db.$queryRaw<
         {
           day: Date;
@@ -149,7 +149,7 @@ export const getAnalytics = createServerFn({ method: "GET" }).handler(
         }[]
       >`
         SELECT
-          (timezone('Europe/London', "createdAt"))::date AS day,
+          timezone('Asia/Karachi', "createdAt" AT TIME ZONE 'UTC')::date AS day,
           count(*) FILTER (WHERE event = 'PageView')::int         AS pageviews,
           count(*) FILTER (WHERE event = 'AddToCart')::int        AS addtocart,
           count(*) FILTER (WHERE event = 'InitiateCheckout')::int AS checkout,
@@ -202,7 +202,7 @@ export const getAnalytics = createServerFn({ method: "GET" }).handler(
 
       const waDailyRaw = await db.$queryRaw<{ day: Date; cnt: number; sum: number }[]>`
         SELECT
-          (timezone('Europe/London', "createdAt"))::date AS day,
+          timezone('Asia/Karachi', "createdAt" AT TIME ZONE 'UTC')::date AS day,
           count(*)::int AS cnt,
           COALESCE(sum(value), 0)::float AS sum
         FROM "WhatsAppLead"
@@ -347,7 +347,7 @@ export const getLiveFeed = createServerFn({ method: "GET" }).handler(
     if (!(await verifyAuth(opts?.data?.token))) return null;
     const now = new Date();
     const since24 = new Date(now.getTime() - 24 * 36e5);
-    const todayStart = londonDayStart(now);
+    const todayStart = karachiDayStart(now);
     try {
       const eventsRaw = await db.$queryRaw<
         {
@@ -467,7 +467,7 @@ export const getLiveFeed = createServerFn({ method: "GET" }).handler(
 
       rows.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
 
-      // Header totals - today, Europe/London, by type.
+      // Header totals - today, Asia/Karachi (PKT), by type.
       const todayRaw = await db.$queryRaw<
         {
           pageview: number;
@@ -518,8 +518,8 @@ export const getDayView = createServerFn({ method: "GET" }).handler(
     if (!(await verifyAuth(opts?.data?.token))) return null;
     const date = String(opts?.data?.date || "");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
-    const start = londonDayStartFor(date);
-    const end = londonDayStartFor(nextIsoDate(date));
+    const start = karachiDayStartFor(date);
+    const end = karachiDayStartFor(nextIsoDate(date));
     try {
       const eventsRaw = await db.$queryRaw<
         {
@@ -534,7 +534,7 @@ export const getDayView = createServerFn({ method: "GET" }).handler(
       >`
         SELECT id, event, path, "productName", value, "visitorId", "createdAt"
         FROM "AnalyticsEvent"
-        WHERE ("date" = ${date} OR ("date" IS NULL AND "createdAt" >= ${start} AND "createdAt" < ${end}))
+        WHERE "createdAt" >= ${start} AND "createdAt" < ${end}
           AND event IN ('PageView', 'AddToCart', 'InitiateCheckout', 'Purchase')
         ORDER BY "createdAt" DESC
         LIMIT 5000
@@ -575,7 +575,7 @@ export const getDayView = createServerFn({ method: "GET" }).handler(
           count(*) FILTER (WHERE event = 'Purchase')::int         AS orders,
           COALESCE(sum(value) FILTER (WHERE event = 'Purchase'), 0)::float AS revenue
         FROM "AnalyticsEvent"
-        WHERE ("date" = ${date} OR ("date" IS NULL AND "createdAt" >= ${start} AND "createdAt" < ${end}))
+        WHERE "createdAt" >= ${start} AND "createdAt" < ${end}
           AND event IN ('PageView', 'AddToCart', 'InitiateCheckout', 'Purchase')
       `;
       const waAgg = await db.$queryRaw<{ cnt: number; revenue: number }[]>`
@@ -628,7 +628,7 @@ export const getDayView = createServerFn({ method: "GET" }).handler(
       const wa = waAgg[0] ?? { cnt: 0, revenue: 0 };
       return {
         date,
-        isToday: date === todayLondonISO(),
+        isToday: date === todayKarachiISO(),
         rows,
         summary: {
           pageviews: ev.pageview,
@@ -905,13 +905,13 @@ function dayTick(v: string): string {
   return mm ? `${dd} ${mm}` : v;
 }
 
-/** Chart/row timestamp - 12-hour clock in Europe/London, e.g. "3:42 PM". */
+/** Chart/row timestamp - 12-hour clock in Asia/Karachi (UTC+5), e.g. "3:42 PM". */
 function fmtClock(d: Date | string) {
   return new Date(d).toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-    timeZone: "Europe/London",
+    timeZone: "Asia/Karachi",
   });
 }
 
@@ -1008,7 +1008,7 @@ function LiveEvents() {
 
   return (
     <div className="space-y-5">
-      {/* Today's totals header (Europe/London) */}
+      {/* Today's totals header (Asia/Karachi) */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1018,7 +1018,7 @@ function LiveEvents() {
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-            <Radio className="w-4 h-4 text-emerald-400" /> Today (Europe/London)
+            <Radio className="w-4 h-4 text-emerald-400" /> Today (Asia/Karachi)
           </h2>
           <p className="text-[11px] text-gray-500">
             {age != null ? `Updated ${age}s ago` : loading ? "Loading..." : "Waiting..."}
@@ -1137,7 +1137,7 @@ function LiveEvents() {
 // --- Day View - pick one calendar date, see everything that happened -------
 
 function DayView() {
-  const [picked, setPicked] = useState(() => todayLondonISO());
+  const [picked, setPicked] = useState(() => todayKarachiISO());
   const [feed, setFeed] = useState<DayViewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -1146,7 +1146,7 @@ function DayView() {
   const [clock, setClock] = useState(() => Date.now());
   const [chip, setChip] = useState("all");
 
-  const isToday = picked === todayLondonISO();
+  const isToday = picked === todayKarachiISO();
 
   // Auto-refresh ONLY while the picked date is today (brief requirement).
   useEffect(() => {
@@ -1213,7 +1213,7 @@ function DayView() {
             id="day-view-date"
             type="date"
             value={picked}
-            max={todayLondonISO()}
+            max={todayKarachiISO()}
             onChange={(e) => {
               const v = e.target.value;
               if (v) setPicked(v);

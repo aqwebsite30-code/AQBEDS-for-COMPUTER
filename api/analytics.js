@@ -91,8 +91,8 @@ export default async function handler(req, res) {
         value,
         currency: cap(parsed.currency, 8) || "GBP",
         device: cap(parsed.device, 16) || null,
-        // Europe/London calendar day persisted with the event (Day View reads it).
-        date: new Date().toLocaleDateString("en-CA", { timeZone: "Europe/London" }),
+        // PKT (Asia/Karachi, UTC+5) calendar day persisted with the event.
+        date: new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Karachi" }),
       },
     });
   } catch (err) {
