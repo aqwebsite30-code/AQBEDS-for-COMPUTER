@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { PRODUCTS } from "@/features/products/data/products";
 import { db } from "./db";
 
 export type Option = { name: string; extraPrice: number };
@@ -42,14 +43,27 @@ function parseOptions(raw: string | null) {
 
 function mapDbProduct(p: any): DbProductData {
   const opts = parseOptions(p.options);
-  const fabrics: FabricWithColors[] = (opts.fabrics || []).map((f: any) => ({
-    name: f.name || "",
-    extraPrice: f.extraPrice || 0,
-    colors: (f.colors || []).map((c: any) => ({
-      name: c.name || "",
-      hex: c.hex || undefined,
-      image: c.image || undefined,
-    })),
+  // Products seeded into the database only carry their size list (variant
+  // rows) - the options JSON is empty, which stripped every colour / fabric /
+  // headboard / storage / mattress picker off the PDP and shop facets for all
+  // 32 products. Fall back per key to the static catalogue entry with the same
+  // slug so the rich option data keeps working; an admin-edited DB option
+  // (present + non-empty) always wins over the static copy.
+  const staticOpts: any = (PRODUCTS as any[]).find((s: any) => s.slug === p.slug) ?? {};
+  const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
+  const pick = (dbVal: unknown, staticVal: unknown): any[] => {
+    const fromDb = list(dbVal);
+    return fromDb.length ? fromDb : list(staticVal);
+  };
+  const toColor = (c: any): Color => ({
+    name: c?.name || "",
+    hex: c?.hex || undefined,
+    image: c?.image || undefined,
+  });
+  const fabrics: FabricWithColors[] = pick(opts.fabrics, staticOpts.fabrics).map((f: any) => ({
+    name: f?.name || "",
+    extraPrice: f?.extraPrice || 0,
+    colors: list(f?.colors).map(toColor),
   }));
   const allColors: Color[] = [];
   fabrics.forEach((f) => allColors.push(...f.colors));
@@ -73,13 +87,13 @@ function mapDbProduct(p: any): DbProductData {
     images: (p.images || []).map((i: any) => i.imageUrl),
     rating: p.rating || 0,
     featured: p.featured || false,
-    colors: allColors,
+    colors: allColors.length ? allColors : pick(opts.colors, staticOpts.colors).map(toColor),
     sizes: opts.sizes?.length ? opts.sizes : variantSizes,
     fabrics,
-    mattressOptions: opts.mattressOptions || [],
-    frameOptions: opts.frameOptions || [],
-    headboardOptions: opts.headboardOptions || undefined,
-    storageOptions: opts.storageOptions || undefined,
+    mattressOptions: pick(opts.mattressOptions, staticOpts.mattressOptions),
+    frameOptions: pick(opts.frameOptions, staticOpts.frameOptions),
+    headboardOptions: pick(opts.headboardOptions, staticOpts.headboardOptions),
+    storageOptions: pick(opts.storageOptions, staticOpts.storageOptions),
   };
 }
 

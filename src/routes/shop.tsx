@@ -7,13 +7,17 @@ import { SlidersHorizontal, X, ChevronDown, Search } from "lucide-react";
 import { motion, useInView } from "framer-motion";
 
 type Sort = "featured" | "low" | "high";
-type FilterKey = "cat" | "size" | "mattress";
+type FilterKey = "cat" | "size" | "mattress" | "color" | "fabric" | "headboard" | "storage";
 
 type ShopSearch = {
   q?: string;
   cat?: string[];
   size?: string[];
   mattress?: string[];
+  color?: string[];
+  fabric?: string[];
+  headboard?: string[];
+  storage?: string[];
   max?: number;
   sort?: Sort;
 };
@@ -42,6 +46,10 @@ export const Route = createFileRoute("/shop")({
     cat: asList(s.cat),
     size: asList(s.size),
     mattress: asList(s.mattress),
+    color: asList(s.color),
+    fabric: asList(s.fabric),
+    headboard: asList(s.headboard),
+    storage: asList(s.storage),
     max:
       typeof s.max === "number" && Number.isFinite(s.max)
         ? s.max
@@ -91,6 +99,10 @@ function ShopPage() {
   const cat = useMemo(() => search.cat ?? [], [search.cat]);
   const size = useMemo(() => search.size ?? [], [search.size]);
   const mattress = useMemo(() => search.mattress ?? [], [search.mattress]);
+  const color = useMemo(() => search.color ?? [], [search.color]);
+  const fabric = useMemo(() => search.fabric ?? [], [search.fabric]);
+  const headboard = useMemo(() => search.headboard ?? [], [search.headboard]);
+  const storage = useMemo(() => search.storage ?? [], [search.storage]);
   const sort: Sort = search.sort ?? "featured";
 
   const headerRef = useRef<HTMLDivElement>(null);
@@ -146,6 +158,30 @@ function ShopPage() {
   );
   const mattressFacet = ["With Mattress", "No Mattress"];
 
+  // Option facets (colour / fabric / headboard / storage) built from the
+  // catalogue option data - the DB static-fallback keeps these populated.
+  // Each section only renders in the sidebar when it has values.
+  const colorFacet = useMemo(() => {
+    const set = new Set<string>();
+    catalogue.forEach((p) => p.colors?.forEach((c: any) => c?.name && set.add(c.name)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [catalogue]);
+  const fabricFacet = useMemo(() => {
+    const set = new Set<string>();
+    catalogue.forEach((p) => p.fabrics?.forEach((f: any) => f?.name && set.add(f.name)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [catalogue]);
+  const headboardFacet = useMemo(() => {
+    const set = new Set<string>();
+    catalogue.forEach((p) => p.headboardOptions?.forEach((h: any) => h?.name && set.add(h.name)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [catalogue]);
+  const storageFacet = useMemo(() => {
+    const set = new Set<string>();
+    catalogue.forEach((p) => p.storageOptions?.forEach((s: any) => s?.name && set.add(s.name)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [catalogue]);
+
   const list = useMemo(() => {
     let filtered = catalogue;
 
@@ -172,15 +208,34 @@ function ShopPage() {
         }),
       );
 
+    if (color.length)
+      filtered = filtered.filter((p) => p.colors?.some((c: any) => color.includes(c.name)));
+
+    if (fabric.length)
+      filtered = filtered.filter((p) => p.fabrics?.some((f: any) => fabric.includes(f.name)));
+
+    if (headboard.length)
+      filtered = filtered.filter((p) =>
+        p.headboardOptions?.some((h: any) => headboard.includes(h.name)),
+      );
+
+    if (storage.length)
+      filtered = filtered.filter((p) =>
+        p.storageOptions?.some((s: any) => storage.includes(s.name)),
+      );
     if (sort === "low") return [...filtered].sort((a, b) => a.basePrice - b.basePrice);
     if (sort === "high") return [...filtered].sort((a, b) => b.basePrice - a.basePrice);
     return filtered;
-  }, [catalogue, search.q, cat, size, mattress, sort, maxPrice]);
+  }, [catalogue, search.q, cat, size, mattress, color, fabric, headboard, storage, sort, maxPrice]);
 
   const hasActiveFilters =
     cat.length > 0 ||
     size.length > 0 ||
     mattress.length > 0 ||
+    color.length > 0 ||
+    fabric.length > 0 ||
+    headboard.length > 0 ||
+    storage.length > 0 ||
     !!search.q ||
     maxPrice < priceBounds.hi;
 
@@ -195,7 +250,17 @@ function ShopPage() {
 
   const clearAll = () =>
     navigate({
-      search: { cat: [], size: [], mattress: [], max: undefined, q: undefined },
+      search: {
+        cat: [],
+        size: [],
+        mattress: [],
+        color: [],
+        fabric: [],
+        headboard: [],
+        storage: [],
+        max: undefined,
+        q: undefined,
+      },
       replace: true,
     });
 
@@ -320,6 +385,18 @@ function ShopPage() {
                 </ul>
               </div>
 
+              <FacetChecklist
+                title="Colour"
+                options={colorFacet}
+                selected={color}
+                onToggle={(v) => toggleIn("color", v)}
+              />
+              <FacetChecklist
+                title="Fabric"
+                options={fabricFacet}
+                selected={fabric}
+                onToggle={(v) => toggleIn("fabric", v)}
+              />
               {/* Size Filter */}
               {sizeFacet.length > 0 && (
                 <div className="rounded-2xl border border-border bg-card p-5">
@@ -387,6 +464,18 @@ function ShopPage() {
                 </div>
               )}
 
+              <FacetChecklist
+                title="Headboard"
+                options={headboardFacet}
+                selected={headboard}
+                onToggle={(v) => toggleIn("headboard", v)}
+              />
+              <FacetChecklist
+                title="Storage"
+                options={storageFacet}
+                selected={storage}
+                onToggle={(v) => toggleIn("storage", v)}
+              />
               {/* Price Range */}
               <div className="rounded-2xl border border-border bg-card p-5">
                 <div className="flex items-center justify-between mb-4">
@@ -470,6 +559,42 @@ function ShopPage() {
               ))}
             </div>
 
+            {color.map((c) => (
+              <button
+                key={c}
+                onClick={() => toggleIn("color", c)}
+                className="px-3 py-1 rounded-full bg-pink-500/10 text-pink-600 text-xs font-bold flex items-center gap-1 hover:bg-pink-500/20 transition-all"
+              >
+                {c} <X className="h-2.5 w-2.5" />
+              </button>
+            ))}
+            {fabric.map((f) => (
+              <button
+                key={f}
+                onClick={() => toggleIn("fabric", f)}
+                className="px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 text-xs font-bold flex items-center gap-1 hover:bg-amber-500/20 transition-all"
+              >
+                {f} <X className="h-2.5 w-2.5" />
+              </button>
+            ))}
+            {headboard.map((h) => (
+              <button
+                key={h}
+                onClick={() => toggleIn("headboard", h)}
+                className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-600 text-xs font-bold flex items-center gap-1 hover:bg-purple-500/20 transition-all"
+              >
+                {h} <X className="h-2.5 w-2.5" />
+              </button>
+            ))}
+            {storage.map((s) => (
+              <button
+                key={s}
+                onClick={() => toggleIn("storage", s)}
+                className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 text-xs font-bold flex items-center gap-1 hover:bg-orange-500/20 transition-all"
+              >
+                {s} <X className="h-2.5 w-2.5" />
+              </button>
+            ))}
             {list.length === 0 ? (
               <div className="text-center py-24 bg-card rounded-3xl border border-dashed border-border">
                 <div className="text-5xl mb-4">🛋️</div>
@@ -494,6 +619,46 @@ function ShopPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// One checkbox group for the option facets (colour / fabric / headboard /
+// storage). Renders nothing when the catalogue has no values for it.
+function FacetChecklist({
+  title,
+  options,
+  selected,
+  onToggle,
+}: {
+  title: string;
+  options: string[];
+  selected: string[];
+  onToggle: (value: string) => void;
+}) {
+  if (options.length === 0) return null;
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <h3 className="font-display font-bold text-sm mb-4 text-foreground/70">{title}</h3>
+      <ul className={`space-y-2.5 ${options.length > 10 ? "max-h-72 overflow-y-auto pr-1" : ""}`}>
+        {options.map((opt) => (
+          <li key={opt}>
+            <label className="flex items-center gap-3 text-sm cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={selected.includes(opt)}
+                onChange={() => onToggle(opt)}
+                className="rounded accent-brand w-4 h-4 cursor-pointer"
+              />
+              <span
+                className={`transition-colors ${selected.includes(opt) ? "text-brand font-bold" : "text-muted-foreground group-hover:text-foreground"}`}
+              >
+                {opt}
+              </span>
+            </label>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
