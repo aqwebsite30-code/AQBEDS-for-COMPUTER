@@ -25,6 +25,33 @@ async function getClientIp(): Promise<string> {
   return "";
 }
 
+const TEST_EVENT_CODE_KEY = "fb_test_event_code";
+
+/**
+ * Meta Events Manager -> Test events -> "Open website" appends
+ * ?fb_test_event_code=... to the URL. Read it on page load and keep it for the
+ * whole tab session (sessionStorage survives SPA navigations that drop the
+ * URL param; a new tab starts a fresh session). Every CAPI payload sent from
+ * this tab carries it - no per-event caller changes needed.
+ */
+function getTestEventCode(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    const fromUrl = new URL(window.location.href).searchParams.get(TEST_EVENT_CODE_KEY);
+    if (fromUrl) {
+      try {
+        sessionStorage.setItem(TEST_EVENT_CODE_KEY, fromUrl);
+      } catch {}
+      return fromUrl;
+    }
+    return sessionStorage.getItem(TEST_EVENT_CODE_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+// Warm-up on page load: capture the param before any navigation can remove it.
+getTestEventCode();
+
 /**
  * Internal helper: POST event data to the server-side CAPI endpoint.
  * Uses keepalive: true so browser navigation (page unload) does not abort
@@ -42,8 +69,9 @@ async function postToCAPI(payload: {
   test_event_code?: string;
 }): Promise<void> {
   try {
-    const userAgent = payload.client_user_agent || (typeof navigator !== "undefined" ? navigator.userAgent : "");
-    const ip = payload.client_ip_address || await getClientIp();
+    const userAgent =
+      payload.client_user_agent || (typeof navigator !== "undefined" ? navigator.userAgent : "");
+    const ip = payload.client_ip_address || (await getClientIp());
 
     const body: Record<string, any> = {
       event_name: payload.event_name,
@@ -55,8 +83,9 @@ async function postToCAPI(payload: {
       client_ip_address: ip,
       client_user_agent: userAgent,
     };
-    if (payload.test_event_code) {
-      body.test_event_code = payload.test_event_code;
+    const testEventCode = payload.test_event_code || getTestEventCode();
+    if (testEventCode) {
+      body.test_event_code = testEventCode;
     }
 
     // keepalive: true ensures the request completes even if the user navigates away
