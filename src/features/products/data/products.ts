@@ -251,7 +251,7 @@ const STANDARD_FABRICS: Option[] = [
 ];
 
 const STANDARD_MATTRESS: Option[] = [
-  { name: "Standard Comfort Mattress (Free Included)", extraPrice: 0 },
+  { name: "Standard Comfort Mattress (Included)", extraPrice: 0 },
   { name: "Basic Memory Foam", extraPrice: 40 },
   { name: "Full Orthopedic", extraPrice: 50 },
   { name: "1000 Pocket Sprung", extraPrice: 60 },
