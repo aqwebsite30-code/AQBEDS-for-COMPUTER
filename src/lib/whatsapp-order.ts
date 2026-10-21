@@ -1,7 +1,7 @@
 import { buildWhatsAppUrl, formatGBP } from "./utils/format";
 import type { ArrivalWindow } from "./delivery-date";
 import { trackPixelWithId, getClientTrackingData, getVisitorId } from "./meta-pixel";
-import { sendWhatsAppPurchaseEvent } from "./meta-capi";
+import { sendWhatsAppContactEvent } from "./meta-capi";
 
 export type CustomerDetails = {
   name: string;
@@ -144,11 +144,14 @@ export function buildOrderMessage(
   return message;
 }
 
-// ─── WhatsApp open — Meta Purchase (Pixel + CAPI, deduplicated) ──────────────
+// ─── WhatsApp open — Meta Contact (Pixel + CAPI, deduplicated) ───────────────
 // Fire rule: ONLY at the moment a validated wa.me order tab actually opens —
 // never on button click, modal open, validation failure, or cancel.
-// Exactly one Purchase per open: the re-entry guard also suppresses duplicate
+// Exactly one Contact per open: the re-entry guard also suppresses duplicate
 // tabs when the same button is double-clicked. Pixel eventID === CAPI event_id.
+// Meta event name is "Contact" (NOT "Purchase") — WhatsApp button clicks are
+// pre-sale contact, not purchases; the checkout Place Order button still fires
+// the real Purchase event on its own path.
 
 let lastWhatsAppOpenAt = 0;
 const OPEN_REENTRY_MS = 1500;
@@ -179,7 +182,7 @@ export function openWhatsAppOrder(payload: {
     item_price: i.unitPrice,
   }));
 
-  const eventId = trackPixelWithId("Purchase", {
+  const eventId = trackPixelWithId("Contact", {
     value,
     currency: "GBP",
     content_type: "product",
@@ -188,7 +191,7 @@ export function openWhatsAppOrder(payload: {
   });
 
   const nameParts = payload.customer.name.trim().split(/\s+/);
-  void sendWhatsAppPurchaseEvent({
+  void sendWhatsAppContactEvent({
     event_id: eventId,
     value,
     currency: "GBP",
@@ -205,9 +208,9 @@ export function openWhatsAppOrder(payload: {
   // ── Admin lead capture (additive, isolated) ─────────────────────────────
   // Fire-and-forget beacon to the admin analytics endpoint so /admin/analytics
   // can show WhatsApp sales next to website sales. Strictly isolated from the
-  // Meta Purchase above: own try/catch, swallows every error — a failure here
+  // Meta Contact above: own try/catch, swallows every error — a failure here
   // can never affect the pixel event, the CAPI event, or the wa.me tab.
-  // Dedupes server-side on event_id (shared with the Meta Purchase).
+  // Dedupes server-side on event_id (shared with the Meta Contact).
   try {
     const leadBody = JSON.stringify({
       event_id: eventId,

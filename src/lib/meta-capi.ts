@@ -348,11 +348,13 @@ export async function sendPageViewEvent(payload: {
   return { success: true };
 }
 
-// ─── Purchase — WhatsApp open (deduped with the Pixel Purchase) ──────────────
+// ─── Contact — WhatsApp open (deduped with the Pixel Contact) ────────────────
 // Fires ONLY when a validated wa.me order tab actually opens. Shares the
 // pixel's event_id (same field set as every other event here — no extras).
+// Meta event name is "Contact" (not "Purchase") so WhatsApp button clicks never
+// inflate purchase counts — the real Place Order checkout still sends Purchase.
 
-export async function sendWhatsAppPurchaseEvent(payload: {
+export async function sendWhatsAppContactEvent(payload: {
   event_id?: string;
   value: number;
   currency: "GBP";
@@ -370,7 +372,7 @@ export async function sendWhatsAppPurchaseEvent(payload: {
   test_event_code?: string;
 }): Promise<{ success: boolean }> {
   await postToCAPI({
-    event_name: "Purchase",
+    event_name: "Contact",
     event_time: Math.floor(Date.now() / 1000),
     event_id: payload.event_id,
     user_data: {

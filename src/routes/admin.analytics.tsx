@@ -340,6 +340,7 @@ const LIVE_CHIP: Record<string, string> = {
   InitiateCheckout: "checkout",
   Purchase: "purchase",
   OrderPlaced: "purchase",
+  WhatsAppVisit: "whatsapp",
 };
 
 export const getLiveFeed = createServerFn({ method: "GET" }).handler(
@@ -435,8 +436,8 @@ export const getLiveFeed = createServerFn({ method: "GET" }).handler(
         rows.push({
           id: `wl-${l.id}`,
           ts: new Date(l.createdAt),
-          type: "Purchase",
-          chip: "purchase",
+          type: "WhatsAppVisit",
+          chip: "whatsapp",
           badge: SOURCE_BADGE[l.source] || "WhatsApp",
           value: l.value != null ? Number(l.value) : null,
           summary: parseItemsJson(l.contents)
@@ -610,8 +611,8 @@ export const getDayView = createServerFn({ method: "GET" }).handler(
         rows.push({
           id: `wl-${l.id}`,
           ts: new Date(l.createdAt),
-          type: "WhatsAppOrder",
-          chip: "purchase",
+          type: "WhatsAppVisit",
+          chip: "whatsapp",
           badge: SOURCE_BADGE[l.source] || "WhatsApp",
           value: l.value != null ? Number(l.value) : null,
           summary: parseItemsJson(l.contents)
@@ -850,7 +851,7 @@ const EVENT_STYLE: Record<string, string> = {
   InitiateCheckout: "bg-purple-500/10 text-purple-300",
   Purchase: "bg-emerald-500/10 text-emerald-300",
   OrderPlaced: "bg-cyan-500/10 text-cyan-300",
-  WhatsAppOrder: "bg-teal-500/10 text-teal-300",
+  WhatsAppVisit: "bg-teal-500/10 text-teal-300",
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -859,6 +860,7 @@ const TYPE_LABEL: Record<string, string> = {
   InitiateCheckout: "Initiate checkout",
   Purchase: "Purchase",
   OrderPlaced: "Order placed",
+  WhatsAppVisit: "WhatsApp visit",
 };
 
 // Day View labels - exactly the five event types the brief lists.
@@ -867,7 +869,7 @@ const DAY_TYPE_LABEL: Record<string, string> = {
   AddToCart: "AddToCart",
   InitiateCheckout: "Checkout",
   Purchase: "Website Purchase",
-  WhatsAppOrder: "WhatsApp Order",
+  WhatsAppVisit: "WhatsApp Visit",
 };
 
 const STATUS_STYLES: Record<string, { label: string; cls: string }> = {
@@ -954,6 +956,7 @@ function StatusPills({ status, onSet, busy, id }: StatusPillsProps) {
 const LIVE_CHIPS = [
   { key: "all", label: "All" },
   { key: "purchase", label: "Purchases" },
+  { key: "whatsapp", label: "WhatsApp" },
   { key: "cart", label: "Add to cart" },
   { key: "checkout", label: "Checkout" },
   { key: "pageview", label: "Page views" },
