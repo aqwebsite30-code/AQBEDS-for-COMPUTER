@@ -638,7 +638,7 @@ function ProductPage() {
       ? [{ label: "Fabric", value: markValue(fabric.name, fabric.extraPrice, false) }]
       : []),
     ...(mattress
-      ? [{ label: "Mattress", value: markValue(mattress.name, mattress.extraPrice, true) }]
+      ? [{ label: "Mattress", value: markValue(mattress.name, mattress.extraPrice, false) }]
       : []),
     ...(headboardOpt
       ? [{ label: "Headboard", value: markValue(headboardOpt.name, headboardOpt.extraPrice, true) }]
