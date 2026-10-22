@@ -41,22 +41,34 @@ export function getFbp(): string {
  * events fire ON mount, so the server used to send fbc:"" while the browser
  * event carried a value (server row not byte-for-byte identical to browser).
  * Seed the cookie here at module load in Meta's exact format
- * (fb.1.<timestamp_ms>.<fbclid>) WITHOUT overwriting an existing cookie,
- * using the same registrable-domain scoping as the pixel (.aqbeds.com), so
- * pixel and CAPI read one single, byte-identical value.
+ * (fb.1.<timestamp_ms>.<fbclid>) using the same registrable-domain scoping as
+ * the pixel (.aqbeds.com), so pixel and CAPI read one single, byte-identical
+ * value.
+ *
+ * fbclid is read via URLSearchParams so it arrives DECODED — byte-identical to
+ * what Meta's own fbevents.js writes (raw %-encoded values are flagged as
+ * "modified"). A NEW fbclid that differs from the cookie's own fbclid part
+ * always wins (self-heals stale bad cookies from before the 19 Oct fix, which
+ * otherwise persist 90 days). No other transform: no trim, no case change.
  */
 function seedFbcCookie(): void {
   if (typeof document === "undefined" || typeof window === "undefined") return;
   try {
-    if (/(?:^|;\s*)_fbc=/.test(document.cookie)) return; // never overwrite
-    const m = window.location.search.match(/[?&]fbclid=([^&#]*)/);
-    if (!m || !m[1]) return;
+    const fbclid = new URLSearchParams(window.location.search).get("fbclid");
+    if (!fbclid) return; // no click ID in URL — leave any existing cookie alone
+    const existing = document.cookie.match(/(?:^|;\s*)_fbc=([^;]+)/);
+    if (existing) {
+      // Meta format: fb.1.<timestamp>.<fbclid> — compare only the fbclid part.
+      const existingFbclid = existing[1].split(".").slice(3).join(".");
+      if (existingFbclid === fbclid) return; // same click — keep it byte-identical
+    }
+    // New click (or stale/invalid old cookie) — overwrite.
     const host = window.location.hostname;
     const parts = host.split(".");
     const domain =
       parts.length >= 2 && !/^[\d.]+$/.test(host) ? "; domain=." + parts.slice(-2).join(".") : "";
     const secure = window.location.protocol === "https:" ? "; Secure" : "";
-    document.cookie = `_fbc=fb.1.${Date.now()}.${m[1]}; path=/; max-age=7776000; SameSite=Lax${domain}${secure}`;
+    document.cookie = `_fbc=fb.1.${Date.now()}.${fbclid}; path=/; max-age=7776000; SameSite=Lax${domain}${secure}`;
   } catch {}
 }
 seedFbcCookie();

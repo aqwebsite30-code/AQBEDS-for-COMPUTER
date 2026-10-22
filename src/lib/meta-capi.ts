@@ -73,11 +73,18 @@ async function postToCAPI(payload: {
       payload.client_user_agent || (typeof navigator !== "undefined" ? navigator.userAgent : "");
     const ip = payload.client_ip_address || (await getClientIp());
 
+    // fbc safety gate: Meta errors on malformed fbc (match-quality loss only
+    // when omitted). If the cookie doesn't look like fb.1.<digits>.<id>, send
+    // "" instead. NEVER trim/re-encode a value that passes — it must stay
+    // byte-identical to the cookie.
+    const fbcRaw = payload.user_data.fbc || "";
+    const fbc = fbcRaw && !/^fb\.1\.\d+\..+$/.test(fbcRaw) ? "" : fbcRaw;
+
     const body: Record<string, any> = {
       event_name: payload.event_name,
       event_time: payload.event_time,
       event_id: payload.event_id,
-      user_data: payload.user_data,
+      user_data: { ...payload.user_data, fbc },
       custom_data: payload.custom_data,
       action_source: payload.action_source,
       client_ip_address: ip,

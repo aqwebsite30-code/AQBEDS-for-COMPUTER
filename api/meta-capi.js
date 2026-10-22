@@ -33,7 +33,17 @@ export default async function handler(req, res) {
     return jsonResponse(res, 400, { error: "Invalid JSON body" });
   }
 
-  const { event_name, event_time, event_id, user_data, custom_data, action_source, client_ip_address, client_user_agent, test_event_code } = parsed;
+  const {
+    event_name,
+    event_time,
+    event_id,
+    user_data,
+    custom_data,
+    action_source,
+    client_ip_address,
+    client_user_agent,
+    test_event_code,
+  } = parsed;
 
   if (!event_name) {
     return jsonResponse(res, 400, { error: "event_name is required" });
@@ -46,6 +56,17 @@ export default async function handler(req, res) {
     console.error("[CAPI] META_CAPI_ACCESS_TOKEN is not set — event dropped:", event_name);
     return jsonResponse(res, 500, { error: "CAPI token not configured" });
   }
+
+  // IP fallback: the browser's ipify lookup fails/CORS-blocks intermittently,
+  // which left ~8% of events without client_ip_address. Derive the visitor IP
+  // from the incoming request itself — Vercel always sets x-forwarded-for
+  // (first entry = real client). Prefer the client's ipify result when present.
+  let resolvedIp = client_ip_address || "";
+  if (!resolvedIp) {
+    const xff = req.headers["x-forwarded-for"];
+    if (xff) resolvedIp = String(xff).split(",")[0].trim();
+  }
+  if (!resolvedIp) resolvedIp = req.headers["x-real-ip"] || "";
 
   const hashedUserData = {};
   if (user_data) {
@@ -62,7 +83,9 @@ export default async function handler(req, res) {
     if (user_data.fbc) hashedUserData.fbc = user_data.fbc;
   }
 
-  if (client_ip_address) hashedUserData.client_ip_address = client_ip_address;
+  // Always attach the resolved IP (server-derived when the client didn't send
+  // one) — Meta needs it on every event for matching.
+  if (resolvedIp) hashedUserData.client_ip_address = resolvedIp;
   if (client_user_agent) hashedUserData.client_user_agent = client_user_agent;
 
   const body = {
