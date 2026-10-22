@@ -73,12 +73,15 @@ async function postToCAPI(payload: {
       payload.client_user_agent || (typeof navigator !== "undefined" ? navigator.userAgent : "");
     const ip = payload.client_ip_address || (await getClientIp());
 
-    // fbc safety gate: Meta errors on malformed fbc (match-quality loss only
-    // when omitted). If the cookie doesn't look like fb.1.<digits>.<id>, send
-    // "" instead. NEVER trim/re-encode a value that passes — it must stay
-    // byte-identical to the cookie.
+    // fbc safety gate: a malformed fbc makes Meta reject the WHOLE event
+    // (HTTP 400 "Click ID incorrectly formatted", subcode 2804001 — verified
+    // live), so structural junk is sent as "" instead. Any integer version
+    // passes: Meta's own fbevents.js writes fb.0.<ts>.<id> when it seeds the
+    // cookie first, our seed writes fb.1. — both accepted by Graph API (200).
+    // NEVER trim/re-encode a value that passes — it must stay byte-identical
+    // to the cookie.
     const fbcRaw = payload.user_data.fbc || "";
-    const fbc = fbcRaw && !/^fb\.1\.\d+\..+$/.test(fbcRaw) ? "" : fbcRaw;
+    const fbc = fbcRaw && !/^fb\.\d+\.\d+\..+$/.test(fbcRaw) ? "" : fbcRaw;
 
     const body: Record<string, any> = {
       event_name: payload.event_name,

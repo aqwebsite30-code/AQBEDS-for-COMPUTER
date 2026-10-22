@@ -12,8 +12,16 @@ try {
   ({ chromium } =
     await import("file:///C:/Users/abdulraheem%20bulbul/AppData/Roaming/npm/node_modules/omniroute/node_modules/playwright/index.mjs"));
 }
-const BASE = "http://localhost:5199";
+const BASE = process.env.BASE || "http://localhost:5199";
+const TEC = process.env.TEC || "T1"; // tag every navigation's events as test events
 const out = { capi: [], pixel: [], errs: [] };
+
+function go(page, path, query = "") {
+  const u = new URL(path, BASE);
+  if (query) u.search = query; // raw string preserves %-encoding (e.g. %2B)
+  u.searchParams.set("fb_test_event_code", TEC);
+  return page.goto(u.toString(), { waitUntil: "domcontentloaded", timeout: 60000 });
+}
 
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 const results = [];
@@ -61,10 +69,7 @@ const readFbc = (page) =>
 // ══ A. OUR seed in isolation (fbevents blocked): DECODED + stable ══════════
 {
   const { ctx, page } = await newPage({ blockFbevents: true });
-  await page.goto(BASE + "/product/divan?fbclid=AbC123%2BxYz", {
-    waitUntil: "domcontentloaded",
-    timeout: 60000,
-  });
+  await go(page, "/product/divan", "fbclid=AbC123%2BxYz");
   await page.waitForTimeout(4000);
   const early = await readFbc(page);
   await page.waitForTimeout(5000);
@@ -77,13 +82,11 @@ const readFbc = (page) =>
 // ══ B. Realistic: fbevents ON, PLAIN alphanumeric fbclid ════════════════════
 {
   const { ctx, page, mark } = await newPage();
-  await page.goto(BASE + "/product/divan?fb_test_event_code=T1&fbclid=PLAINfbclid123XYZ", {
-    waitUntil: "domcontentloaded",
-    timeout: 60000,
-  });
+  await go(page, "/product/divan", "fbclid=PLAINfbclid123XYZ");
   await page.waitForTimeout(9000);
   const cookie = await readFbc(page);
-  t("B1 cookie = Meta format + fbclid", /^fb\.1\.\d+\.PLAINfbclid123XYZ$/.test(cookie), cookie);
+  // version digit may be 1 (our seed) or 0 (fbevents.js seeded first — race)
+  t("B1 cookie = Meta format + fbclid", /^fb\.\d+\.\d+\.PLAINfbclid123XYZ$/.test(cookie), cookie);
 
   const capiEvents = out.capi
     .slice(mark.capi)
@@ -126,10 +129,7 @@ const readFbc = (page) =>
   }
 
   // ── C1. DIFFERENT fbclid wins (in the same fbevents-allowed context) ──────
-  await page.goto(BASE + "/product/divan?fbclid=SECONDclick456", {
-    waitUntil: "domcontentloaded",
-    timeout: 60000,
-  });
+  await go(page, "/product/divan", "fbclid=SECONDclick456");
   await page.waitForTimeout(4000);
   const c2 = await readFbc(page);
   t(
@@ -139,16 +139,13 @@ const readFbc = (page) =>
   );
 
   // ── C2. SAME fbclid → unchanged ───────────────────────────────────────────
-  await page.goto(BASE + "/product/divan?fbclid=SECONDclick456", {
-    waitUntil: "domcontentloaded",
-    timeout: 60000,
-  });
+  await go(page, "/product/divan", "fbclid=SECONDclick456");
   await page.waitForTimeout(3000);
   const c3 = await readFbc(page);
   t("C2 SAME fbclid → byte-identical cookie", c3 === c2, `before=${c2} after=${c3}`);
 
   // ── C3. No fbclid in URL → untouched ──────────────────────────────────────
-  await page.goto(BASE + "/product/divan", { waitUntil: "domcontentloaded", timeout: 60000 });
+  await go(page, "/product/divan");
   await page.waitForTimeout(3000);
   const c4 = await readFbc(page);
   t("C3 no URL fbclid → cookie untouched", c4 === c2, c4);
@@ -158,7 +155,7 @@ const readFbc = (page) =>
 // ══ D. Safety gate: malformed fbc → sent as "" ══════════════════════════════
 {
   const { ctx, page, mark } = await newPage();
-  await page.goto(BASE + "/product/divan", { waitUntil: "domcontentloaded", timeout: 60000 });
+  await go(page, "/product/divan");
   await page.waitForTimeout(3000);
   await page.evaluate(() => {
     document.cookie = "_fbc=garbage; path=/; max-age=7776000";
@@ -183,10 +180,7 @@ const readFbc = (page) =>
 // ══ E. ipify blocked → events still leave the browser (server fills IP) ═════
 {
   const { ctx, page, mark } = await newPage({ blockIpify: true });
-  await page.goto(BASE + "/product/divan?fbclid=IPIFYblock789", {
-    waitUntil: "domcontentloaded",
-    timeout: 60000,
-  });
+  await go(page, "/product/divan", "fbclid=IPIFYblock789");
   await page.waitForTimeout(14000);
   const sent = out.capi.slice(mark.capi);
   t(
