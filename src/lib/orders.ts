@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestIP } from "@tanstack/react-start/server";
 import { db } from "./db";
 import { z } from "zod";
 import { createHash } from "crypto";
@@ -29,6 +30,8 @@ async function firePurchaseCAPI(payload: {
   fbp?: string;
   fbc?: string;
   client_user_agent?: string;
+  client_ip_address?: string;
+  test_event_code?: string;
 }) {
   if (!CAPI_TOKEN) {
     console.error("[CAPI] META_CAPI_ACCESS_TOKEN not set — Purchase dropped");
@@ -44,8 +47,14 @@ async function firePurchaseCAPI(payload: {
   if (payload.customer_postcode) user_data.zp = sha256(payload.customer_postcode);
   if (payload.external_id) user_data.external_id = sha256(payload.external_id);
   if (payload.fbp) user_data.fbp = payload.fbp;
-  if (payload.fbc) user_data.fbc = payload.fbc;
+  // Same structural fbc gate as the client path: Meta 400s the WHOLE event on
+  // a malformed fbc ("Click ID incorrectly formatted" — verified live), so a
+  // junk cookie must never take the Purchase down with it. Values that pass
+  // go through byte-identical; Meta's own fbevents fb.0. version included.
+  if (payload.fbc && /^fb\.\d+\.\d+\..+$/.test(payload.fbc)) user_data.fbc = payload.fbc;
   if (payload.client_user_agent) user_data.client_user_agent = payload.client_user_agent;
+  // IP is sent RAW (never hashed) — Meta needs it on every event for matching.
+  if (payload.client_ip_address) user_data.client_ip_address = payload.client_ip_address;
 
   const body = {
     data: [
@@ -64,6 +73,7 @@ async function firePurchaseCAPI(payload: {
         action_source: "website",
       },
     ],
+    ...(payload.test_event_code ? { test_event_code: payload.test_event_code } : {}),
   };
 
   try {
@@ -77,7 +87,16 @@ async function firePurchaseCAPI(payload: {
     if (!res.ok) {
       console.error("[CAPI] Purchase FAILED:", JSON.stringify(result));
     } else {
-      console.log("[CAPI] Purchase sent OK, events_received:", result.events_received);
+      console.log(
+        "[CAPI] Purchase sent OK — events_received:",
+        result.events_received,
+        "| ip:",
+        payload.client_ip_address || "MISSING",
+        "| fbc:",
+        user_data.fbc || "none",
+        "| tec:",
+        payload.test_event_code || "none",
+      );
     }
   } catch (err: any) {
     console.error("[CAPI] Purchase fetch error:", err?.message || err);
@@ -102,6 +121,8 @@ export const saveOrder = createServerFn({ method: "POST" }).handler(
         visitorId: z.string().optional().or(z.literal("")),
         fbp: z.string().optional().or(z.literal("")),
         fbc: z.string().optional().or(z.literal("")),
+        client_ip_address: z.string().optional().or(z.literal("")),
+        test_event_code: z.string().optional().or(z.literal("")),
       });
 
       const parsed = schema.parse(data);
@@ -147,6 +168,18 @@ export const saveOrder = createServerFn({ method: "POST" }).handler(
 
       const postcodeMatch = parsed.customerAddress.match(/([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})/i);
 
+      // Resolve the visitor IP: client (ipify) value first, else the IP Vercel
+      // puts on the incoming request (x-forwarded-for) — Purchase events must
+      // never go to Meta without one.
+      let resolvedIp = parsed.client_ip_address || "";
+      if (!resolvedIp) {
+        try {
+          resolvedIp = getRequestIP({ xForwardedFor: true }) || "";
+        } catch {
+          // outside a request context (e.g. tests) — IP stays empty
+        }
+      }
+
       firePurchaseCAPI({
         event_id: parsed.event_id || undefined,
         value: parsed.total,
@@ -162,6 +195,8 @@ export const saveOrder = createServerFn({ method: "POST" }).handler(
         fbp: parsed.fbp || undefined,
         fbc: parsed.fbc || undefined,
         client_user_agent: parsed.client_user_agent || undefined,
+        client_ip_address: resolvedIp || undefined,
+        test_event_code: parsed.test_event_code || undefined,
       }).catch(() => {});
 
       return { success: true, orderId: order.id };

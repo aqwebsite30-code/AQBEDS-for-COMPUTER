@@ -15,7 +15,7 @@ import {
   getClientTrackingData,
   getVisitorId,
 } from "@/lib/meta-pixel";
-import { sendInitiateCheckoutEvent } from "@/lib/meta-capi";
+import { sendInitiateCheckoutEvent, getTestEventCode, getClientIp } from "@/lib/meta-capi";
 import { trackEvent } from "@/lib/analytics";
 import { getDeliveryWindow, type ArrivalWindow } from "@/lib/delivery-date";
 import {
@@ -160,6 +160,12 @@ function CheckoutPage() {
           visitorId: getVisitorId(),
           event_id: purchaseEventId,
           client_user_agent: navigator.userAgent,
+          // Purchase CAPI fires server-side in saveOrder — it cannot read the
+          // URL/cookies, so hand it the tec (sessionStorage) and the client IP
+          // (ipify, cached from earlier events). Server falls back to
+          // x-forwarded-for when the ipify lookup failed.
+          client_ip_address: (await getClientIp().catch(() => "")) || "",
+          test_event_code: getTestEventCode(),
           ...trackingData,
         } as any,
       });

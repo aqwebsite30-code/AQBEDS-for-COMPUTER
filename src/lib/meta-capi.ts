@@ -12,7 +12,7 @@ const CAPI_ENDPOINT = "/api/meta-capi";
 
 let cachedClientIp = "";
 
-async function getClientIp(): Promise<string> {
+export async function getClientIp(): Promise<string> {
   if (cachedClientIp) return cachedClientIp;
   try {
     const res = await fetch("https://api.ipify.org?format=json");
@@ -34,7 +34,7 @@ const TEST_EVENT_CODE_KEY = "fb_test_event_code";
  * URL param; a new tab starts a fresh session). Every CAPI payload sent from
  * this tab carries it - no per-event caller changes needed.
  */
-function getTestEventCode(): string {
+export function getTestEventCode(): string {
   if (typeof window === "undefined") return "";
   try {
     const fromUrl = new URL(window.location.href).searchParams.get(TEST_EVENT_CODE_KEY);
