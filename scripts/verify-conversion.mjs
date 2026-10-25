@@ -46,7 +46,12 @@ check(
       text,
     ),
 );
-check("T1 window line under date", text.includes("📱 We'll text you a 2-hour delivery window"));
+check(
+  "no 2-hour / Monday-off / Thursday wording on PDP",
+  !text.includes("2-hour") &&
+    !text.includes("Monday is our off day") &&
+    !text.includes("Tuesday or Thursday"),
+);
 check(
   "T2.1 new banner",
   text.includes("🚚 FREE Next-Day Delivery when you order before 8 PM UK (Mon–Sat)") &&
@@ -125,8 +130,10 @@ let itemsInDrawer = await page.evaluate(() => {
   return a ? a.innerText : "";
 });
 check(
-  "B1 delivery bar renders",
-  itemsInDrawer.includes("🚚 FREE UK delivery · 📱 2-hour delivery window by text"),
+  "B1 delivery bar renders (owner's perfect line)",
+  itemsInDrawer.includes(
+    "🚚 FREE Next-Day Delivery when you order before 8 PM UK (Mon–Sat) · Sunday orders arrive Tuesday",
+  ) && !itemsInDrawer.includes("2-hour"),
 );
 check(
   "B1 ticking headline",
@@ -163,9 +170,12 @@ check(
 );
 check(
   "B6 primary button",
-  itemsInDrawer.includes("👀 INSPECT-FIRST ORDER — Pay £") && itemsInDrawer.includes("on delivery"),
+  itemsInDrawer.includes("CHECKOUT FIRST") && !itemsInDrawer.includes("INSPECT-FIRST"),
 );
-check("B6 secondary button", itemsInDrawer.includes("💬 ORDER VIA WHATSAPP — skip the form"));
+check(
+  "B6 secondary button",
+  itemsInDrawer.includes("💬 ORDER VIA WHATSAPP") && !itemsInDrawer.includes("skip the form"),
+);
 check(
   "B6 microcopy",
   itemsInDrawer.includes("No card needed · No deposit · Courier waits while you check"),
@@ -236,8 +246,15 @@ check(
 );
 check(
   "C6b arriving + sunday note",
-  /📅 Arriving: \w{3} \d{1,2} \w{3}/.test(text) &&
-    text.includes("(Sunday orders: Tuesday or Thursday)"),
+  /📅 Arriving: \w{3} \d{1,2} \w{3}/.test(text) && text.includes("(Sunday orders arrive Tuesday)"),
+);
+check(
+  "checkout free of old wording",
+  !text.includes("2-hour") &&
+    !text.includes("Monday is our off day") &&
+    !text.includes("Tuesday or Thursday") &&
+    !text.includes("Skip the form") &&
+    !text.includes("skip the form"),
 );
 check(
   "C6b lock line",

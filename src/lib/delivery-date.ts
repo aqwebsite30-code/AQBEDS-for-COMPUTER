@@ -16,11 +16,8 @@
 /** 8 PM UK cutoff — single const so the owner can switch it to 19 in one place. */
 export const UK_CUTOFF_HOUR = 20;
 
-/** Shown under every date line, everywhere. */
-export const DELIVERY_WINDOW_LINE = "📱 We'll text you a 2-hour delivery window";
-
-/** Sunday orders land on one of these two days (Monday is the weekly off day). */
-export const SUNDAY_OPTION = "Tue or Thu";
+/** Sunday orders land on Tuesday (Monday is the weekly off day). */
+export const SUNDAY_OPTION = "Tuesday";
 
 /**
  * Hardcoded UK bank holidays — UNION of England & Wales + Scotland +
@@ -189,7 +186,7 @@ export type DeliveryInfo = {
   isSunday: boolean;
   /** Earliest date this order can arrive — the T1 default delivery date. */
   defaultDate: DeliveryDate;
-  /** "Tue or Thu" — shown for Sunday orders (RULE C). */
+  /** "Tuesday" — shown for Sunday orders (RULE C). */
   sundayOption: string;
   /** Dynamic headline for the current UK weekday/time. */
   headline: string;
@@ -197,8 +194,6 @@ export type DeliveryInfo = {
   headlineLive: string;
   /** Stable headline without a countdown — safe for SSR/hydration. */
   headlineStatic: string;
-  /** Standing note under every date line: "📱 We'll text you a 2-hour …". */
-  windowLine: string;
 };
 
 /**
@@ -226,7 +221,7 @@ export function getDeliveryInfo(nowUK: Date): DeliveryInfo {
   let headline: string;
   let headlineStatic: string;
   if (isSunday) {
-    headline = "Sunday orders arrive Tuesday or Thursday — Monday is our off day";
+    headline = "Sunday orders arrive Tuesday";
     headlineStatic = headline;
   } else if (isBeforeCutoff) {
     headline = `⏱ Order within ${countdown} → delivered TOMORROW (${defaultDate.label})`;
@@ -251,6 +246,5 @@ export function getDeliveryInfo(nowUK: Date): DeliveryInfo {
     headline,
     headlineLive,
     headlineStatic,
-    windowLine: DELIVERY_WINDOW_LINE,
   };
 }

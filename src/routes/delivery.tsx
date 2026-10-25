@@ -7,13 +7,13 @@ export const Route = createFileRoute("/delivery")({
       {
         name: "description",
         content:
-          "Free UK next-day delivery on orders before 8 PM UK, Monday–Saturday. Sunday orders arrive Tuesday or Thursday. 2-hour delivery window by text.",
+          "Free UK next-day delivery on orders before 8 PM UK, Monday–Saturday. Sunday orders arrive Tuesday.",
       },
       { property: "og:title", content: "Delivery Information — AQ Beds" },
       {
         property: "og:description",
         content:
-          "Free UK next-day delivery on orders before 8 PM UK, Mon–Sat. Sunday orders arrive Tuesday or Thursday.",
+          "Free UK next-day delivery on orders before 8 PM UK, Mon–Sat. Sunday orders arrive Tuesday.",
       },
       {
         property: "og:image",
@@ -56,9 +56,9 @@ function Delivery() {
           <p className="mt-3 text-muted-foreground leading-relaxed">
             Next-day delivery on orders placed before 8 PM UK, Monday–Saturday.
             <br />
-            Sunday orders are delivered Tuesday or Thursday (Monday is our off day).
+            Sunday orders are delivered on Tuesday.
             <br />
-            Free UK delivery on every bed. 2-hour delivery window by text.
+            Free UK delivery on every bed.
             <br />
             Bank holidays: delivery slides to the next available day.
           </p>
@@ -99,10 +99,6 @@ function Delivery() {
             What to Expect on Delivery Day
           </h2>
           <ul className="mt-3 text-muted-foreground leading-relaxed space-y-2 list-disc pl-5">
-            <li>
-              You will receive a <strong>2-hour delivery window by text</strong> on the morning of
-              delivery.
-            </li>
             <li>
               Our driver will bring your order <strong>to the room of your choice</strong> where
               access allows — please measure doorways and stairwells in advance.

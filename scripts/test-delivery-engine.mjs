@@ -43,7 +43,6 @@ console.log("\nTEST 1 — Sat 24 Oct 19:00 UK (before cutoff) → next day Sun 2
     i.headlineStatic,
     "Order before 8 PM UK → delivered TOMORROW (Sun 25 Oct)",
   );
-  check("window line", i.windowLine, "📱 We'll text you a 2-hour delivery window");
   check("selectable", isSelectableDeliveryDate("2026-10-25"), true);
   check("monday not selectable", isSelectableDeliveryDate("2026-10-26"), false);
 }
@@ -70,13 +69,9 @@ console.log("\nTEST 3 — Sun 25 Oct 09:00 UK (Sunday, RULE C + E)");
   const i = getDeliveryInfo(gmt(10, 25, 9, 0));
   check("is sunday", i.isSunday, true);
   check("before cutoff false on sunday", i.isBeforeCutoff, false);
-  check(
-    "headline exact",
-    i.headline,
-    "Sunday orders arrive Tuesday or Thursday — Monday is our off day",
-  );
+  check("headline exact", i.headline, "Sunday orders arrive Tuesday");
   check("default date iso", i.defaultDate.iso, "2026-10-27");
-  check("sunday option", i.sundayOption, "Tue or Thu");
+  check("sunday option", i.sundayOption, "Tuesday");
   check("monday unselectable", isSelectableDeliveryDate("2026-10-26"), false);
   check("tuesday selectable", isSelectableDeliveryDate("2026-10-27"), true);
   check(

@@ -86,7 +86,7 @@ export function rowsFromOptionsRecord(record: Record<string, string>): Selection
 export function arrivalLine(info: DeliveryInfo): string {
   // T1 — one shared delivery engine feeds every WhatsApp order message.
   return info.isSunday
-    ? `Arrives: ${info.sundayOption} (Sunday orders — Monday is our off day)`
+    ? `Arrives: ${info.sundayOption} (Sunday orders)`
     : `Arrives: ${info.defaultDate.label}`;
 }
 

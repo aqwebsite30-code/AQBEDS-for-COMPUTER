@@ -86,7 +86,7 @@ export function OrderSummary({
               ? `📅 Your chosen date: ${chosenLabel}`
               : `📅 Arriving: ${info.defaultDate.label}`}
           </p>
-          <p className="text-xs text-muted-foreground">(Sunday orders: Tuesday or Thursday)</p>
+          <p className="text-xs text-muted-foreground">(Sunday orders arrive Tuesday)</p>
           <p className="text-xs font-semibold">
             🔒 Nothing to pay online — pay the courier after you inspect
           </p>
@@ -140,7 +140,6 @@ export function OrderSummary({
       </div>
       <div className="rounded-2xl border border-brand/20 bg-brand/[0.06] p-3 text-center space-y-1">
         <p className="text-sm font-black text-brand">📅 Arriving: {info.defaultDate.label}</p>
-        <p className="text-[11px] text-muted-foreground">{info.windowLine}</p>
         {chosenLabel && <p className="text-sm font-bold">📅 Your chosen date: {chosenLabel}</p>}
       </div>
     </>

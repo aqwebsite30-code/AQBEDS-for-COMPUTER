@@ -772,7 +772,6 @@ function ProductPage() {
               <span className="text-whatsapp font-medium text-sm">
                 ✓ In stock — {deliveryLive ? delivery.headlineLive : delivery.headlineStatic}
               </span>
-              <span className="text-xs text-muted-foreground">{delivery.windowLine}</span>
             </div>
             <h1 className="font-display font-bold text-3xl sm:text-4xl mt-3">{product.name}</h1>
             <div className="mt-4 flex items-baseline gap-3">

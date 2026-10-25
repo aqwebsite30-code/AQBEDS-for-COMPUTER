@@ -18,7 +18,7 @@ const NEXT_STEPS = [
   { n: "①", title: "You order", detail: "60 seconds, no payment" },
   { n: "②", title: "We confirm", detail: "WhatsApp/text within 24h" },
   { n: "③", title: "We dispatch", detail: "tracking sent" },
-  { n: "④", title: "Courier arrives", detail: "2-hour window" },
+  { n: "④", title: "Courier arrives", detail: "at your door" },
   { n: "⑤", title: "You inspect", detail: "courier waits" },
   { n: "⑥", title: "You pay cash", detail: "only if you love it" },
 ];
@@ -82,7 +82,8 @@ export function CartDrawer() {
             {live ? info.headlineLive : info.headlineStatic}
           </p>
           <p className="mt-1 text-xs text-white/85">
-            🚚 FREE UK delivery · 📱 2-hour delivery window by text
+            🚚 FREE Next-Day Delivery when you order before 8 PM UK (Mon–Sat) · Sunday orders arrive
+            Tuesday
           </p>
         </div>
 
@@ -252,14 +253,14 @@ export function CartDrawer() {
                 onClick={() => setOpen(false)}
                 className="min-h-12 rounded-2xl bg-cta text-cta-foreground font-black text-[11px] leading-tight px-2 py-2 grid place-items-center text-center hover:opacity-90 transition"
               >
-                👀 INSPECT-FIRST ORDER — Pay {formatGBP(total())} on delivery
+                CHECKOUT FIRST
               </Link>
               <button
                 type="button"
                 onClick={() => setDetailsOpen(true)}
                 className="min-h-12 rounded-2xl bg-whatsapp text-whatsapp-foreground font-black text-[11px] leading-tight px-2 py-2 grid place-items-center text-center hover:opacity-90 transition"
               >
-                💬 ORDER VIA WHATSAPP — skip the form
+                💬 ORDER VIA WHATSAPP
               </button>
             </div>
             <p className="text-[10px] text-center text-muted-foreground">

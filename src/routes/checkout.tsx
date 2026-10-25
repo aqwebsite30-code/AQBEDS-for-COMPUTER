@@ -489,8 +489,7 @@ function CheckoutPage() {
               }}
               className="w-full min-h-[48px] rounded-2xl bg-whatsapp text-white font-bold text-xs sm:text-base leading-tight px-2 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-lg text-center"
             >
-              <MessageCircle className="h-5 w-5 shrink-0" /> ORDER VIA WHATSAPP{" "}
-              <span className="hidden sm:inline">— Skip the form</span>
+              <MessageCircle className="h-5 w-5 shrink-0" /> ORDER VIA WHATSAPP
             </button>
           </div>
           <p className="text-[10px] text-center text-muted-foreground">
