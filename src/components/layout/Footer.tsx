@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { CATEGORIES } from "@/features/products/data/products";
 import { buildWhatsAppUrl } from "@/lib/utils/format";
+import { REVIEW_AVG_LABEL, REVIEW_COUNT } from "@/lib/reviews";
 import { Mail, ArrowRight, MapPin, Phone, ShieldCheck, Truck, MessageCircle } from "lucide-react";
 
 export function Footer() {
@@ -145,6 +146,24 @@ export function Footer() {
             </svg>
             Chat on WhatsApp
           </a>
+        </div>
+      </div>
+
+      {/* T6 — company identity line under the footer columns (no payment-card
+          logos: cards aren't supported yet. TODO comments for owner-supplied
+          fields — only available fields are rendered.) */}
+      <div className="relative border-t border-white/8">
+        <div className="mx-auto max-w-7xl px-4 py-5 text-center text-xs text-white/40 leading-relaxed">
+          <p>
+            AQ Beds Ltd · Est. 2018
+            {/* TODO(owner): append Company No. when supplied */}
+            {/* TODO(owner): append VAT GB… when supplied */}
+            {/* TODO(owner): append UK warehouse address when supplied */} · 📞 +44 7519 791128 · ✉️
+            info@aqbeds.com · 🔒 SSL secured
+          </p>
+          <p className="mt-1">
+            ⭐ {REVIEW_AVG_LABEL}/5 from {REVIEW_COUNT} verified reviews
+          </p>
         </div>
       </div>
 

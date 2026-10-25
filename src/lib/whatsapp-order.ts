@@ -1,5 +1,5 @@
-import { buildWhatsAppUrl, formatGBP } from "./utils/format";
-import type { ArrivalWindow } from "./delivery-date";
+import { buildWhatsAppUrl, formatGBP, withDeliveryPromo } from "./utils/format";
+import { formatDeliveryDate, type DeliveryInfo } from "./delivery-date";
 import { trackPixelWithId, getClientTrackingData, getVisitorId } from "./meta-pixel";
 import { sendWhatsAppContactEvent } from "./meta-capi";
 
@@ -83,13 +83,11 @@ export function rowsFromOptionsRecord(record: Record<string, string>): Selection
   }));
 }
 
-function weekdayShort(iso: string): string {
-  return new Date(`${iso}T00:00:00`).toLocaleDateString("en-GB", { weekday: "short" });
-}
-
-export function arrivalLine(window: ArrivalWindow): string {
-  const range = window.label.replace(/^Arrives:\s*/, "");
-  return `Arrives: ${weekdayShort(window.firstISO)}–${weekdayShort(window.secondISO)} ${range}`;
+export function arrivalLine(info: DeliveryInfo): string {
+  // T1 — one shared delivery engine feeds every WhatsApp order message.
+  return info.isSunday
+    ? `Arrives: ${info.sundayOption} (Sunday orders — Monday is our off day)`
+    : `Arrives: ${info.defaultDate.label}`;
 }
 
 const SEP = "——————————————";
@@ -98,7 +96,12 @@ const MESSAGE_CAP = 1800;
 export function buildOrderMessage(
   items: OrderMessageItem[],
   customer: CustomerDetails,
-  opts: { arrival?: ArrivalWindow | null; orderNo?: string; payment?: string } = {},
+  opts: {
+    arrival?: DeliveryInfo | null;
+    orderNo?: string;
+    payment?: string;
+    preferredDate?: string;
+  } = {},
 ): string {
   const payment = opts.payment || "Cash on Delivery";
   const basketTotal = formatGBP(items.reduce((sum, it) => sum + it.unitPrice * it.qty, 0));
@@ -129,8 +132,13 @@ export function buildOrderMessage(
     lines.push(`Postcode: ${customer.postcode}`);
     lines.push(SEP);
     if (opts.arrival) lines.push(arrivalLine(opts.arrival));
+    lines.push(
+      `Preferred delivery date: ${opts.preferredDate ? formatDeliveryDate(opts.preferredDate) : "your earliest"}`,
+    );
     lines.push(`Payment: ${payment}`);
-    return lines.join("\n");
+    lines.push(`Can you confirm delivery time and total?`);
+    // T7 — every order message ends with the free next-day delivery line.
+    return withDeliveryPromo(lines.join("\n"));
   };
 
   let message = assemble(true, Number.POSITIVE_INFINITY);
@@ -159,9 +167,11 @@ const OPEN_REENTRY_MS = 1500;
 export function openWhatsAppOrder(payload: {
   items: OrderMessageItem[];
   customer: CustomerDetails;
-  arrival?: ArrivalWindow | null;
+  arrival?: DeliveryInfo | null;
   orderNo?: string;
   source?: WhatsAppSource;
+  /** C7/T4 — customer's own chosen delivery date (YYYY-MM-DD), optional. */
+  preferredDeliveryDate?: string;
 }): void {
   if (typeof window === "undefined") return;
 
@@ -172,6 +182,7 @@ export function openWhatsAppOrder(payload: {
   const message = buildOrderMessage(payload.items, payload.customer, {
     arrival: payload.arrival,
     orderNo: payload.orderNo,
+    preferredDate: payload.preferredDeliveryDate,
   });
 
   const value = payload.items.reduce((sum, i) => sum + i.unitPrice * i.qty, 0);
@@ -233,6 +244,11 @@ export function openWhatsAppOrder(payload: {
         postcode: payload.customer.postcode,
       },
       page_url: window.location.href,
+      // T4/C7 — APPEND-ONLY optional field; every existing payload field above
+      // is untouched. Omitted entirely when the customer picked no date.
+      ...(payload.preferredDeliveryDate
+        ? { preferred_delivery_date: payload.preferredDeliveryDate }
+        : {}),
     });
     if (typeof navigator.sendBeacon === "function") {
       navigator.sendBeacon(

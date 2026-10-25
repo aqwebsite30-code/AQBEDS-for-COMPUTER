@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useCart } from "@/features/cart/store/cart";
 import { formatGBP } from "@/lib/utils/format";
-import { getDeliveryWindow } from "@/lib/delivery-date";
+import { getDeliveryInfo } from "@/lib/delivery-date";
 import {
   openWhatsAppOrder,
   rowsFromOptionsRecord,
@@ -59,7 +59,7 @@ function CartPage() {
             : undefined,
       })),
       customer: details,
-      arrival: getDeliveryWindow(new Date()),
+      arrival: getDeliveryInfo(new Date()),
       source: "cart",
     });
     setDetailsOpen(false);

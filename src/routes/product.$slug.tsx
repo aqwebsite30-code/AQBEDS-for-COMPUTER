@@ -8,7 +8,8 @@ import { getProduct, PRODUCTS, DISCOUNT_POSTCODES } from "@/features/products/da
 import productCopy from "@/features/products/data/product-copy.json";
 import { getDbProductBySlug } from "@/lib/products";
 import { formatGBP } from "@/lib/utils/format";
-import { getDeliveryWindow } from "@/lib/delivery-date";
+import { getDeliveryInfo } from "@/lib/delivery-date";
+import { useDeliveryInfo } from "@/hooks/useDeliveryInfo";
 import { openWhatsAppOrder, type CustomerDetails, type SelectionRow } from "@/lib/whatsapp-order";
 import { OrderDetailsForm } from "@/components/OrderDetailsForm";
 import { useCart, useUI, useWishlist } from "@/features/cart/store/cart";
@@ -18,7 +19,6 @@ import {
   REVIEW_AVG_LABEL,
   REVIEW_COUNT,
   TOP_REVIEWS,
-  shuffle,
   aggregateRatingJsonLd,
   reviewJsonLd,
 } from "@/lib/reviews";
@@ -412,11 +412,14 @@ function ProductPage() {
   const [postalCode, setPostalCode] = useState("");
   const [instructions, setInstructions] = useState("");
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [displayReviews, setDisplayReviews] = useState(TOP_REVIEWS);
-
-  useEffect(() => {
-    setDisplayReviews(shuffle(TOP_REVIEWS));
-  }, []);
+  // P4 — GB-verified reviews first (Rach, VB), then the rest. No shuffle.
+  const [displayReviews] = useState(() => {
+    const gb = TOP_REVIEWS.filter((r) => r.country === "GB" && r.verified);
+    const rest = TOP_REVIEWS.filter((r) => !(r.country === "GB" && r.verified));
+    return [...gb, ...rest];
+  });
+  // T1 — live delivery engine for the green line (P1).
+  const { info: delivery, live: deliveryLive } = useDeliveryInfo();
 
   const [showSummary, setShowSummary] = useState(false);
   const galleryRef = useRef<HTMLDivElement>(null);
@@ -703,7 +706,7 @@ function ProductPage() {
         },
       ],
       customer: details,
-      arrival: getDeliveryWindow(new Date()),
+      arrival: getDeliveryInfo(new Date()),
       source: "pdp",
     });
     setDetailsOpen(false);
@@ -764,8 +767,12 @@ function ProductPage() {
           </div>
 
           <div>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-whatsapp font-medium">✓ In stock — dispatches in 3–5 days</span>
+            {/* P1 + T2 — old "dispatches in 3–5 days" line replaced by the T1 dynamic line */}
+            <div className="flex flex-col gap-0.5">
+              <span className="text-whatsapp font-medium text-sm">
+                ✓ In stock — {deliveryLive ? delivery.headlineLive : delivery.headlineStatic}
+              </span>
+              <span className="text-xs text-muted-foreground">{delivery.windowLine}</span>
             </div>
             <h1 className="font-display font-bold text-3xl sm:text-4xl mt-3">{product.name}</h1>
             <div className="mt-4 flex items-baseline gap-3">
@@ -1191,6 +1198,32 @@ function ProductPage() {
               Secure checkout · Pay on delivery available · Free UK delivery · Next Day Free
               Replacement
             </p>
+
+            {/* P3 — trust row directly under the Add-To-Basket buttons */}
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] font-bold text-muted-foreground">
+              <span>🔒 Pay nothing online</span>
+              <span aria-hidden="true">·</span>
+              <span>👀 Inspect first</span>
+              <span aria-hidden="true">·</span>
+              <span>↩️ Free returns</span>
+              <span aria-hidden="true">·</span>
+              <span>
+                ⭐ {REVIEW_AVG_LABEL}/5 ({REVIEW_COUNT})
+              </span>
+            </div>
+
+            {/* P5 — review snippet beside/under the buttons */}
+            <div className="mt-3 rounded-2xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-center text-sm">
+              <span className="font-semibold text-amber-700 dark:text-amber-400">
+                ⭐⭐⭐⭐⭐ “Easiest process ever!” — Louise, verified buyer
+              </span>{" "}
+              <Link
+                to="/reviews"
+                className="font-black text-brand hover:underline whitespace-nowrap"
+              >
+                [See all {REVIEW_COUNT} →]
+              </Link>
+            </div>
             <OrderDetailsForm
               open={detailsOpen}
               onClose={() => setDetailsOpen(false)}

@@ -13,6 +13,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileCartBar } from "@/components/layout/MobileCartBar";
 import { GlobalEffects } from "@/components/ui/GlobalEffects";
+import { Toaster } from "@/components/ui/sonner";
 import { useState, useEffect, useRef, Suspense, lazy } from "react";
 import React from "react";
 import { Zap } from "lucide-react";
@@ -440,6 +441,7 @@ function RootComponent() {
       </AnimatePresence>
 
       <GlobalEffects />
+      <Toaster />
       <div
         className={`min-h-screen flex flex-col ${FLAGS.DISABLE_MOTION ? "framer-motion-disabled" : ""}`}
       >

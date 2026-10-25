@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useCart } from "../features/cart/store/cart";
-import { formatGBP, WHATSAPP_NUMBER } from "../lib/utils/format";
+import { formatGBP, buildWhatsAppUrl, WHATSAPP_NUMBER } from "../lib/utils/format";
 import { CheckCircle2, Loader2, MessageSquare, MessageCircle, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { sendOrderEmail } from "../lib/email";
@@ -17,7 +17,10 @@ import {
 } from "@/lib/meta-pixel";
 import { sendInitiateCheckoutEvent, getTestEventCode, getClientIp } from "@/lib/meta-capi";
 import { trackEvent } from "@/lib/analytics";
-import { getDeliveryWindow, type ArrivalWindow } from "@/lib/delivery-date";
+import { isSelectableDeliveryDate } from "@/lib/delivery-date";
+import { useDeliveryInfo } from "@/hooks/useDeliveryInfo";
+import { OrderSummary } from "@/components/checkout/OrderSummary";
+import { REVIEW_AVG_LABEL, REVIEW_COUNT } from "@/lib/reviews";
 import {
   buildOrderMessage,
   missingCustomerFields,
@@ -39,7 +42,10 @@ function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [placed, setPlaced] = useState(false);
   const [whatsappUrl, setWhatsappUrl] = useState("");
-  const [arrival, setArrival] = useState<ArrivalWindow | null>(null);
+  // T1 — shared delivery engine (live countdown + T1 default date).
+  const { info: deliveryInfo } = useDeliveryInfo();
+  // C7 — customer's own chosen delivery date ("" = system T1 default).
+  const [preferredDate, setPreferredDate] = useState("");
   const [secure, setSecure] = useState(false);
   const [waMissing, setWaMissing] = useState<string[]>([]);
   const [placedOrderNo, setPlacedOrderNo] = useState("");
@@ -47,9 +53,18 @@ function CheckoutPage() {
   const checkoutEventId = useRef<string>("");
 
   useEffect(() => {
-    setArrival(getDeliveryWindow(new Date()));
     setSecure(window.location.protocol === "https:");
   }, []);
+
+  // C7 — Mondays + bank holidays are not delivery days; reject them inline.
+  const handlePreferredDateChange = (value: string) => {
+    if (value && !isSelectableDeliveryDate(value, deliveryInfo.defaultDate.iso)) {
+      toast.warning("We don't deliver on Mondays or bank holidays — please pick another date.");
+      setPreferredDate("");
+      return;
+    }
+    setPreferredDate(value);
+  };
 
   useEffect(() => {
     if (items.length > 0) {
@@ -227,7 +242,7 @@ function CheckoutPage() {
               : undefined,
         })),
         waDetails,
-        { arrival, orderNo: orderNumber },
+        { arrival: deliveryInfo, orderNo: orderNumber, preferredDate: preferredDate || undefined },
       );
       const waUrl = `https://wa.me/${WHATSAPP_NUMBER.replace(/\+/g, "")}?text=${encodeURIComponent(message)}`;
 
@@ -310,7 +325,7 @@ function CheckoutPage() {
             : undefined,
       })),
       details,
-      { arrival, orderNo },
+      { arrival: deliveryInfo, orderNo, preferredDate: preferredDate || undefined },
     );
     return `https://wa.me/${WHATSAPP_NUMBER.replace(/\+/g, "")}?text=${encodeURIComponent(message)}`;
   };
@@ -341,7 +356,8 @@ function CheckoutPage() {
             : undefined,
       })),
       customer: details,
-      arrival,
+      arrival: deliveryInfo,
+      preferredDeliveryDate: preferredDate || undefined,
       source: "checkout",
     });
     return true;
@@ -349,10 +365,27 @@ function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 animate-fade-in relative min-h-[600px]">
+      {/* C2 — sticky trust bar: stays visible while scrolling the form */}
+      <div className="sticky top-16 lg:top-[68px] z-30 -mx-4 px-4 py-2.5 mb-4 bg-card/95 backdrop-blur border-b border-border shadow-sm">
+        <p className="text-center text-xs sm:text-sm font-bold text-brand">
+          🛡️ SSL Secure · ✅ {REVIEW_AVG_LABEL}/5 · 🚚 Next-Day Delivery (order by 8 PM UK) · 💷 Pay
+          at Door · 👀 Inspect Before You Pay
+        </p>
+      </div>
+
       <h1 className="font-display font-bold text-3xl sm:text-4xl">Checkout</h1>
 
-      <form onSubmit={placeOrder} className="grid lg:grid-cols-[1fr_380px] gap-8 mt-8">
+      <form onSubmit={placeOrder} className="grid lg:grid-cols-[1fr_380px] gap-8 mt-6">
         <div className="space-y-8">
+          {/* C1 — progress steps at top of form */}
+          <div className="rounded-2xl border border-brand/15 bg-brand/[0.04] px-5 py-4">
+            <p className="font-display font-bold text-sm sm:text-base text-brand">
+              ① Details → ② Delivery → ③ Confirm ✓
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              ✓ No payment details needed — you pay the courier when your bed arrives
+            </p>
+          </div>
           <Card title="Contact">
             <div className="grid sm:grid-cols-2 gap-3">
               <Field label="Full name" name="name" required error={waMissing.includes("name")} />
@@ -377,6 +410,25 @@ function CheckoutPage() {
                 error={waMissing.includes("postcode")}
               />
               <Field label="Country" name="country" defaultValue="United Kingdom" required />
+              {/* C7 — preferred delivery date (optional; blank = T1 system default) */}
+              <div className="sm:col-span-2">
+                <span className="text-[10px] text-brand/50 font-bold uppercase tracking-widest pl-1">
+                  📅 Prefer a different delivery date? (optional)
+                </span>
+                <input
+                  type="date"
+                  name="preferred_delivery_date"
+                  value={preferredDate}
+                  onChange={(e) => handlePreferredDateChange(e.target.value)}
+                  min={deliveryInfo.defaultDate.iso}
+                  aria-label="Preferred delivery date (optional)"
+                  className="mt-2 w-full h-12 rounded-xl bg-brand/[0.02] px-4 text-brand text-sm outline-none border border-brand/10 focus:border-cta/50 focus:ring-4 focus:ring-cta/10 font-medium"
+                />
+                <p className="mt-1.5 text-xs text-muted-foreground pl-1">
+                  Leave blank for our earliest — {deliveryInfo.defaultDate.label}. Mondays and bank
+                  holidays aren't delivery days.
+                </p>
+              </div>
             </div>
           </Card>
           <Card title="Payment">
@@ -394,46 +446,90 @@ function CheckoutPage() {
               </p>
             </div>
           </Card>
+          {/* C6b — final order summary at end of checkout, directly above the buttons
+              (shared component — its numbers can never differ from the sidebar) */}
+          <OrderSummary variant="final" preferredDate={preferredDate} />
+
+          {/* C3 — zero-risk block: sits between the summary card and the buttons */}
+          <div className="rounded-2xl border border-whatsapp/30 bg-whatsapp/5 p-5 text-sm space-y-1.5">
+            <p className="font-bold">✅ Nothing to pay now.</p>
+            <p>👀 Your courier waits while you inspect your bed.</p>
+            <p>💷 Pay cash ONLY when you're completely happy.</p>
+            <p>↩️ Don't love it? Free return — zero risk.</p>
+          </div>
+
+          {/* C4 — real review, right above the buttons */}
+          <div className="rounded-2xl border border-amber-400/40 bg-amber-400/10 p-4 text-sm">
+            <p className="font-semibold text-amber-700 dark:text-amber-400">
+              ⭐⭐⭐⭐⭐ “From start to finish, the easiest process... delivered when they said it
+              would be!” — Louise, verified buyer
+            </p>
+            <Link
+              to="/reviews"
+              className="mt-2 inline-block text-xs font-bold text-brand hover:underline"
+            >
+              See all {REVIEW_COUNT} reviews →
+            </Link>
+          </div>
+
+          {/* Dual order buttons — equal size, side by side, immediately under the C6b card.
+              Handlers/classes identical to the previous placement (logic untouched). */}
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full h-14 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-base sm:text-lg shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Place Order"}
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                openCheckoutWhatsApp((e.currentTarget as HTMLButtonElement).form);
+              }}
+              className="w-full min-h-[48px] rounded-2xl bg-whatsapp text-white font-bold text-xs sm:text-base leading-tight px-2 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-lg text-center"
+            >
+              <MessageCircle className="h-5 w-5 shrink-0" /> ORDER VIA WHATSAPP{" "}
+              <span className="hidden sm:inline">— Skip the form</span>
+            </button>
+          </div>
+          <p className="text-[10px] text-center text-muted-foreground">
+            By placing an order you agree to our Terms of Service.
+            {secure && <> · Secure SSL Site</>}
+          </p>
+
+          {/* C5 — help block directly below the buttons */}
+          <div className="rounded-2xl border border-border bg-card p-5 text-sm text-center space-y-1">
+            <p className="font-bold">Need help before you confirm?</p>
+            <p className="text-muted-foreground">
+              📞{" "}
+              <a href="tel:+447519791128" className="font-semibold text-brand hover:underline">
+                +44 7519 791128
+              </a>{" "}
+              ·{" "}
+              <a
+                href={buildWhatsAppUrl("Hello AQ Beds")}
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-whatsapp hover:underline"
+              >
+                💬 WhatsApp us
+              </a>{" "}
+              · ✉️{" "}
+              <a href="mailto:info@aqbeds.com" className="font-semibold text-brand hover:underline">
+                info@aqbeds.com
+              </a>
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Open 9am–9pm, 7 days — real people, UK number
+            </p>
+          </div>
         </div>
 
-        <aside className="rounded-3xl border border-border bg-card p-6 h-fit space-y-4 sticky top-24 shadow-xl">
+        {/* C6 — sticky sidebar summary (hidden on mobile: C6b is the only summary there) */}
+        <aside className="hidden lg:block rounded-3xl border border-border bg-card p-6 h-fit space-y-4 sticky top-24 shadow-xl">
           <h2 className="font-display font-bold text-xl">Order Summary</h2>
-          <ul className="space-y-3 max-h-72 overflow-y-auto pr-2 custom-scrollbar">
-            {items.map((i) => (
-              <li key={i.lineId} className="flex gap-3 items-center">
-                <img
-                  src={i.image}
-                  alt={i.name}
-                  className="h-12 w-12 rounded-xl object-cover shrink-0"
-                />
-                <div className="flex-1 text-sm min-w-0">
-                  <div className="font-medium truncate">{i.name}</div>
-                  <div className="text-xs text-muted-foreground flex items-center gap-2">
-                    <span>x{i.qty}</span>
-                    <span className="h-1 w-1 bg-muted-foreground/30 rounded-full" />
-                    <span>{formatGBP(i.unitPrice)} ea</span>
-                  </div>
-                </div>
-                <span className="text-sm font-bold shrink-0">{formatGBP(i.unitPrice * i.qty)}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="border-t border-border pt-4 mt-2 space-y-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Subtotal</span>
-              <span>{formatGBP(total())}</span>
-            </div>
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Shipping</span>
-              <span className="text-green-500 font-medium">Free</span>
-            </div>
-            <div className="flex justify-between items-baseline pt-2 border-t border-border/50">
-              <span className="font-display font-bold text-lg">Total</span>
-              <span className="font-display font-bold text-2xl text-blue-500">
-                {formatGBP(total())}
-              </span>
-            </div>
-          </div>
+          <OrderSummary variant="sidebar" preferredDate={preferredDate} />
           <div className="rounded-2xl border border-cta/30 bg-cta/5 p-4 space-y-1.5">
             <div className="text-xs font-black uppercase tracking-wider text-brand">
               RISK-FREE ORDERING
@@ -447,36 +543,18 @@ function CheckoutPage() {
             </div>
             <div className="text-sm font-medium text-foreground/85">Courier waits for your OK</div>
           </div>
-          {arrival && (
-            <p className="text-center text-sm font-black text-brand rounded-2xl border border-brand/20 bg-brand/[0.06] py-3">
-              {arrival.label}
-            </p>
-          )}
           <p className="text-center text-xs font-bold text-brand/80">Inspect Before You Pay</p>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full h-14 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-lg shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Place Order"}
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              openCheckoutWhatsApp((e.currentTarget as HTMLButtonElement).form);
-            }}
-            className="w-full min-h-[48px] rounded-2xl bg-whatsapp text-white font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-lg"
-          >
-            <MessageCircle className="h-5 w-5" /> Order on WhatsApp
-          </button>
-          <p className="text-[10px] text-center text-muted-foreground px-4">
-            By placing an order you agree to our Terms of Service.
-          </p>
-          {secure && (
-            <p className="text-[10px] text-center text-muted-foreground">Secure SSL Site</p>
-          )}
         </aside>
       </form>
+
+      {/* C9 — company identity block at the bottom of the checkout page */}
+      <div className="mt-10 rounded-3xl border border-border bg-card p-6 text-center text-sm text-muted-foreground space-y-1">
+        <p className="font-display font-bold text-brand">AQ Beds Ltd · Est. 2018</p>
+        {/* TODO(owner): supply Company No. — render here when provided */}
+        {/* TODO(owner): supply VAT No. GB… — render here when provided */}
+        {/* TODO(owner): supply UK warehouse address — render here when provided */}
+        <p>📞 +44 7519 791128 · ✉️ info@aqbeds.com · 🔒 SSL secured</p>
+      </div>
 
       {placed && typeof document !== "undefined"
         ? createPortal(

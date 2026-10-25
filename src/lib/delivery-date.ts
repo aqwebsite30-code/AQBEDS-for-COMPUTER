@@ -1,8 +1,26 @@
-export type ArrivalWindow = {
-  label: string;
-  firstISO: string;
-  secondISO: string;
-};
+// ─────────────────────────────────────────────────────────────────────────────
+// T1 DELIVERY ENGINE — single source of truth for every delivery date shown
+// on the site (product page, basket drawer, checkout, WhatsApp messages,
+// order confirmation). Owner policy confirmed 24 Oct 2026:
+//
+//   RULE A — Mon–Sat before UK_CUTOFF_HOUR (20:00 UK) → delivered NEXT DAY.
+//   RULE B — Mon–Sat after cutoff → treated as if placed the next day.
+//   RULE C — Sunday orders → TUESDAY or THURSDAY (Monday is the off day).
+//   RULE D — Non-delivery days: every Monday + the bank-holiday set below.
+//            A computed date that lands on a non-delivery day slides forward.
+//   RULE E — Customers may choose their own date (isSelectableDeliveryDate).
+//
+// All date/time maths runs in Europe/London — never the device timezone.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** 8 PM UK cutoff — single const so the owner can switch it to 19 in one place. */
+export const UK_CUTOFF_HOUR = 20;
+
+/** Shown under every date line, everywhere. */
+export const DELIVERY_WINDOW_LINE = "📱 We'll text you a 2-hour delivery window";
+
+/** Sunday orders land on one of these two days (Monday is the weekly off day). */
+export const SUNDAY_OPTION = "Tue or Thu";
 
 /**
  * Hardcoded UK bank holidays — UNION of England & Wales + Scotland +
@@ -44,32 +62,27 @@ export const UK_BANK_HOLIDAYS: readonly string[] = [
 
 const HOLIDAYS = new Set<string>(UK_BANK_HOLIDAYS);
 
-const MONTH_SHORT = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
 const partsFormatter = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Europe/London",
   year: "numeric",
   month: "2-digit",
   day: "2-digit",
   hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
   hourCycle: "h23",
 });
 
-export type LondonParts = { year: number; month: number; day: number; hour: number };
+export type LondonParts = {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+};
 
+/** Wall-clock parts in Europe/London (DST-correct, never device timezone). */
 export function londonParts(now: Date): LondonParts {
   const out: Record<string, number> = {};
   for (const p of partsFormatter.formatToParts(now)) {
@@ -80,74 +93,164 @@ export function londonParts(now: Date): LondonParts {
     month: out.month,
     day: out.day,
     hour: out.hour,
+    minute: out.minute,
+    second: out.second,
   };
 }
 
 function iso(year: number, month: number, day: number): string {
-  const m = String(month).padStart(2, "0");
-  const d = String(day).padStart(2, "0");
-  return `${year}-${m}-${d}`;
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-function addDays(dateISO: string, days: number): string {
+export function addDays(dateISO: string, days: number): string {
   const [y, m, d] = dateISO.split("-").map(Number);
   const t = new Date(Date.UTC(y, m - 1, d + days));
   return iso(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate());
 }
 
-function isWeekend(dateISO: string): boolean {
+/** 0 = Sunday … 6 = Saturday. */
+export function dayOfWeek(dateISO: string): number {
   const [y, m, d] = dateISO.split("-").map(Number);
-  const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
-  return wd === 0 || wd === 6;
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
 }
 
-function isWorkingDay(dateISO: string): boolean {
-  return !isWeekend(dateISO) && !HOLIDAYS.has(dateISO);
+export function isBankHoliday(dateISO: string): boolean {
+  return HOLIDAYS.has(dateISO);
 }
 
-/** First working day strictly after `dateISO` (Mon–Fri, excludes bank holidays). */
-function nextWorkingDay(dateISO: string): string {
+/**
+ * Delivery days = every day except Monday and every UK bank holiday
+ * (Tue–Sun deliver; Sun orders land Tue/Thu because Monday is off).
+ */
+export function isDeliveryDay(dateISO: string): boolean {
+  return dayOfWeek(dateISO) !== 1 && !HOLIDAYS.has(dateISO);
+}
+
+/** First delivery day strictly after `dateISO` (slides past Mondays + holidays). */
+export function nextDeliveryDay(dateISO: string): string {
   let d = dateISO;
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 60; i++) {
     d = addDays(d, 1);
-    if (isWorkingDay(d)) return d;
+    if (isDeliveryDay(d)) return d;
   }
   return d;
 }
 
-/** `n` working days strictly after `dateISO`. */
-function addWorkingDays(dateISO: string, n: number): string {
-  let d = dateISO;
-  for (let i = 0; i < n; i++) d = nextWorkingDay(d);
-  return d;
+/** "Sun 25 Oct" — safe from timezone drift (UTC-based parse). */
+export function formatDeliveryDate(dateISO: string): string {
+  const [y, m, d] = dateISO.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  });
 }
 
-function formatRange(firstISO: string, secondISO: string): string {
-  const [, fm, fd] = firstISO.split("-").map(Number);
-  const [, sm, sd] = secondISO.split("-").map(Number);
-  const fMonth = MONTH_SHORT[fm - 1];
-  const sMonth = MONTH_SHORT[sm - 1];
-  return fm === sm ? `${fd}–${sd} ${fMonth}` : `${fd} ${fMonth}–${sd} ${sMonth}`;
+/** RULE E — is this date selectable in the preferred-date picker? */
+export function isSelectableDeliveryDate(dateISO: string, earliestISO?: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateISO)) return false;
+  if (earliestISO && dateISO < earliestISO) return false;
+  return isDeliveryDay(dateISO);
 }
+
+/** "8 PM" for 20:00, "7 PM" for 19:00 — human wording for the cutoff. */
+function cutoffHourLabel(): string {
+  const h24 = UK_CUTOFF_HOUR % 12 === 0 ? 12 : UK_CUTOFF_HOUR % 12;
+  return `${h24} PM`;
+}
+
+function formatCountdown(totalSeconds: number, withSeconds: boolean): string {
+  const s = Math.max(0, totalSeconds);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (withSeconds) {
+    if (h > 0) return `${h}h ${m}m ${sec}s`;
+    if (m > 0) return `${m}m ${sec}s`;
+    return `${sec}s`;
+  }
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
+export type DeliveryDate = { iso: string; label: string };
+
+export type DeliveryInfo = {
+  /** Time left until the 20:00 UK cutoff today, e.g. "2h 14m". */
+  cutoffCountdown: string;
+  /** Same countdown with seconds — for ticking displays (B1 drawer bar). */
+  cutoffCountdownLive: string;
+  /** Raw seconds until cutoff (≤ 0 once past). */
+  remainingSeconds: number;
+  /** Mon–Sat AND before 20:00 UK. */
+  isBeforeCutoff: boolean;
+  /** Today (UK) is Sunday. */
+  isSunday: boolean;
+  /** Earliest date this order can arrive — the T1 default delivery date. */
+  defaultDate: DeliveryDate;
+  /** "Tue or Thu" — shown for Sunday orders (RULE C). */
+  sundayOption: string;
+  /** Dynamic headline for the current UK weekday/time. */
+  headline: string;
+  /** Headline with a seconds-level countdown (live ticking version). */
+  headlineLive: string;
+  /** Stable headline without a countdown — safe for SSR/hydration. */
+  headlineStatic: string;
+  /** Standing note under every date line: "📱 We'll text you a 2-hour …". */
+  windowLine: string;
+};
 
 /**
- * Delivery window shown above "Place Order".
- *
- * Cutoff 18:00 UK:
- *  - before 18:00 → arrives the next working day;
- *  - at/after 18:00 → arrives the working day after that (next working day + 1).
- * Both displayed dates are consecutive working days; weekends and every UK
- * bank holiday (union of England & Wales, Scotland, Northern Ireland) are
- * excluded — Sat, Sun and bank holidays are never shown.
+ * The one delivery function the whole site uses.
+ * `nowUK` is any instant — all wall-clock maths happens in Europe/London.
  */
-export function getDeliveryWindow(now: Date): ArrivalWindow {
-  const { year, month, day, hour } = londonParts(now);
+export function getDeliveryInfo(nowUK: Date): DeliveryInfo {
+  const { year, month, day, hour, minute, second } = londonParts(nowUK);
   const today = iso(year, month, day);
-  const earliest = hour < 18 ? nextWorkingDay(today) : addWorkingDays(nextWorkingDay(today), 1);
-  const latest = nextWorkingDay(earliest);
+  const dow = dayOfWeek(today);
+
+  const remainingSeconds = UK_CUTOFF_HOUR * 3600 - (hour * 3600 + minute * 60 + second);
+  const isSunday = dow === 0;
+  const isBeforeCutoff = !isSunday && remainingSeconds > 0;
+
+  // RULE A/B: an order placed Mon–Sat before the cutoff counts as today's order;
+  // anything after the cutoff (and every Sunday) counts as the next calendar day.
+  const effectiveOrderDate = isBeforeCutoff ? today : addDays(today, 1);
+  const defaultISO = nextDeliveryDay(effectiveOrderDate);
+  const defaultDate: DeliveryDate = { iso: defaultISO, label: formatDeliveryDate(defaultISO) };
+
+  const countdown = formatCountdown(remainingSeconds, false);
+  const countdownLive = formatCountdown(remainingSeconds, true);
+
+  let headline: string;
+  let headlineStatic: string;
+  if (isSunday) {
+    headline = "Sunday orders arrive Tuesday or Thursday — Monday is our off day";
+    headlineStatic = headline;
+  } else if (isBeforeCutoff) {
+    headline = `⏱ Order within ${countdown} → delivered TOMORROW (${defaultDate.label})`;
+    headlineStatic = `Order before ${cutoffHourLabel()} UK → delivered TOMORROW (${defaultDate.label})`;
+  } else {
+    headline = `Order tonight → arrives ${defaultDate.label}`;
+    headlineStatic = headline;
+  }
+  const headlineLive =
+    isSunday || !isBeforeCutoff
+      ? headline
+      : `⏱ Order within ${countdownLive} → delivered TOMORROW (${defaultDate.label})`;
+
   return {
-    label: `Arrives: ${formatRange(earliest, latest)}`,
-    firstISO: earliest,
-    secondISO: latest,
+    cutoffCountdown: countdown,
+    cutoffCountdownLive: countdownLive,
+    remainingSeconds,
+    isBeforeCutoff,
+    isSunday,
+    defaultDate,
+    sundayOption: SUNDAY_OPTION,
+    headline,
+    headlineLive,
+    headlineStatic,
+    windowLine: DELIVERY_WINDOW_LINE,
   };
 }

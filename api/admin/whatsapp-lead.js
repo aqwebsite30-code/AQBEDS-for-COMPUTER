@@ -104,26 +104,49 @@ export default async function handler(req, res) {
   const customer =
     parsed && typeof parsed.customer === "object" && parsed.customer ? parsed.customer : {};
 
+  // T4/C7 — the ONLY new payload field, strictly optional and format-validated.
+  const preferredDeliveryDate =
+    parsed &&
+    typeof parsed.preferred_delivery_date === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(parsed.preferred_delivery_date)
+      ? parsed.preferred_delivery_date
+      : null;
+
+  const baseData = {
+    eventId,
+    source,
+    value,
+    currency: "GBP",
+    contents,
+    customerName: cap(customer.name, MAX.name) || null,
+    customerPhone: cap(customer.phone, MAX.phone) || null,
+    customerAddress: cap(customer.address, MAX.address) || null,
+    customerCity: cap(customer.city, MAX.city) || null,
+    customerPostcode: cap(customer.postcode, MAX.postcode) || null,
+    pageUrl: cap(parsed.page_url, MAX.pageUrl) || null,
+    visitorId,
+  };
+
   try {
     await prisma.whatsAppLead.create({
-      data: {
-        eventId,
-        source,
-        value,
-        currency: "GBP",
-        contents,
-        customerName: cap(customer.name, MAX.name) || null,
-        customerPhone: cap(customer.phone, MAX.phone) || null,
-        customerAddress: cap(customer.address, MAX.address) || null,
-        customerCity: cap(customer.city, MAX.city) || null,
-        customerPostcode: cap(customer.postcode, MAX.postcode) || null,
-        pageUrl: cap(parsed.page_url, MAX.pageUrl) || null,
-        visitorId,
-      },
+      data: { ...baseData, ...(preferredDeliveryDate ? { preferredDeliveryDate } : {}) },
     });
   } catch (err) {
     // P2002 = duplicate event_id — same open already recorded (dedupe by design).
-    if (!err || err.code !== "P2002") {
+    // P2022 = preferredDeliveryDate column not migrated yet — keep the lead and
+    // drop only the optional field so lead capture can never break (additive-only).
+    if (err && err.code === "P2022") {
+      try {
+        await prisma.whatsAppLead.create({ data: baseData });
+      } catch (retryErr) {
+        if (!retryErr || retryErr.code !== "P2002") {
+          console.error(
+            "[whatsapp-lead] write failed:",
+            (retryErr && retryErr.message) || retryErr,
+          );
+        }
+      }
+    } else if (!err || err.code !== "P2002") {
       console.error("[whatsapp-lead] write failed:", (err && err.message) || err);
     }
   }

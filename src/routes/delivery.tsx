@@ -7,13 +7,13 @@ export const Route = createFileRoute("/delivery")({
       {
         name: "description",
         content:
-          "Free UK delivery on all AQ Beds. Typical delivery 3-7 business days for beds, 5-10 for sofas. Track your order and choose assembly options.",
+          "Free UK next-day delivery on orders before 8 PM UK, Monday–Saturday. Sunday orders arrive Tuesday or Thursday. 2-hour delivery window by text.",
       },
       { property: "og:title", content: "Delivery Information — AQ Beds" },
       {
         property: "og:description",
         content:
-          "Free UK delivery on all AQ Beds. Typical delivery 3-7 business days for beds, 5-10 for sofas.",
+          "Free UK next-day delivery on orders before 8 PM UK, Mon–Sat. Sunday orders arrive Tuesday or Thursday.",
       },
       {
         property: "og:image",
@@ -52,21 +52,15 @@ function Delivery() {
         </div>
 
         <div className="rounded-[32px] border border-brand/10 bg-brand/[0.03] p-8 backdrop-blur-md shadow-card">
-          <h2 className="font-display font-bold text-xl text-brand">Typical Timeframes</h2>
-          <ul className="mt-3 text-muted-foreground leading-relaxed space-y-2 list-disc pl-5">
-            <li>
-              <strong>Beds & Mattresses:</strong> 3–7 business days from order confirmation.
-            </li>
-            <li>
-              <strong>Sofas & Upholstery:</strong> 5–10 business days due to additional handling.
-            </li>
-            <li>
-              <strong>Made-to-Order Items:</strong> 2–4 weeks (you will receive a personalised
-              timeline after placing your order).
-            </li>
-          </ul>
+          <h2 className="font-display font-bold text-xl text-brand">Delivery Timeframes</h2>
           <p className="mt-3 text-muted-foreground leading-relaxed">
-            All timeframes are estimates. We will notify you if any unexpected delays occur.
+            Next-day delivery on orders placed before 8 PM UK, Monday–Saturday.
+            <br />
+            Sunday orders are delivered Tuesday or Thursday (Monday is our off day).
+            <br />
+            Free UK delivery on every bed. 2-hour delivery window by text.
+            <br />
+            Bank holidays: delivery slides to the next available day.
           </p>
         </div>
 
@@ -106,7 +100,8 @@ function Delivery() {
           </h2>
           <ul className="mt-3 text-muted-foreground leading-relaxed space-y-2 list-disc pl-5">
             <li>
-              You will receive a <strong>2–4 hour time window</strong> on the morning of delivery.
+              You will receive a <strong>2-hour delivery window by text</strong> on the morning of
+              delivery.
             </li>
             <li>
               Our driver will bring your order <strong>to the room of your choice</strong> where

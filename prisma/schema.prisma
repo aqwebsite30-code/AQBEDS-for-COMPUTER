@@ -153,6 +153,8 @@ model WhatsAppLead {
   customerPostcode String?
   pageUrl          String?
   visitorId        String? // aqbeds_vid of the buyer - shown in Live / Day View rows
+  // T4/C7 — customer's own chosen delivery date (YYYY-MM-DD), nullable/optional.
+  preferredDeliveryDate String?
   status           String   @default("new") // new | confirmed | lost
   createdAt        DateTime @default(now())
 
