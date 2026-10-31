@@ -105,8 +105,7 @@ export function CartDrawer() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 overscroll-contain">
-          {/* Mobile safe area - prevent content from being hidden by footer */}
-          <div style={{ paddingBottom: '12px', paddingTop: '4px' }}>
+          {items.length === 0 ? (
             <div className="text-center py-16">
               <p className="text-muted-foreground">Your basket is empty.</p>
               <Link
@@ -191,8 +190,6 @@ export function CartDrawer() {
                 </p>
               </div>
 
-              </ol>
-              </div>
               {/* B7 — "What happens next" mini-map: vertical on mobile, horizontal-ish on desktop */}
               <ol className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {NEXT_STEPS.map((s) => (
