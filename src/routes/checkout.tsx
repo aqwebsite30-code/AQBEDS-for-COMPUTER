@@ -3,7 +3,14 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useCart } from "../features/cart/store/cart";
 import { formatGBP, buildWhatsAppUrl, WHATSAPP_NUMBER } from "../lib/utils/format";
-import { CheckCircle2, Loader2, MessageSquare, MessageCircle, ArrowLeft } from "lucide-react";
+import {
+  CheckCircle2,
+  Loader2,
+  MessageSquare,
+  MessageCircle,
+  ArrowLeft,
+  Truck,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { sendOrderEmail } from "../lib/email";
 import { saveOrder } from "@/lib/orders";
@@ -49,6 +56,8 @@ function CheckoutPage() {
   const [secure, setSecure] = useState(false);
   const [waMissing, setWaMissing] = useState<string[]>([]);
   const [placedOrderNo, setPlacedOrderNo] = useState("");
+  // Section 4 — order id used for the /track link (confirmation + WhatsApp message).
+  const [placedToken, setPlacedToken] = useState("");
   const purchaseFired = useRef(false);
   const checkoutEventId = useRef<string>("");
 
@@ -171,6 +180,8 @@ function CheckoutPage() {
           ),
           total: total(),
           instructions: (formData.get("instructions") as string) || "",
+          // Section 6 — persist the customer's chosen date on the Order row.
+          preferredDeliveryDate: preferredDate || "",
           trackingToken,
           visitorId: getVisitorId(),
           event_id: purchaseEventId,
@@ -229,24 +240,32 @@ function CheckoutPage() {
         city: customer.city,
         postcode: customer.postcode,
       };
-      const message = buildOrderMessage(
-        items.map((i) => ({
-          id: i.productId,
-          name: i.name,
-          qty: i.qty,
-          unitPrice: i.unitPrice,
-          rows: rowsFromOptionsRecord(i.options),
-          url:
-            typeof window !== "undefined"
-              ? `${window.location.origin}/product/${i.productId}`
-              : undefined,
-        })),
-        waDetails,
-        { arrival: deliveryInfo, orderNo: orderNumber, preferredDate: preferredDate || undefined },
-      );
+      const message =
+        buildOrderMessage(
+          items.map((i) => ({
+            id: i.productId,
+            name: i.name,
+            qty: i.qty,
+            unitPrice: i.unitPrice,
+            rows: rowsFromOptionsRecord(i.options),
+            url:
+              typeof window !== "undefined"
+                ? `${window.location.origin}/product/${i.productId}`
+                : undefined,
+          })),
+          waDetails,
+          {
+            arrival: deliveryInfo,
+            orderNo: orderNumber,
+            preferredDate: preferredDate || undefined,
+          },
+        ) +
+        // Section 4 — order reply carries a personal track link once the id exists.
+        (orderId ? `\n\nTrack your order: https://www.aqbeds.com/track?token=${orderId}` : "");
       const waUrl = `https://wa.me/${WHATSAPP_NUMBER.replace(/\+/g, "")}?text=${encodeURIComponent(message)}`;
 
       setPlacedOrderNo(orderNumber);
+      setPlacedToken(orderId);
       setWhatsappUrl(waUrl);
       setPlaced(true);
       if (!purchaseFired.current) {
@@ -368,8 +387,8 @@ function CheckoutPage() {
       {/* C2 — sticky trust bar: stays visible while scrolling the form */}
       <div className="sticky top-16 lg:top-[68px] z-30 -mx-4 px-4 py-2.5 mb-4 bg-card/95 backdrop-blur border-b border-border shadow-sm">
         <p className="text-center text-xs sm:text-sm font-bold text-brand">
-          🛡️ SSL Secure · ✅ {REVIEW_AVG_LABEL}/5 · 🚚 Next-Day Delivery (order by 8 PM UK) · 💷 Pay
-          at Door · 👀 Inspect Before You Pay
+          SSL Secure · {REVIEW_AVG_LABEL}/5 · Next-Day Delivery (order by 8 PM UK) · Pay at Door ·
+          Inspect Before You Pay
         </p>
       </div>
 
@@ -380,10 +399,10 @@ function CheckoutPage() {
           {/* C1 — progress steps at top of form */}
           <div className="rounded-2xl border border-brand/15 bg-brand/[0.04] px-5 py-4">
             <p className="font-display font-bold text-sm sm:text-base text-brand">
-              ① Details → ② Delivery → ③ Confirm ✓
+              1. Details → 2. Delivery → 3. Confirm
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              ✓ No payment details needed — you pay the courier when your bed arrives
+              No payment details needed — you pay the courier when your bed arrives
             </p>
           </div>
           <Card title="Contact">
@@ -413,7 +432,7 @@ function CheckoutPage() {
               {/* C7 — preferred delivery date (optional; blank = T1 system default) */}
               <div className="sm:col-span-2">
                 <span className="text-[10px] text-brand/50 font-bold uppercase tracking-widest pl-1">
-                  📅 Prefer a different delivery date? (optional)
+                  Prefer a different delivery date? (optional)
                 </span>
                 <input
                   type="date"
@@ -452,17 +471,17 @@ function CheckoutPage() {
 
           {/* C3 — zero-risk block: sits between the summary card and the buttons */}
           <div className="rounded-2xl border border-whatsapp/30 bg-whatsapp/5 p-5 text-sm space-y-1.5">
-            <p className="font-bold">✅ Nothing to pay now.</p>
-            <p>👀 Your courier waits while you inspect your bed.</p>
-            <p>💷 Pay cash ONLY when you're completely happy.</p>
-            <p>↩️ Don't love it? Free return — zero risk.</p>
+            <p className="font-bold">Nothing to pay now.</p>
+            <p>Your courier waits while you inspect your bed.</p>
+            <p>Pay cash ONLY when you're completely happy.</p>
+            <p>Don't love it? Free next-day replacement — zero risk.</p>
           </div>
 
           {/* C4 — real review, right above the buttons */}
           <div className="rounded-2xl border border-amber-400/40 bg-amber-400/10 p-4 text-sm">
             <p className="font-semibold text-amber-700 dark:text-amber-400">
-              ⭐⭐⭐⭐⭐ “From start to finish, the easiest process... delivered when they said it
-              would be!” — Louise, verified buyer
+              “From start to finish, the easiest process... delivered when they said it would be!” —
+              Louise, verified buyer
             </p>
             <Link
               to="/reviews"
@@ -492,7 +511,16 @@ function CheckoutPage() {
               <MessageCircle className="h-5 w-5 shrink-0" /> ORDER VIA WHATSAPP
             </button>
           </div>
-          <p className="text-[10px] text-center text-muted-foreground">
+          {/* T2/Section 1a — guarantee badge pair directly under the order buttons */}
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            <span className="rounded-full border border-whatsapp/40 bg-whatsapp/10 px-3 py-1.5 text-[11px] font-black text-whatsapp">
+              Free Next-Day Replacement
+            </span>
+            <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1.5 text-[11px] font-black text-amber-700 dark:text-amber-400">
+              Inspect at Your Door
+            </span>
+          </div>
+          <p className="mt-3 text-[10px] text-center text-muted-foreground">
             By placing an order you agree to our Terms of Service.
             {secure && <> · Secure SSL Site</>}
           </p>
@@ -501,7 +529,6 @@ function CheckoutPage() {
           <div className="rounded-2xl border border-border bg-card p-5 text-sm text-center space-y-1">
             <p className="font-bold">Need help before you confirm?</p>
             <p className="text-muted-foreground">
-              📞{" "}
               <a href="tel:+447519791128" className="font-semibold text-brand hover:underline">
                 +44 7519 791128
               </a>{" "}
@@ -512,9 +539,9 @@ function CheckoutPage() {
                 rel="noreferrer"
                 className="font-semibold text-whatsapp hover:underline"
               >
-                💬 WhatsApp us
+                WhatsApp us
               </a>{" "}
-              · ✉️{" "}
+              ·{" "}
               <a href="mailto:info@aqbeds.com" className="font-semibold text-brand hover:underline">
                 info@aqbeds.com
               </a>
@@ -552,7 +579,7 @@ function CheckoutPage() {
         {/* TODO(owner): supply Company No. — render here when provided */}
         {/* TODO(owner): supply VAT No. GB… — render here when provided */}
         {/* TODO(owner): supply UK warehouse address — render here when provided */}
-        <p>📞 +44 7519 791128 · ✉️ info@aqbeds.com · 🔒 SSL secured</p>
+        <p>+44 7519 791128 · info@aqbeds.com · SSL secured</p>
       </div>
 
       {placed && typeof document !== "undefined"
@@ -616,6 +643,26 @@ function CheckoutPage() {
                         <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
                         Return Home
                       </Link>
+                      {placedToken && (
+                        <Link
+                          to="/track"
+                          search={{ token: placedToken }}
+                          className="w-full h-14 rounded-2xl border border-white/40 text-white font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
+                        >
+                          <Truck className="w-5 h-5" />
+                          Track your order
+                        </Link>
+                      )}
+                      {placedToken && (
+                        <Link
+                          to="/track"
+                          search={{ token: placedToken }}
+                          className="w-full h-14 rounded-2xl border border-white/40 text-white font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
+                        >
+                          <Truck className="w-5 h-5" />
+                          Track your order
+                        </Link>
+                      )}
                       <a
                         href={whatsappUrl}
                         target="_blank"

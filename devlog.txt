@@ -1,0 +1,224 @@
+
+  [32m[1mVITE[22m v7.3.6[39m  [2mready in [0m[1m22053[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5199[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.56.1:[1m5199[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.0.104:[1m5199[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://172.29.224.1:[1m5199[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://172.27.128.1:[1m5199[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+[vite] connected.
+motion() is deprecated. Use motion.create() instead.
+TanStack Start server functions are not protected by the CSRF middleware.
+
+Server functions are same-origin RPC endpoints and should be protected from cross-site requests.
+
+Add the CSRF middleware in src/start.ts:
+
+  const csrfMiddleware = createCsrfMiddleware({
+    filter: (ctx) => ctx.handlerType === 'serverFn',
+  })
+
+  export const startInstance = createStart(() => ({
+    requestMiddleware: [csrfMiddleware],
+  }))
+
+If you intentionally handle CSRF another way, disable this warning:
+
+  tanstackStart({
+    serverFns: {
+      disableCsrfMiddlewareWarning: true,
+    },
+  })
+Error: aborted
+    at abortIncoming (node:_http_server:838:17)
+    at socketOnClose (node:_http_server:832:3)
+    at Socket.emit (node:events:531:35)
+    at TCP.<anonymous> (node:net:346:12)
+    at TCP.callbackTrampoline (node:internal/async_hooks:130:17) {
+  code: 'ECONNRESET'
+}
+Error: aborted
+    at abortIncoming (node:_http_server:838:17)
+    ... 3 lines matching cause stack trace ...
+    at TCP.callbackTrampoline (node:internal/async_hooks:130:17) {
+  cause: Error: aborted
+      at abortIncoming (node:_http_server:838:17)
+      at socketOnClose (node:_http_server:832:3)
+      at Socket.emit (node:events:531:35)
+      at TCP.<anonymous> (node:net:346:12)
+      at TCP.callbackTrampoline (node:internal/async_hooks:130:17) {
+    code: 'ECONNRESET'
+  },
+  status: 500,
+  statusText: undefined,
+  headers: undefined,
+  data: undefined,
+  body: undefined,
+  unhandled: true
+}
+[2m2:21:38 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m2:30:03 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m2:30:03 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m2:30:03 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m2:50:15 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m2:50:18 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m2:50:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m2:50:20 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m2:50:22 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m2:50:23 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m2:51:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m2:51:03 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m2:56:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:02:39 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct, /src/routes/__root.tsx, /src/routes/product.$slug.tsx?tsr-split=component, /src/components/OrderDetailsForm.tsx, /src/features/cart/components/CartDrawer.tsx[22m
+[2m3:02:39 PM[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/lib/meta-capi.ts[22m
+[vite] program reload
+[2m3:02:41 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+TanStack Start server functions are not protected by the CSRF middleware.
+
+Server functions are same-origin RPC endpoints and should be protected from cross-site requests.
+
+Add the CSRF middleware in src/start.ts:
+
+  const csrfMiddleware = createCsrfMiddleware({
+    filter: (ctx) => ctx.handlerType === 'serverFn',
+  })
+
+  export const startInstance = createStart(() => ({
+    requestMiddleware: [csrfMiddleware],
+  }))
+
+If you intentionally handle CSRF another way, disable this warning:
+
+  tanstackStart({
+    serverFns: {
+      disableCsrfMiddlewareWarning: true,
+    },
+  })
+[2m3:05:10 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:38:57 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct, /src/routes/__root.tsx, /src/routes/product.$slug.tsx?tsr-split=component, /src/components/OrderDetailsForm.tsx, /src/features/cart/components/CartDrawer.tsx[22m
+[2m3:38:57 PM[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/lib/meta-capi.ts[22m
+[vite] program reload
+[2m3:38:58 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct, /src/routes/checkout.tsx[22m
+[2m3:38:58 PM[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/routes/checkout.tsx[22m
+[2m3:39:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct, /src/routes/checkout.tsx[22m
+[2m3:39:01 PM[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mpage reload [39m[2msrc/routes/checkout.tsx[22m
+[2m3:39:12 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:39:14 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:39:21 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:39:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:39:27 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:39:35 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:40:02 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:40:06 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:41:47 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:42:49 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:43:03 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:43:32 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+TanStack Start server functions are not protected by the CSRF middleware.
+
+Server functions are same-origin RPC endpoints and should be protected from cross-site requests.
+
+Add the CSRF middleware in src/start.ts:
+
+  const csrfMiddleware = createCsrfMiddleware({
+    filter: (ctx) => ctx.handlerType === 'serverFn',
+  })
+
+  export const startInstance = createStart(() => ({
+    requestMiddleware: [csrfMiddleware],
+  }))
+
+If you intentionally handle CSRF another way, disable this warning:
+
+  tanstackStart({
+    serverFns: {
+      disableCsrfMiddlewareWarning: true,
+    },
+  })
+Resend Error: Error: RESEND_API_KEY is not set
+    at getResend (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:14:19)
+    at Object.eval [as serverFn] (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:71:20)
+    at server (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:206:44)
+    at callNextMiddleware (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:134:26)
+    at executeMiddleware (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:157:9)
+    at AsyncFunction.__executeServer (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:77:19)
+    at eval (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:31:29)
+    at handleServerAction (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:85:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+[CAPI] Purchase sent OK — events_received: 1 | ip: 203.215.167.82 | fbc: fb.1.1792665827655.TESTpurchase123 | tec: T1
+[2m3:46:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:46:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:46:51 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+Resend Error: Error: RESEND_API_KEY is not set
+    at getResend (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:14:19)
+    at Object.eval [as serverFn] (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:71:20)
+    at server (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:206:44)
+    at callNextMiddleware (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:134:26)
+    at executeMiddleware (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:157:9)
+    at AsyncFunction.__executeServer (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:77:19)
+    at eval (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:31:29)
+    at handleServerAction (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:85:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+[CAPI] Purchase sent OK — events_received: 1 | ip: 203.215.167.82 | fbc: fb.1.1792666021442.TESTpurchase123 | tec: T1
+[2m3:50:00 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:50:07 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:50:09 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:50:12 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+Resend Error: Error: RESEND_API_KEY is not set
+    at getResend (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:14:19)
+    at Object.eval [as serverFn] (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:71:20)
+    at server (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:206:44)
+    at callNextMiddleware (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:134:26)
+    at executeMiddleware (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:157:9)
+    at AsyncFunction.__executeServer (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:77:19)
+    at eval (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:31:29)
+    at handleServerAction (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:85:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+[CAPI] Purchase sent OK — events_received: 1 | ip: 203.215.167.82 | fbc: fb.1.1792666231669.TESTpurchase123 | tec: T1
+[2m3:53:06 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:53:09 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+Resend Error: Error: RESEND_API_KEY is not set
+    at getResend (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:14:19)
+    at Object.eval [as serverFn] (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:71:20)
+    at server (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:206:44)
+    at callNextMiddleware (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:134:26)
+    at executeMiddleware (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:157:9)
+    at AsyncFunction.__executeServer (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:77:19)
+    at eval (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:31:29)
+    at handleServerAction (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:85:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+[CAPI] Purchase sent OK — events_received: 1 | ip: 203.215.167.82 | fbc: fb.1.1792666423928.TESTpurchase123 | tec: T1
+[2m3:57:16 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m3:58:33 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m4:03:09 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m4:03:12 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m4:04:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m4:04:27 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+Resend Error: Error: RESEND_API_KEY is not set
+    at getResend (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:14:19)
+    at Object.eval [as serverFn] (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:71:20)
+    at server (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:206:44)
+    at callNextMiddleware (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:134:26)
+    at executeMiddleware (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:157:9)
+    at AsyncFunction.__executeServer (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:77:19)
+    at eval (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:31:29)
+    at handleServerAction (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:85:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+[CAPI] Purchase sent OK — events_received: 1 | ip: 203.215.167.82 | fbc: fb.1.1792667084695.TESTpurchase123 | tec: T1
+[2m4:06:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m4:07:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+Resend Error: Error: RESEND_API_KEY is not set
+    at getResend (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:14:19)
+    at Object.eval [as serverFn] (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:71:20)
+    at server (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:206:44)
+    at callNextMiddleware (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:134:26)
+    at executeMiddleware (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:157:9)
+    at AsyncFunction.__executeServer (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:77:19)
+    at eval (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:31:29)
+    at handleServerAction (eval at runInlinedModule (file:///C:/Users/abdulraheem%20bulbul/Desktop/Final-code-of-aqbeds-one-master/Final-code-of-aqbeds-one-master/node_modules/vite/dist/node/module-runner.js:913:9), <anonymous>:85:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+[CAPI] Purchase sent OK — events_received: 1 | ip: 203.215.167.82 | fbc: fb.1.1792667310372.TESTpurchase123 | tec: T1
+[2m4:10:40 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+[2m4:10:40 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css?direct[22m
+^C^C

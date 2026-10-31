@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { CATEGORIES } from "@/features/products/data/products";
 import { buildWhatsAppUrl } from "@/lib/utils/format";
 import { REVIEW_AVG_LABEL, REVIEW_COUNT } from "@/lib/reviews";
-import { Mail, ArrowRight, MapPin, Phone, ShieldCheck, Truck, MessageCircle } from "lucide-react";
+import { Mail, ArrowRight, MapPin, Phone, ShieldCheck, Truck, MessageCircle, BadgeCheck } from "lucide-react";
 
 export function Footer() {
   const [secure, setSecure] = useState(false);
@@ -18,7 +18,7 @@ export function Footer() {
       <div className="relative mx-auto max-w-7xl px-4 pt-20 pb-12 grid gap-12 lg:grid-cols-5">
         {/* Brand */}
         <div className="lg:col-span-2">
-          <Link to="/" className="flex items-center gap-3 group">
+          <Link to="/" aria-label="AQ Beds — Home" className="flex items-center gap-3 group">
             <div className="h-11 w-11 rounded-xl bg-[#0d5ea6] grid place-items-center text-white font-display font-black text-sm shadow-[0_0_20px_rgba(13,94,166,0.5)] group-hover:shadow-[0_0_30px_rgba(13,94,166,0.8)] transition-all">
               AQ
             </div>
@@ -96,6 +96,7 @@ export function Footer() {
           </h4>
           <ul className="space-y-3 text-sm text-white/60">
             {[
+              { label: "Track My Order", to: "/track" },
               { label: "About AQ Beds", to: "/about" },
               { label: "Contact Us", to: "/contact" },
               { label: "Customer Reviews", to: "/reviews" },
@@ -158,18 +159,18 @@ export function Footer() {
             AQ Beds Ltd · Est. 2018
             {/* TODO(owner): append Company No. when supplied */}
             {/* TODO(owner): append VAT GB… when supplied */}
-            {/* TODO(owner): append UK warehouse address when supplied */} · 📞 +44 7519 791128 · ✉️
-            info@aqbeds.com · 🔒 SSL secured
+            {/* TODO(owner): append UK warehouse address when supplied */} · +44 7519 791128 ·
+            info@aqbeds.com · SSL secured
           </p>
           <p className="mt-1">
-            ⭐ {REVIEW_AVG_LABEL}/5 from {REVIEW_COUNT} verified reviews
+            {REVIEW_AVG_LABEL}/5 from {REVIEW_COUNT} verified reviews
           </p>
         </div>
       </div>
 
-      {/* Trust Badges */}
+      {/* Trust Badges — 4th item carries the T2 guarantee badge pair */}
       <div className="border-t border-white/8">
-        <div className="mx-auto max-w-7xl px-4 py-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="mx-auto max-w-7xl px-4 py-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-2xl bg-[#0d5ea6]/20 grid place-items-center flex-shrink-0">
               <MessageCircle className="h-6 w-6 text-[#5b9bd5]" />
@@ -195,6 +196,19 @@ export function Footer() {
             <div>
               <p className="font-display font-bold text-sm text-white">Free UK Delivery</p>
               <p className="text-xs text-white/40">On every bed</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-[#0d5ea6]/20 grid place-items-center flex-shrink-0">
+              <BadgeCheck className="h-6 w-6 text-[#5b9bd5]" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="rounded-full border border-[#5b9bd5]/40 bg-[#0d5ea6]/30 px-3 py-1 text-[11px] font-black text-white text-center">
+                Free Next-Day Replacement
+              </span>
+              <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-black text-white text-center">
+                Inspect at Your Door
+              </span>
             </div>
           </div>
         </div>

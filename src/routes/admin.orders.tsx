@@ -18,6 +18,7 @@ import {
   Mail,
   User,
   MessageSquare,
+  CalendarDays,
 } from "lucide-react";
 import { db } from "@/lib/db";
 import { useState, useEffect } from "react";
@@ -221,6 +222,15 @@ function OrderDetail({ order, onDelete }: { order: any; onDelete: () => void }) 
             {deleting ? <Loader2 className="w-3 h-3 animate-spin" /> : "DELETE"}
           </button>
         </div>
+      </div>
+
+      {/* Section 6 — customer's chosen delivery date, directly under the status controls */}
+      <div className="pb-4 border-b border-white/[0.04]">
+        <InfoRow
+          icon={CalendarDays}
+          label="Preferred Delivery Date"
+          value={order.preferredDeliveryDate || ""}
+        />
       </div>
 
       {/* Two column layout */}

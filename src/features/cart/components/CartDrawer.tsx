@@ -15,12 +15,12 @@ import { OrderDetailsForm } from "@/components/OrderDetailsForm";
 
 // T3 — "What happens next" mini-map (B7).
 const NEXT_STEPS = [
-  { n: "①", title: "You order", detail: "60 seconds, no payment" },
-  { n: "②", title: "We confirm", detail: "WhatsApp/text within 24h" },
-  { n: "③", title: "We dispatch", detail: "tracking sent" },
-  { n: "④", title: "Courier arrives", detail: "at your door" },
-  { n: "⑤", title: "You inspect", detail: "courier waits" },
-  { n: "⑥", title: "You pay cash", detail: "only if you love it" },
+  { n: "1", title: "You order", detail: "60 seconds, no payment" },
+  { n: "2", title: "We confirm", detail: "WhatsApp/text within 24h" },
+  { n: "3", title: "We dispatch", detail: "tracking sent" },
+  { n: "4", title: "Courier arrives", detail: "at your door" },
+  { n: "5", title: "You inspect", detail: "courier waits" },
+  { n: "6", title: "You pay cash", detail: "only if you love it" },
 ];
 
 export function CartDrawer() {
@@ -61,7 +61,7 @@ export function CartDrawer() {
         role="dialog"
         aria-modal="true"
         aria-label="Shopping basket"
-        className={`absolute right-0 top-0 bottom-0 w-full sm:w-[440px] bg-background flex flex-col transition-transform duration-300 ${
+        className={`absolute right-0 top-0 bottom-0 w-full sm:w-[440px] bg-background flex flex-col transition-transform duration-300 max-h-[100dvh] overflow-hidden ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -77,31 +77,36 @@ export function CartDrawer() {
         </header>
 
         {/* B1 — delivery bar: top, most prominent, dark brand bg, ticking countdown */}
-        <div className="bg-brand text-white px-6 py-4">
+        <div className="bg-brand text-white px-6 py-4 relative z-50">
           <p className="font-display font-bold text-sm sm:text-base leading-snug">
             {live ? info.headlineLive : info.headlineStatic}
           </p>
           <p className="mt-1 text-xs text-white/85">
-            🚚 FREE Next-Day Delivery when you order before 8 PM UK (Mon–Sat) · Sunday orders arrive
+            FREE Next-Day Delivery when you order before 8 PM UK (Mon–Sat) · Sunday orders arrive
             Tuesday
           </p>
         </div>
 
-        {/* B2 — trust icons row (below bar) */}
-        <div className="px-6 py-3 border-b border-border text-[11px] font-bold text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-1">
-          <span>🔒 Pay NOTHING online</span>
+        {/* B2 — trust icons row (below bar); T2 badge pair included */}
+        <div className="px-6 py-3 border-b border-border text-[11px] font-bold text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-1.5">
+          <span>Pay NOTHING online</span>
           <span aria-hidden="true">·</span>
-          <span>💵 Cash on Delivery</span>
+          <span>Cash on Delivery</span>
           <span aria-hidden="true">·</span>
-          <span>👀 Inspect at Door</span>
+          <span className="rounded-full border border-whatsapp/40 bg-whatsapp/10 px-2 py-0.5 font-black text-whatsapp">
+            Free Next-Day Replacement
+          </span>
           <span aria-hidden="true">·</span>
-          <span>↩️ Free Returns</span>
+          <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5 font-black text-amber-700 dark:text-amber-400">
+            Inspect at Your Door
+          </span>
           <span aria-hidden="true">·</span>
-          <span>🛏️ Est. 2018</span>
+          <span>Est. 2018</span>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          {items.length === 0 ? (
+        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 overscroll-contain">
+          {/* Mobile safe area - prevent content from being hidden by footer */}
+          <div style={{ paddingBottom: '12px', paddingTop: '4px' }}>
             <div className="text-center py-16">
               <p className="text-muted-foreground">Your basket is empty.</p>
               <Link
@@ -114,7 +119,7 @@ export function CartDrawer() {
             </div>
           ) : (
             <>
-              <ul className="space-y-4">
+              <ul className="space-y-4 pb-2">
                 {items.map((i) => (
                   <li
                     key={i.lineId}
@@ -166,26 +171,28 @@ export function CartDrawer() {
 
               {/* B3 — stock truth line under the product line (no fabricated stock numbers) */}
               <p className="mt-3 text-xs font-semibold text-whatsapp">
-                ✅ In stock — dispatching today if ordered before 8 PM
+                In stock — dispatching today if ordered before 8 PM
               </p>
 
               {/* B4 — fills the empty space that used to be a blank white box */}
               <div className="mt-4 rounded-2xl border border-border bg-card p-4 space-y-2">
                 <p className="text-sm font-bold text-brand">
-                  💷 Pay NOTHING online — cash at your door, inspect first
+                  Pay NOTHING online — cash at your door, inspect first
                 </p>
                 <p className="text-sm font-semibold">
-                  ⭐⭐⭐⭐⭐ {REVIEW_AVG_LABEL}/5 from {REVIEW_COUNT} verified reviews
+                  {REVIEW_AVG_LABEL}/5 from {REVIEW_COUNT} verified reviews
                 </p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   “Just got my bed today and it's gorgeous. From start to finish, this was the
                   easiest process!” — Louise, verified buyer
                 </p>
                 <p className="text-xs font-semibold text-muted-foreground">
-                  💬 Questions? Chat with us (bottom-right)
+                  Questions? Chat with us (bottom-right)
                 </p>
               </div>
 
+              </ol>
+              </div>
               {/* B7 — "What happens next" mini-map: vertical on mobile, horizontal-ish on desktop */}
               <ol className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {NEXT_STEPS.map((s) => (
@@ -227,7 +234,7 @@ export function CartDrawer() {
                 <span className="font-display font-black">{formatGBP(total())}</span>
               </div>
               <p className="text-[11px] text-muted-foreground pt-1">
-                💷 Pay the courier — only after you've checked your bed
+                Pay the courier — only after you've checked your bed
               </p>
             </div>
 
@@ -260,7 +267,7 @@ export function CartDrawer() {
                 onClick={() => setDetailsOpen(true)}
                 className="min-h-12 rounded-2xl bg-whatsapp text-whatsapp-foreground font-black text-[11px] leading-tight px-2 py-2 grid place-items-center text-center hover:opacity-90 transition"
               >
-                💬 ORDER VIA WHATSAPP
+                ORDER VIA WHATSAPP
               </button>
             </div>
             <p className="text-[10px] text-center text-muted-foreground">

@@ -7,7 +7,7 @@ import { trackEvent } from "@/lib/analytics";
 import { getProduct, PRODUCTS, DISCOUNT_POSTCODES } from "@/features/products/data/products";
 import productCopy from "@/features/products/data/product-copy.json";
 import { getDbProductBySlug } from "@/lib/products";
-import { formatGBP } from "@/lib/utils/format";
+import { formatGBP, buildWhatsAppUrl } from "@/lib/utils/format";
 import { getDeliveryInfo } from "@/lib/delivery-date";
 import { useDeliveryInfo } from "@/hooks/useDeliveryInfo";
 import { openWhatsAppOrder, type CustomerDetails, type SelectionRow } from "@/lib/whatsapp-order";
@@ -22,7 +22,16 @@ import {
   aggregateRatingJsonLd,
   reviewJsonLd,
 } from "@/lib/reviews";
-import { Truck, ShieldCheck, Heart, Minus, Plus, ShoppingBag, MessageCircle } from "lucide-react";
+import {
+  Truck,
+  ShieldCheck,
+  Heart,
+  Minus,
+  Plus,
+  ShoppingBag,
+  MessageCircle,
+  Check,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Meta description must never be cut mid-word (WP-A.2).
@@ -770,7 +779,7 @@ function ProductPage() {
             {/* P1 + T2 — old "dispatches in 3–5 days" line replaced by the T1 dynamic line */}
             <div className="flex flex-col gap-0.5">
               <span className="text-whatsapp font-medium text-sm">
-                ✓ In stock — {deliveryLive ? delivery.headlineLive : delivery.headlineStatic}
+                In stock — {deliveryLive ? delivery.headlineLive : delivery.headlineStatic}
               </span>
             </div>
             <h1 className="font-display font-bold text-3xl sm:text-4xl mt-3">{product.name}</h1>
@@ -1198,23 +1207,76 @@ function ProductPage() {
               Replacement
             </p>
 
-            {/* P3 — trust row directly under the Add-To-Basket buttons */}
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] font-bold text-muted-foreground">
-              <span>🔒 Pay nothing online</span>
+            {/* P3 — trust row directly under the Add-To-Basket buttons (T2 badge pair) */}
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-[11px] font-bold text-muted-foreground">
+              <span>Pay nothing online</span>
               <span aria-hidden="true">·</span>
-              <span>👀 Inspect first</span>
+              <span className="rounded-full border border-whatsapp/40 bg-whatsapp/10 px-2.5 py-1 font-black text-whatsapp">
+                Free Next-Day Replacement
+              </span>
               <span aria-hidden="true">·</span>
-              <span>↩️ Free returns</span>
+              <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 font-black text-amber-700 dark:text-amber-400">
+                Inspect at Your Door
+              </span>
               <span aria-hidden="true">·</span>
               <span>
-                ⭐ {REVIEW_AVG_LABEL}/5 ({REVIEW_COUNT})
+                {REVIEW_AVG_LABEL}/5 ({REVIEW_COUNT})
               </span>
+            </div>
+
+            {/* T2/Section 1b — guarantee block directly under the trust row */}
+            <div className="mt-6 rounded-3xl border border-whatsapp/25 bg-whatsapp/5 p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="h-5 w-5 shrink-0 text-whatsapp" />
+                <p className="font-display font-bold text-base sm:text-lg leading-snug">
+                  Every AQ Bed is protected for 12 months
+                </p>
+              </div>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                {[
+                  "Manufacturing defects — covered for a full year",
+                  "Broken frames or slats — replaced free of charge",
+                  "Lift or gas-lift mechanisms — covered for 12 months",
+                  "One claim, one replacement — no repair loops",
+                ].map((b) => (
+                  <li key={b} className="flex gap-2.5">
+                    <Check className="h-4 w-4 mt-0.5 shrink-0 text-whatsapp" />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="rounded-2xl border border-border bg-card p-4 space-y-1.5">
+                <p className="text-sm font-bold">Does AQ Beds have a price match guarantee?</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Yes. Find the same bed cheaper at another UK retailer and message us the link —
+                  we'll beat it by £20. One price match per order. Screenshot of the cheaper listing
+                  required.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 pt-1">
+                <a
+                  href={buildWhatsAppUrl(
+                    "Hello AQ Beds — I have a question about your 12-month guarantee.",
+                  )}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 h-11 px-5 rounded-2xl bg-whatsapp text-white font-bold text-sm hover:opacity-90 transition"
+                >
+                  <MessageCircle className="h-4 w-4" /> Chat to us on WhatsApp
+                </a>
+                <Link
+                  to="/terms"
+                  className="inline-flex items-center h-11 px-5 rounded-2xl border border-border bg-card font-bold text-sm hover:border-brand/40 transition"
+                >
+                  See full terms
+                </Link>
+              </div>
             </div>
 
             {/* P5 — review snippet beside/under the buttons */}
             <div className="mt-3 rounded-2xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-center text-sm">
               <span className="font-semibold text-amber-700 dark:text-amber-400">
-                ⭐⭐⭐⭐⭐ “Easiest process ever!” — Louise, verified buyer
+                “Easiest process ever!” — Louise, verified buyer
               </span>{" "}
               <Link
                 to="/reviews"
@@ -1252,6 +1314,42 @@ function ProductPage() {
             {displayReviews.map((r) => (
               <ReviewCard key={`${r.author}-${r.date}`} review={r} clamp />
             ))}
+          </div>
+        </section>
+
+        {/* T2/Section 1b — product FAQ list near the bottom (visible, not schema-only) */}
+        <section className="mt-16">
+          <h2 className="font-display font-bold text-2xl sm:text-3xl mb-6">
+            Frequently asked questions
+          </h2>
+          <div className="rounded-3xl border border-border bg-card p-6 space-y-5 max-w-3xl">
+            <div>
+              <h3 className="text-sm font-bold">Does AQ Beds have a price match guarantee?</h3>
+              <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
+                Yes. Find the same bed cheaper at another UK retailer and message us the link —
+                we'll beat it by £20. One price match per order. Screenshot of the cheaper listing
+                required.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-bold">Do you offer free delivery?</h3>
+              <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
+                Yes, we offer free delivery on all beds nationwide. Fast, reliable, and secure
+                directly to your door.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-bold">What is your return policy?</h3>
+              <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
+                At-Door Returns: returns are accepted at the time of delivery only. Please inspect
+                your item before the courier leaves and report any damage or issue on the spot. See
+                the full{" "}
+                <Link to="/returns" className="font-semibold text-brand hover:underline">
+                  returns policy
+                </Link>
+                .
+              </p>
+            </div>
           </div>
         </section>
 

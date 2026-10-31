@@ -1,0 +1,103 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "composio": {
+      "type": "remote",
+      "url": "https://connect.composio.dev/mcp",
+      "oauth": {},
+      "enabled": true
+    },
+    "google-flow": {
+      "type": "local",
+      "command": ["node", "C:\\Users\\abdulraheem bulbul\\Google-Flow_MCP\\src\\index.js"],
+      "enabled": true
+    }
+  },
+  "permission": {
+    "bash": {
+      "*": "allow",
+      "git push": "ask",
+      "git push *": "ask",
+      "vercel --prod": "ask",
+      "vercel --prod *": "ask",
+      "npx vercel --prod": "ask",
+      "npx vercel --prod *": "ask",
+      "vercel deploy": "ask",
+      "vercel deploy *": "ask",
+      "npx vercel deploy": "ask",
+      "npx vercel deploy *": "ask",
+      "npm run deploy": "ask",
+      "npm run deploy *": "ask"
+    },
+    "edit": {
+      "*": "allow",
+      "*meta-capi*": "ask",
+      "*meta-pixel*": "ask",
+      "*meta-catalog*": "ask",
+      "*opencode.json": "ask",
+      "*opencode.jsonc": "ask"
+    },
+    "webfetch": "allow",
+    "external_directory": "allow"
+  },
+  "agent": {
+    "build": {
+      "permission": {
+        "bash": {
+          "*": "allow",
+          "git push": "ask",
+          "git push *": "ask",
+          "vercel --prod": "ask",
+          "vercel --prod *": "ask",
+          "npx vercel --prod": "ask",
+          "npx vercel --prod *": "ask",
+          "vercel deploy": "ask",
+          "vercel deploy *": "ask",
+          "npx vercel deploy": "ask",
+          "npx vercel deploy *": "ask",
+          "npm run deploy": "ask",
+          "npm run deploy *": "ask"
+        },
+        "edit": {
+          "*": "allow",
+          "*meta-capi*": "ask",
+          "*meta-pixel*": "ask",
+          "*meta-catalog*": "ask",
+          "*opencode.json": "ask",
+          "*opencode.jsonc": "ask"
+        },
+        "webfetch": "allow",
+        "external_directory": "allow"
+      }
+    },
+    "general": {
+      "permission": {
+        "bash": {
+          "*": "allow",
+          "git push": "ask",
+          "git push *": "ask",
+          "vercel --prod": "ask",
+          "vercel --prod *": "ask",
+          "npx vercel --prod": "ask",
+          "npx vercel --prod *": "ask",
+          "vercel deploy": "ask",
+          "vercel deploy *": "ask",
+          "npx vercel deploy": "ask",
+          "npx vercel deploy *": "ask",
+          "npm run deploy": "ask",
+          "npm run deploy *": "ask"
+        },
+        "edit": {
+          "*": "allow",
+          "*meta-capi*": "ask",
+          "*meta-pixel*": "ask",
+          "*meta-catalog*": "ask",
+          "*opencode.json": "ask",
+          "*opencode.jsonc": "ask"
+        },
+        "webfetch": "allow",
+        "external_directory": "allow"
+      }
+    }
+  }
+}

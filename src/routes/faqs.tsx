@@ -99,6 +99,11 @@ const faqs = [
     answer:
       "You can change or cancel your order within 24 hours of placing it — just get in touch.",
   },
+  {
+    question: "Does AQ Beds have a price match guarantee?",
+    answer:
+      "Yes. Find the same bed cheaper at another UK retailer and message us the link — we'll beat it by £20. One price match per order. Screenshot of the cheaper listing required.",
+  },
 ];
 
 function FAQsPage() {

@@ -3,13 +3,13 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/delivery")({
   head: () => ({
     meta: [
-      { title: "Delivery Information — AQ Beds" },
+      { title: "UK Delivery Information — AQ Beds" },
       {
         name: "description",
         content:
           "Free UK next-day delivery on orders before 8 PM UK, Monday–Saturday. Sunday orders arrive Tuesday.",
       },
-      { property: "og:title", content: "Delivery Information — AQ Beds" },
+      { property: "og:title", content: "UK Delivery Information — AQ Beds" },
       {
         property: "og:description",
         content:
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/delivery")({
       { property: "og:url", content: "https://www.aqbeds.com/delivery" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Delivery Information — AQ Beds" },
+      { name: "twitter:title", content: "UK Delivery Information — AQ Beds" },
       {
         name: "twitter:image",
         content: "https://www.aqbeds.com/Home%20page%20images/1000152185-clean.webp",

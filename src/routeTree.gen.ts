@@ -25,6 +25,7 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SizeGuideRouteImport } from './routes/size-guide'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TrackRouteImport } from './routes/track'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
@@ -121,6 +122,11 @@ const SizeGuideRoute = SizeGuideRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackRoute = TrackRouteImport.update({
+  id: '/track',
+  path: '/track',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WishlistRoute = WishlistRouteImport.update({
@@ -226,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/shop': typeof ShopRoute
   '/size-guide': typeof SizeGuideRoute
   '/terms': typeof TermsRoute
+  '/track': typeof TrackRoute
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/chat': typeof AdminChatRoute
@@ -260,6 +267,7 @@ export interface FileRoutesByTo {
   '/shop': typeof ShopRoute
   '/size-guide': typeof SizeGuideRoute
   '/terms': typeof TermsRoute
+  '/track': typeof TrackRoute
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/chat': typeof AdminChatRoute
@@ -295,6 +303,7 @@ export interface FileRoutesById {
   '/shop': typeof ShopRoute
   '/size-guide': typeof SizeGuideRoute
   '/terms': typeof TermsRoute
+  '/track': typeof TrackRoute
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/chat': typeof AdminChatRoute
@@ -332,6 +341,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/size-guide'
     | '/terms'
+    | '/track'
     | '/wishlist'
     | '/admin/analytics'
     | '/admin/chat'
@@ -366,6 +376,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/size-guide'
     | '/terms'
+    | '/track'
     | '/wishlist'
     | '/admin/analytics'
     | '/admin/chat'
@@ -400,6 +411,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/size-guide'
     | '/terms'
+    | '/track'
     | '/wishlist'
     | '/admin/analytics'
     | '/admin/chat'
@@ -436,6 +448,7 @@ export interface RootRouteChildren {
   ShopRoute: typeof ShopRoute
   SizeGuideRoute: typeof SizeGuideRoute
   TermsRoute: typeof TermsRoute
+  TrackRoute: typeof TrackRoute
   WishlistRoute: typeof WishlistRoute
   CategorySlugRoute: typeof CategorySlugRoute
   GuidesOttomanVsDivanRoute: typeof GuidesOttomanVsDivanRoute
@@ -554,6 +567,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track': {
+      id: '/track'
+      path: '/track'
+      fullPath: '/track'
+      preLoaderRoute: typeof TrackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wishlist': {
@@ -749,6 +769,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShopRoute: ShopRoute,
   SizeGuideRoute: SizeGuideRoute,
   TermsRoute: TermsRoute,
+  TrackRoute: TrackRoute,
   WishlistRoute: WishlistRoute,
   CategorySlugRoute: CategorySlugRoute,
   GuidesOttomanVsDivanRoute: GuidesOttomanVsDivanRoute,

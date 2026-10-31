@@ -3,7 +3,7 @@ import { motion, useInView } from "framer-motion";
 import { Star, ArrowRight, BadgeCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Review, formatReviewDate, shuffle } from "@/lib/reviews";
+import { Review, formatReviewDate } from "@/lib/reviews";
 
 function Reveal({
   children,
@@ -97,7 +97,8 @@ export default function Testimonials({ reviews }: { reviews: Review[] }) {
   const [start, setStart] = useState(0);
 
   useEffect(() => {
-    setOrder(shuffle(reviews.map((_, i) => i)));
+    // T2/Section 2 — keep the sorted (GB-first) order; only rotate the window.
+    setOrder(reviews.map((_, i) => i));
     const id = window.setInterval(() => setStart((s) => s + 1), 5000);
     return () => window.clearInterval(id);
   }, [reviews]);

@@ -65,6 +65,8 @@ model Order {
   salesperson     Salesperson?  @relation(fields: [salespersonId], references: [id])
   trackingToken   String?
   visitorId       String? // aqbeds_vid - lets Live rows trace the whole journey
+  // Section 6 — customer's chosen delivery date (YYYY-MM-DD), nullable/optional.
+  preferredDeliveryDate String?
   createdAt       DateTime      @default(now())
 }
 

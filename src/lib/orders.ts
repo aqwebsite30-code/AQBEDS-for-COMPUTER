@@ -114,6 +114,8 @@ export const saveOrder = createServerFn({ method: "POST" }).handler(
         items: z.string().min(1),
         total: z.number(),
         instructions: z.string().optional().or(z.literal("")),
+        // Section 6 — customer's chosen delivery date (YYYY-MM-DD, "" = system default).
+        preferredDeliveryDate: z.string().optional().or(z.literal("")),
         trackingToken: z.string().optional().or(z.literal("")),
         event_id: z.string().optional().or(z.literal("")),
         client_user_agent: z.string().optional().or(z.literal("")),
@@ -144,6 +146,7 @@ export const saveOrder = createServerFn({ method: "POST" }).handler(
           customerAddress: parsed.customerAddress,
           items: parsed.items,
           instructions: parsed.instructions || null,
+          preferredDeliveryDate: parsed.preferredDeliveryDate || null,
           total: parsed.total,
           status: "pending",
           salespersonId,
