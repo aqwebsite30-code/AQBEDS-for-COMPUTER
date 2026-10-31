@@ -20,7 +20,7 @@ import {
   REVIEW_COUNT,
   TOP_REVIEWS,
   aggregateRatingJsonLd,
-  reviewJsonLd,
+  reviewsJsonLd,
 } from "@/lib/reviews";
 import {
   Truck,
@@ -148,7 +148,7 @@ export const Route = createFileRoute("/product/$slug")({
               image: `https://www.aqbeds.com${loaderData.product.images[0]}`,
               brand: { "@type": "Brand", name: "AQ Beds" },
               aggregateRating: aggregateRatingJsonLd(),
-              review: TOP_REVIEWS.map(reviewJsonLd),
+              review: TOP_REVIEWS.map(reviewsJsonLd),
               offers: {
                 "@type": "Offer",
                 price: loaderData.product.basePrice,

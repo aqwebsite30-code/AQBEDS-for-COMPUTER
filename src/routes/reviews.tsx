@@ -8,7 +8,7 @@ import {
   REVIEW_COUNT,
   REVIEW_AVG_LABEL,
   aggregateRatingJsonLd,
-  reviewJsonLd,
+  reviewsJsonLd,
 } from "@/lib/reviews";
 
 export const Route = createFileRoute("/reviews")({
@@ -43,7 +43,7 @@ export const Route = createFileRoute("/reviews")({
             name: "Customer Reviews | AQ Beds",
             url: "https://www.aqbeds.com/reviews",
             aggregateRating: aggregateRatingJsonLd(),
-            review: REVIEWS_SORTED.map(reviewJsonLd),
+            review: REVIEWS_SORTED.map(reviewsJsonLd),
           }),
         },
       ],
