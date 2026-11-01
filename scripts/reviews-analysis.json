@@ -1,0 +1,70 @@
+{
+  "currentCount": 40,
+  "reviewsWithOwnerReplies": 13,
+  "reviewsMentioningAQBeds": 39,
+  "regularReviews": 39,
+  "sampleWithOwnerReplies": [
+    {
+      "author": "Rach",
+      "title": "I highly recommend AQ Beds",
+      "country": "GB",
+      "hasOwnerReply": true
+    },
+    {
+      "author": "VB",
+      "title": "All good",
+      "country": "GB",
+      "hasOwnerReply": true
+    },
+    {
+      "author": "Mandi Parr",
+      "title": "Super king size TV bed with gas ottoman lift",
+      "country": "GB",
+      "hasOwnerReply": true
+    },
+    {
+      "author": "Mark Ginley",
+      "title": "Great customer service",
+      "country": "GB",
+      "hasOwnerReply": true
+    },
+    {
+      "author": "Emily Reeves",
+      "title": "Excellent quality and service",
+      "country": "GB",
+      "hasOwnerReply": true
+    }
+  ],
+  "sampleMentioningAQBeds": [
+    {
+      "author": "Sarah M.",
+      "title": "Absolutely thrilled with my bed! (Voice Review)",
+      "country": "GB",
+      "bodyContainsAQBeds": true
+    },
+    {
+      "author": "Topsy",
+      "title": "Best bed investment ever",
+      "country": "IE",
+      "bodyContainsAQBeds": true
+    },
+    {
+      "author": "Louise O'Callaghan",
+      "title": "Brilliant service",
+      "country": "PT",
+      "bodyContainsAQBeds": true
+    },
+    {
+      "author": "Catherine",
+      "title": "Great service and beautiful bed",
+      "country": "IE",
+      "bodyContainsAQBeds": true
+    },
+    {
+      "author": "Rach",
+      "title": "I highly recommend AQ Beds",
+      "country": "GB",
+      "bodyContainsAQBeds": true
+    }
+  ]
+}
