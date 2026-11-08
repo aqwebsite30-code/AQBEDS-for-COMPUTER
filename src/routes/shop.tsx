@@ -60,13 +60,13 @@ export const Route = createFileRoute("/shop")({
   }),
   head: () => ({
     meta: [
-      { title: "Shop Beds, Sofas & Wardrobes | AQ Beds" },
+      { title: "Shop All Beds, Sofas and Wardrobes | AQ Beds UK Store" },
       {
         name: "description",
         content:
           "Browse every AQ Beds product — ottoman, divan and storage beds, velvet sofas, sofa beds and wardrobes. Free UK delivery. Cash on delivery available.",
       },
-      { property: "og:title", content: "Shop Beds, Sofas & Wardrobes | AQ Beds" },
+      { property: "og:title", content: "Shop All Beds, Sofas and Wardrobes | AQ Beds UK Store" },
       {
         property: "og:description",
         content:
@@ -79,7 +79,7 @@ export const Route = createFileRoute("/shop")({
       { property: "og:url", content: "https://www.aqbeds.com/shop" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Shop Beds, Sofas & Wardrobes | AQ Beds" },
+      { name: "twitter:title", content: "Shop All Products — AQ Beds" },
       {
         name: "twitter:image",
         content: "https://www.aqbeds.com/Home%20page%20images/1000152185-clean.webp",

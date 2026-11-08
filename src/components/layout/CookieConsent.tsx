@@ -1,11 +1,16 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "@tanstack/react-router";
+import { useCart } from "@/features/cart/store/cart";
+import { CONSENT_KEY, loadGtm, loadMetaPixel, updateConsent } from "@/lib/consent";
 
-const COOKIE_CONSENT_KEY = "aq_cookie_consent";
+const COOKIE_CONSENT_KEY = CONSENT_KEY;
 
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
+  // The sticky mobile basket bar sits at the bottom on phones; lift the consent
+  // card above it so neither the card's buttons nor the basket bar overlap.
+  const cartCount = useCart((s) => s.count());
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -17,11 +22,20 @@ export default function CookieConsent() {
 
   const accept = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, "accepted");
+    // Grant consent first, then insert the tags it unlocks.
+    updateConsent(true);
+    loadGtm();
+    loadMetaPixel();
+    if (typeof window !== "undefined" && typeof window.fbq === "function") {
+      window.fbq("track", "PageView");
+    }
     setVisible(false);
   };
 
   const reject = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, "rejected");
+    // Stays denied: no analytics or advertising storage, no pixel.
+    updateConsent(false);
     setVisible(false);
   };
 
@@ -33,13 +47,16 @@ export default function CookieConsent() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 28 }}
-          className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6"
+          className={`fixed left-0 right-0 z-50 p-4 sm:bottom-0 sm:p-6 ${
+            cartCount > 0 ? "bottom-[76px]" : "bottom-0"
+          }`}
         >
           <div className="mx-auto max-w-3xl bg-card border border-border rounded-2xl shadow-2xl shadow-black/20 p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
             <div className="flex-1 space-y-1">
               <p className="text-sm text-foreground leading-relaxed">
-                This website uses cookies to improve your experience. By using our site, you accept
-                our use of cookies.
+                Essential cookies keep your basket and checkout working. With your consent we also
+                use analytics and advertising cookies to measure our ads. Accept or reject either
+                way — the shop works the same.
               </p>
               <Link
                 to="/faqs"

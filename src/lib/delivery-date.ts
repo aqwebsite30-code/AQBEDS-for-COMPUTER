@@ -224,7 +224,7 @@ export function getDeliveryInfo(nowUK: Date): DeliveryInfo {
     headline = "Sunday orders arrive Tuesday";
     headlineStatic = headline;
   } else if (isBeforeCutoff) {
-    headline = `⏱ Order within ${countdown} → delivered TOMORROW (${defaultDate.label})`;
+    headline = `Order within ${countdown} → delivered TOMORROW (${defaultDate.label})`;
     headlineStatic = `Order before ${cutoffHourLabel()} UK → delivered TOMORROW (${defaultDate.label})`;
   } else {
     headline = `Order tonight → arrives ${defaultDate.label}`;
@@ -233,7 +233,7 @@ export function getDeliveryInfo(nowUK: Date): DeliveryInfo {
   const headlineLive =
     isSunday || !isBeforeCutoff
       ? headline
-      : `⏱ Order within ${countdownLive} → delivered TOMORROW (${defaultDate.label})`;
+      : `Order within ${countdownLive} → delivered TOMORROW (${defaultDate.label})`;
 
   return {
     cutoffCountdown: countdown,

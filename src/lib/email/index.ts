@@ -2,6 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { Resend } from "resend";
 import { formatGBP } from "../utils/format";
 
+/**
+ * Orders come from the verified aqbeds.com domain, never from resend.dev —
+ * onboarding@resend.dev can only deliver to theResend account owner. Override
+ * with RESEND_FROM when the domain (or its DNS records) is still pending.
+ */
+const SENDER = process.env.RESEND_FROM || "AQ Beds <orders@aqbeds.com>";
+
 function getResend() {
   const key = process.env.RESEND_API_KEY;
   if (!key) throw new Error("RESEND_API_KEY is not set");
@@ -87,7 +94,7 @@ export const sendOrderEmail = createServerFn({ method: "POST" }).handler(async (
     // 1. Send Admin Notification Email
     const resend = getResend();
     const adminResponse = await resend.emails.send({
-      from: "AQ Beds <onboarding@resend.dev>",
+      from: SENDER,
       to: [NOTIFICATION_EMAIL],
       subject: `New Order from ${safeCustomer.name}`,
       html: `
@@ -163,8 +170,8 @@ export const sendOrderEmail = createServerFn({ method: "POST" }).handler(async (
 
     // 2. Send Customer Confirmation Email
     if (customer.email) {
-      await resend.emails.send({
-        from: "AQ Beds <onboarding@resend.dev>",
+      const customerResponse = await resend.emails.send({
+        from: SENDER,
         to: [safeCustomer.email],
         subject: `Your AQ Beds Order Confirmation — Thank You!`,
         html: `
@@ -227,6 +234,13 @@ export const sendOrderEmail = createServerFn({ method: "POST" }).handler(async (
             </div>
           `,
       });
+      if (customerResponse.error) {
+        // The order is saved either way; log so the customer email can be re-sent.
+        console.error("Resend Customer Email Error:", {
+          to: safeCustomer.email,
+          error: customerResponse.error,
+        });
+      }
     }
 
     if (adminResponse.error) {
@@ -248,7 +262,7 @@ export async function sendChatNotification(sessionId: string, content: string) {
 
     const resend = getResend();
     await resend.emails.send({
-      from: "AQ Beds <onboarding@resend.dev>",
+      from: SENDER,
       to: ["info@aqbeds.com"],
       subject: `New Chat Message — Session #${shortId}`,
       html: `

@@ -1,81 +1,118 @@
-import { getDeliveryWindow, londonParts, UK_BANK_HOLIDAYS } from "../src/lib/delivery-date.ts";
+// Delivery engine regression test — runs against the real engine in
+// src/lib/delivery-date.ts (Node strips the TypeScript types).
+//
+// Covers: the 20:00 Europe/London cutoff at 19:59 and 20:01 in both GMT and
+// BST, Sunday orders landing on Tuesday, Monday being skipped, and the
+// bank-holiday calendar's structural invariants.
+import {
+  getDeliveryInfo,
+  londonParts,
+  UK_BANK_HOLIDAYS,
+  UK_CUTOFF_HOUR,
+} from "../src/lib/delivery-date.ts";
 
 let pass = 0;
 let fail = 0;
 
 function check(name, actual, expected) {
-  const ok = actual === expected;
+  const ok = JSON.stringify(actual) === JSON.stringify(expected);
   if (ok) pass++;
-  else fail++;
-  console.log(`${ok ? "PASS" : "FAIL"}  ${name}`);
-  if (!ok) console.log(`      expected: ${expected}\n      actual:   ${actual}`);
+  else {
+    fail++;
+    console.log(
+      `FAIL  ${name}\n      expected: ${JSON.stringify(expected)}\n      actual:   ${JSON.stringify(actual)}`,
+    );
+  }
+  console.log(`${ok ? "PASS" : "FAIL"}  ${name} = ${JSON.stringify(actual)}`);
 }
 
-const WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+console.log(
+  `Device timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone} | cutoff: ${UK_CUTOFF_HOUR}:00 Europe/London\n`,
+);
 
-function windowFor(y, mo, d, hourLondon, utcOffsetHours) {
-  // Build a Date whose Europe/London wall-clock time is y-mo-d hourLondon.
-  const now = new Date(Date.UTC(y, mo - 1, d, hourLondon - utcOffsetHours, 0, 0));
+/** A Date whose Europe/London wall clock is y-mo-d hh:mm (BST +1, GMT 0). */
+function londonInstant(y, mo, d, hh, mm, offsetHours) {
+  return new Date(Date.UTC(y, mo - 1, d, hh - offsetHours, mm, 0));
+}
+
+function run(label, y, mo, d, hh, mm, offset) {
+  const now = londonInstant(y, mo, d, hh, mm, offset);
   const parts = londonParts(now);
   check(
-    `setup: London wall-clock is ${y}-${mo}-${d} ${hourLondon}:00`,
-    `${parts.year}-${String(parts.month).padStart(2, "0")}-${String(parts.day).padStart(2, "0")} ${String(parts.hour).padStart(2, "0")}`,
-    `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")} ${String(hourLondon).padStart(2, "0")}`,
+    `${label} — London wall clock ${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`,
+    `${parts.year}-${parts.month}-${parts.day} ${String(parts.hour).padStart(2, "0")}:${String(parts.minute).padStart(2, "0")}`,
+    `${y}-${mo}-${d} ${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`,
   );
-  return getDeliveryWindow(now);
+  const info = getDeliveryInfo(now);
+  console.log(
+    `      -> isBeforeCutoff=${info.isBeforeCutoff} isSunday=${info.isSunday} default=${info.defaultDate.iso} headline="${info.headline}"`,
+  );
+  return info;
 }
 
+// ── GMT (clocks back 25 Oct 2026) — Wed 4 Nov 2026 ──
+{
+  const before = run("GMT 19:59", 2026, 11, 4, 19, 59, 0);
+  check("GMT 19:59 isBeforeCutoff", before.isBeforeCutoff, true);
+  check("GMT 19:59 default date", before.defaultDate.iso, "2026-11-05");
+  check("GMT 19:59 default is Thursday", before.defaultDate.label, "Thu 5 Nov");
+  check("GMT 19:59 headline", /delivered TOMORROW \(Thu 5 Nov\)/.test(before.headline), true);
+
+  const after = run("GMT 20:01", 2026, 11, 4, 20, 1, 0);
+  check("GMT 20:01 isBeforeCutoff", after.isBeforeCutoff, false);
+  check("GMT 20:01 default date", after.defaultDate.iso, "2026-11-06");
+  check("GMT 20:01 default is Friday", after.defaultDate.label, "Fri 6 Nov");
+  check("GMT 20:01 headline", after.headline, "Order tonight → arrives Fri 6 Nov");
+}
+
+// ── BST (clocks forward 29 Mar 2026) — Wed 8 Jul 2026 ──
+// The discriminating pair: 20:01 BST is 19:01 UTC, so a UTC comparison would
+// wrongly say "before cutoff". These must fail if the engine stops using London.
+{
+  const before = run("BST 19:59", 2026, 7, 8, 19, 59, 1);
+  check("BST 19:59 isBeforeCutoff", before.isBeforeCutoff, true);
+  check("BST 19:59 default date", before.defaultDate.iso, "2026-07-09");
+  check("BST 19:59 default is Thursday", before.defaultDate.label, "Thu 9 Jul");
+
+  const after = run("BST 20:01", 2026, 7, 8, 20, 1, 1);
+  check("BST 20:01 isBeforeCutoff", after.isBeforeCutoff, false);
+  check("BST 20:01 default date", after.defaultDate.iso, "2026-07-10");
+  check("BST 20:01 default is Friday", after.defaultDate.label, "Fri 10 Jul");
+}
+
+// ── Sunday — 8 Nov 2026 12:00 GMT ──
+{
+  const sun = run("Sunday 12:00", 2026, 11, 8, 12, 0, 0);
+  check("Sunday isSunday", sun.isSunday, true);
+  check("Sunday isBeforeCutoff never true", sun.isBeforeCutoff, false);
+  check("Sunday default date", sun.defaultDate.iso, "2026-11-10");
+  check("Sunday default is Tuesday", sun.defaultDate.label, "Tue 10 Nov");
+  check("Sunday headline", sun.headline, "Sunday orders arrive Tuesday");
+  check("Sunday headlineLive", sun.headlineLive, "Sunday orders arrive Tuesday");
+}
+
+// ── Monday is the weekly off day ──
+{
+  const tue = run("Tuesday 10:00", 2026, 11, 10, 10, 0, 0);
+  check("Tuesday order skips next Monday", tue.defaultDate.iso, "2026-11-11");
+
+  const sat = run("Saturday 12:00", 2026, 11, 7, 12, 0, 0);
+  check("Saturday before cutoff lands Sunday", sat.defaultDate.iso, "2026-11-08");
+}
+
+// ── Bank holiday calendar invariants ──
+const WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 function weekdayOf(isoStr) {
   const [y, m, d] = isoStr.split("-").map(Number);
   return WD[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
 }
 
-// BST in October 2026 until clocks go back on 25 Oct → offset +1 for these dates.
-// ── Required test cases ──
-{
-  const w = windowFor(2026, 10, 21, 10, 1); // Wed 10:00
-  check("Wed 10:00 → Thu–Fri (label)", w.label, "Arrives: 22–23 Oct");
-  check("Wed 10:00 → first is Thu", weekdayOf(w.firstISO), "Thu");
-  check("Wed 10:00 → second is Fri", weekdayOf(w.secondISO), "Fri");
-}
-{
-  const w = windowFor(2026, 10, 21, 19, 1); // Wed 19:00 (after 18:00 cutoff)
-  check("Wed 19:00 → Fri–Mon (label)", w.label, "Arrives: 23–26 Oct");
-  check("Wed 19:00 → first is Fri", weekdayOf(w.firstISO), "Fri");
-  check("Wed 19:00 → second is Mon", weekdayOf(w.secondISO), "Mon");
-}
-{
-  const w = windowFor(2026, 10, 23, 17, 1); // Fri 17:00 (before cutoff)
-  check("Fri 17:00 → Mon–Tue (label)", w.label, "Arrives: 26–27 Oct");
-  check("Fri 17:00 → first is Mon", weekdayOf(w.firstISO), "Mon");
-  check("Fri 17:00 → second is Tue", weekdayOf(w.secondISO), "Tue");
-}
-{
-  const w = windowFor(2026, 10, 23, 19, 1); // Fri 19:00 (after cutoff)
-  check("Fri 19:00 → Tue–Wed (label)", w.label, "Arrives: 27–28 Oct");
-  check("Fri 19:00 → first is Tue", weekdayOf(w.firstISO), "Tue");
-  check("Fri 19:00 → second is Wed", weekdayOf(w.secondISO), "Wed");
-}
-
-// ── Never lands on a weekend or bank holiday (Christmas period hard case) ──
-{
-  const w = windowFor(2026, 12, 23, 10, 0); // Wed 23 Dec 2026, GMT
-  check("Wed 23 Dec 10:00 skips Christmas + substitutes (label)", w.label, "Arrives: 24–30 Dec");
-  check(
-    "Christmas Day excluded",
-    UK_BANK_HOLIDAYS.includes("2026-12-25") && w.secondISO === "2026-12-30",
-    true,
-  );
-}
-
-// ── Hardcoded holiday list sanity: every entry is a weekday ──
+check("holiday count (13 for 2026 + 12 for 2027)", UK_BANK_HOLIDAYS.length, 25);
 for (const d of UK_BANK_HOLIDAYS) {
   const wd = weekdayOf(d);
   check(`holiday ${d} is a weekday (got ${wd})`, wd !== "Sat" && wd !== "Sun", true);
 }
-check("holiday count (13 for 2026 + 12 for 2027)", UK_BANK_HOLIDAYS.length, 25);
 
-// ── Easter sanity (Good Friday / Easter Monday are Easter-derived) ──
 function easterSunday(year) {
   const a = year % 19;
   const b = Math.floor(year / 100);
@@ -93,6 +130,7 @@ function easterSunday(year) {
   const day = ((h + l - 7 * m + 114) % 31) + 1;
   return { month, day };
 }
+
 const e26 = easterSunday(2026);
 check("Easter 2026 = 5 Apr", `${e26.month}/${e26.day}`, "4/5");
 const e27 = easterSunday(2027);

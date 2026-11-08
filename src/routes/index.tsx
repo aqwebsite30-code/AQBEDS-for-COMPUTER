@@ -14,13 +14,13 @@ const HOME_CATEGORY_COUNT = 1 + HOME_CATEGORIES.length;
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AQ Beds | Handcrafted Ottoman, Divan & Storage Beds UK" },
+      { title: "AQ Beds — Premium Beds & Mattresses" },
       {
         name: "description",
         content:
           "Handcrafted ottoman, divan & luxury beds from £185, with mattresses included. Free UK delivery. Cash on delivery available. 10,000+ happy customers.",
       },
-      { property: "og:title", content: "AQ Beds | Handcrafted Ottoman, Divan & Storage Beds UK" },
+      { property: "og:title", content: "AQ Beds — Premium Beds & Mattresses" },
       {
         property: "og:description",
         content:
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/")({
       { property: "og:url", content: "https://www.aqbeds.com" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "AQ Beds | Handcrafted Ottoman, Divan & Storage Beds UK" },
+      { name: "twitter:title", content: "AQ Beds — Premium Beds & Mattresses" },
       {
         name: "twitter:description",
         content:

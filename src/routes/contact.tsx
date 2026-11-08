@@ -5,9 +5,13 @@ import { Mail, MessageCircle, Phone } from "lucide-react";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — AQ Beds" },
-      { name: "description", content: "Get in touch with AQ Beds via email, phone, or WhatsApp." },
-      { property: "og:title", content: "Contact — AQ Beds" },
+      { title: "Contact AQ Beds | Orders, Delivery and Bed Advice UK" },
+      {
+        name: "description",
+        content:
+          "Talk to AQ Beds about an order, delivery date or the right bed for your room. Call or WhatsApp +44 7519 791128, or email info@aqbeds.com. Replies within hours.",
+      },
+      { property: "og:title", content: "Contact AQ Beds | Orders, Delivery and Bed Advice UK" },
       {
         property: "og:description",
         content:

@@ -41,13 +41,13 @@ const PROMISES = [
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About AQ Beds | Handcrafted Beds Since 2018" },
+      { title: "About AQ Beds | Handcrafted UK Bed Frames Since 2018" },
       {
         name: "description",
         content:
-          "AQ Beds has sold handcrafted beds direct to UK homes since 2018. Free UK delivery. Cash on delivery available.",
+          "AQ Beds has built and sold handcrafted beds direct to UK homes since 2018. Free UK delivery, next-day service and cash on delivery on every order.",
       },
-      { property: "og:title", content: "About AQ Beds | Handcrafted Beds Since 2018" },
+      { property: "og:title", content: "About AQ Beds | Handcrafted UK Bed Frames Since 2018" },
       {
         property: "og:description",
         content:
@@ -60,7 +60,7 @@ export const Route = createFileRoute("/about")({
       { property: "og:url", content: "https://www.aqbeds.com/about" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "About AQ Beds | Handcrafted Beds Since 2018" },
+      { name: "twitter:title", content: "About AQ Beds — AQ Beds" },
       {
         name: "twitter:image",
         content: "https://www.aqbeds.com/Home%20page%20images/1000152185-clean.webp",

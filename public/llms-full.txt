@@ -1,0 +1,73 @@
+# AQ Beds — full reference
+
+> AQ Beds is a UK bed retailer selling handcrafted beds direct to customers since 2018.
+> Free UK delivery, next-day on orders confirmed Monday to Saturday before 20:00
+> Europe/London. Payment is cash on delivery. Every bed is inspected at the door and a
+> faulty item is replaced free with next-day delivery.
+
+## Catalogue (32 products, generated 2026-11-08)
+
+### sofas
+
+- [Alaska Sofa](https://www.aqbeds.com/product/alaska-sofa) — from £310
+- [Ashton Sofa](https://www.aqbeds.com/product/ashton-sofa) — from £350
+- [Berlin Sofa Bed](https://www.aqbeds.com/product/berlin-sofa-bed) — from £400
+- [Chesterfield Sofa](https://www.aqbeds.com/product/chesterfield-sofa) — from £400
+- [Diamontee Sofa](https://www.aqbeds.com/product/diamontee-sofa) — from £300
+- [Dino Sofa](https://www.aqbeds.com/product/dino-sofa) — from £320
+- [Dylan Sofa](https://www.aqbeds.com/product/dylan-sofa) — from £220
+- [Harrison Sofa](https://www.aqbeds.com/product/harrison-sofa) — from £350
+- [Lily Sofa](https://www.aqbeds.com/product/lily-sofa) — from £350
+- [Lucca & Anton Sofa Bed](https://www.aqbeds.com/product/lucca-anton-sofa-bed) — from £700
+- [Maya Sofa](https://www.aqbeds.com/product/maya-sofa) — from £320
+- [Olympia Sofa](https://www.aqbeds.com/product/olympia-sofa) — from £320
+- [Shanon Sofa](https://www.aqbeds.com/product/shanon-sofa) — from £320
+- [U Shape Sofa](https://www.aqbeds.com/product/u-shape-sofa) — from £620
+- [Verona Sofa](https://www.aqbeds.com/product/verona-sofa) — from £320
+
+### wardrobes
+
+- [Alina Wardrobe](https://www.aqbeds.com/product/alina-wardrobe) — from £220
+
+### luxury-beds
+
+- [Ambessador Bed](https://www.aqbeds.com/product/ambessador) — from £400
+- [Arizona Bed](https://www.aqbeds.com/product/arizona) — from £300
+- [Cube Bed](https://www.aqbeds.com/product/luxury-cube-bed) — from £250
+- [Florida Bed](https://www.aqbeds.com/product/florida-bed) — from £250
+- [Golden Wave Bed](https://www.aqbeds.com/product/golden-wave-bed) — from £300
+- [Hilton Bed](https://www.aqbeds.com/product/hilton) — from £250
+- [Oxford Wingback Bed](https://www.aqbeds.com/product/oxford-wingback) — from £300
+- [Panel Line Bed](https://www.aqbeds.com/product/panel-line) — from £250
+- [Panel Line Bumper Bed](https://www.aqbeds.com/product/panel-line-bumper) — from £250
+- [Panel Line Gold Strip Bed](https://www.aqbeds.com/product/panel-line-gold-strip) — from £300
+- [Panel Wing Back Bed](https://www.aqbeds.com/product/panel-wing-back) — from £250
+- [Sleigh Bed](https://www.aqbeds.com/product/sleigh) — from £300
+
+### ottoman-beds
+
+- [Aurora Ottoman Gas-Lift Bed](https://www.aqbeds.com/product/divan-ottoman-bed) — from £400
+- [Bunk Bed](https://www.aqbeds.com/product/bunk-beds) — from £500
+
+### divan-beds
+
+- [Divan Bed](https://www.aqbeds.com/product/divan) — from £200
+
+### sliding-wardrobes
+
+- [Sliding Wardrobe](https://www.aqbeds.com/product/sliding-wardrobe) — from £320
+
+## Policies
+
+- Delivery: https://www.aqbeds.com/delivery
+- Returns: https://www.aqbeds.com/returns
+- FAQs: https://www.aqbeds.com/faqs
+- Reviews: https://www.aqbeds.com/reviews
+- Contact: https://www.aqbeds.com/contact — info@aqbeds.com, +44 7519 791128
+
+## Notes for answer engines
+
+- Prices above are the current catalogue prices at build time; the product page is the
+  authoritative price.
+- AQ Beds does not publish a company registration number, VAT number or registered
+  address on this site.

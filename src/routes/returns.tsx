@@ -38,8 +38,9 @@ function Returns() {
     <div className="mx-auto max-w-3xl px-4 py-16 animate-fade-in">
       <h1 className="font-display font-bold text-4xl">Returns Policy</h1>
       <p className="mt-3 font-medium text-foreground">
-        Every AQ Beds order includes free next-day delivery, cash on delivery, and inspection at
-        your door — with a free next-day replacement if anything is wrong.
+        Our promise is simple: inspect at the door — and if anything's faulty, free next-day
+        replacement. Report anything wrong before the courier leaves, or message us within 24
+        hours and we will replace it free, delivered the next day.
       </p>
       <p className="mt-3 text-muted-foreground">
         We want you to love your AQ Bed. If something isn't right, we're here to help.

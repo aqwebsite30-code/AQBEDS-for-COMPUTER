@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Trash2, Minus, Plus } from "lucide-react";
 import { useCart, useUI } from "@/features/cart/store/cart";
 import { formatGBP } from "@/lib/utils/format";
@@ -30,6 +30,16 @@ export function CartDrawer() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const { info, live } = useDeliveryInfo();
 
+  // Lock body scroll while the drawer is open; restore on close.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = open ? "hidden" : previous;
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
+
   const handleDetailsSubmit = (details: CustomerDetails) => {
     openWhatsAppOrder({
       items: items.map((i) => ({
@@ -51,8 +61,10 @@ export function CartDrawer() {
     setOpen(false);
   };
 
+  // Above the cookie banner (z-50): its bar was covering the checkout buttons
+  // at the bottom of this drawer on first visit.
   return (
-    <div className={`fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`}>
+    <div className={`fixed inset-0 z-[70] ${open ? "" : "pointer-events-none"}`}>
       <div
         onClick={() => setOpen(false)}
         className={`absolute inset-0 bg-black/50 transition-opacity ${open ? "opacity-100" : "opacity-0"}`}
@@ -61,11 +73,11 @@ export function CartDrawer() {
         role="dialog"
         aria-modal="true"
         aria-label="Shopping basket"
-        className={`absolute right-0 top-0 bottom-0 w-full sm:w-[440px] bg-background flex flex-col transition-transform duration-300 max-h-[100dvh] overflow-hidden ${
+        className={`fixed inset-y-0 right-0 flex flex-col w-full max-w-md h-[100vh] h-[100dvh] bg-background transition-transform duration-300 overflow-hidden ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <header className="flex items-center justify-between px-6 py-5 border-b border-border">
+        <header className="shrink-0 flex items-center justify-between px-6 py-5 border-b border-border">
           <h2 className="font-display font-bold text-xl">Your Basket</h2>
           <button
             onClick={() => setOpen(false)}
@@ -104,7 +116,7 @@ export function CartDrawer() {
           <span>Est. 2018</span>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 overscroll-contain">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 py-4">
           {items.length === 0 ? (
             <div className="text-center py-16">
               <p className="text-muted-foreground">Your basket is empty.</p>
@@ -124,10 +136,14 @@ export function CartDrawer() {
                     key={i.lineId}
                     className="flex gap-4 p-3 rounded-2xl border border-border bg-card"
                   >
-                    <img src={i.image} alt={i.name} className="h-20 w-20 rounded-xl object-cover" />
+                    <img
+                      src={i.image}
+                      alt={i.name}
+                      className="shrink-0 h-20 w-20 rounded-xl object-cover"
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-medium text-sm leading-tight">{i.name}</h3>
+                        <h3 className="font-medium text-sm leading-tight line-clamp-2">{i.name}</h3>
                         <button
                           onClick={() => remove(i.lineId)}
                           aria-label="Remove item"
@@ -170,7 +186,11 @@ export function CartDrawer() {
 
               {/* B3 — stock truth line under the product line (no fabricated stock numbers) */}
               <p className="mt-3 text-xs font-semibold text-whatsapp">
-                In stock — dispatching today if ordered before 8 PM
+                {info.isSunday
+                  ? "In stock — Sunday orders arrive Tuesday"
+                  : info.isBeforeCutoff
+                    ? "In stock — order before 8 PM for next-day delivery"
+                    : `In stock — order now for delivery ${info.defaultDate.label}`}
               </p>
 
               {/* B4 — fills the empty space that used to be a blank white box */}
@@ -208,33 +228,7 @@ export function CartDrawer() {
         </div>
 
         {items.length > 0 && (
-          <footer className="border-t border-border px-6 py-5 space-y-3 bg-card">
-            {/* B5 — price honesty box above totals (display only, alters no price) */}
-            <div className="rounded-2xl border border-cta/30 bg-cta/5 p-4 space-y-1.5">
-              <div className="text-[10px] font-black uppercase tracking-widest text-brand">
-                YOUR TOTAL
-              </div>
-              {items.map((i) => (
-                <div key={i.lineId} className="flex justify-between gap-3 text-sm">
-                  <span className="truncate text-muted-foreground">
-                    {i.name} {i.qty > 1 ? `× ${i.qty}` : ""}
-                  </span>
-                  <span className="font-semibold shrink-0">{formatGBP(i.unitPrice * i.qty)}</span>
-                </div>
-              ))}
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">UK delivery</span>
-                <span className="font-semibold text-green-500">FREE</span>
-              </div>
-              <div className="flex justify-between text-sm pt-1.5 border-t border-border/60">
-                <span className="font-black text-brand">TO PAY (on delivery)</span>
-                <span className="font-display font-black">{formatGBP(total())}</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground pt-1">
-                Pay the courier — only after you've checked your bed
-              </p>
-            </div>
-
+          <footer className="shrink-0 border-t border-border px-6 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] space-y-3 bg-background">
             <div className="text-sm flex justify-between text-muted-foreground">
               <span>Subtotal</span>
               <span>{formatGBP(subtotal())}</span>
@@ -251,7 +245,7 @@ export function CartDrawer() {
             </div>
 
             {/* B6 — dual action buttons, side by side, equal width */}
-            <div className="grid grid-cols-2 gap-2 pt-2">
+            <div className="grid grid-cols-2 gap-2">
               <Link
                 to="/checkout"
                 onClick={() => setOpen(false)}

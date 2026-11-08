@@ -13,12 +13,13 @@ import {
 
 export const Route = createFileRoute("/reviews")({
   head: () => {
-    const description = `${REVIEW_AVG_LABEL} out of 5 from ${REVIEW_COUNT} customer reviews of AQ Beds beds, sofas and wardrobes. Free UK delivery. Cash on delivery available.`;
+    const title = `Customer Reviews | AQ Beds Rated ${REVIEW_AVG_LABEL} from ${REVIEW_COUNT} Buyers`;
+    const description = `${REVIEW_AVG_LABEL} out of 5 from ${REVIEW_COUNT} customer reviews of AQ Beds beds, sofas and wardrobes. Free UK delivery. Cash on delivery available. Every review is from a UK buyer.`;
     return {
       meta: [
-        { title: "Customer Reviews | AQ Beds" },
+        { title },
         { name: "description", content: description },
-        { property: "og:title", content: "Customer Reviews | AQ Beds" },
+        { property: "og:title", content: title },
         { property: "og:description", content: description },
         {
           property: "og:image",
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/reviews")({
         { property: "og:url", content: "https://www.aqbeds.com/reviews" },
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: "Customer Reviews | AQ Beds" },
+        { name: "twitter:title", content: "Customer Reviews — AQ Beds" },
         {
           name: "twitter:image",
           content: "https://www.aqbeds.com/Home%20page%20images/1000152185-clean.webp",
@@ -40,10 +41,10 @@ export const Route = createFileRoute("/reviews")({
           children: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "CollectionPage",
-            name: "Customer Reviews | AQ Beds",
+            name: "Customer Reviews — AQ Beds",
             url: "https://www.aqbeds.com/reviews",
             aggregateRating: aggregateRatingJsonLd(),
-            review: REVIEWS_SORTED.map(reviewsJsonLd),
+            review: reviewsJsonLd(REVIEWS_SORTED),
           }),
         },
       ],

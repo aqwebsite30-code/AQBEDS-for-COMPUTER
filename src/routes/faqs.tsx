@@ -3,9 +3,13 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/faqs")({
   head: () => ({
     meta: [
-      { title: "FAQs — AQ Beds" },
-      { name: "description", content: "Frequently asked questions about AQ Beds." },
-      { property: "og:title", content: "FAQs — AQ Beds" },
+      { title: "AQ Beds FAQs | Bed Delivery, Storage and Payment Answers" },
+      {
+        name: "description",
+        content:
+          "Answers on AQ Beds delivery times, the next-day cut-off, cash on delivery, sizing, storage beds, returns and assembly, all in one place before you order.",
+      },
+      { property: "og:title", content: "AQ Beds FAQs | Bed Delivery, Storage and Payment Answers" },
       {
         property: "og:description",
         content:
@@ -18,7 +22,7 @@ export const Route = createFileRoute("/faqs")({
       { property: "og:url", content: "https://www.aqbeds.com/faqs" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "FAQs — AQ Beds" },
+      { name: "twitter:title", content: "Frequently Asked Questions — AQ Beds" },
       {
         name: "twitter:image",
         content: "https://www.aqbeds.com/Home%20page%20images/1000152185-clean.webp",
@@ -100,9 +104,9 @@ const faqs = [
       "You can change or cancel your order within 24 hours of placing it — just get in touch.",
   },
   {
-    question: "Does AQ Beds have a price match guarantee?",
+    question: "What guarantee comes with my AQ bed?",
     answer:
-      "Yes. Find the same bed cheaper at another UK retailer and message us the link — we'll beat it by £20. One price match per order. Screenshot of the cheaper listing required.",
+      "You inspect your bed at the door. If anything is faulty, we replace it free with next-day delivery — just message us on WhatsApp.",
   },
 ];
 

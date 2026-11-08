@@ -132,6 +132,19 @@ function parseAddress(address: string) {
   };
 }
 
+function formatPreferredDate(value: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return value;
+  const [, year, month, day] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
     <div className="flex items-start gap-3">
@@ -224,14 +237,16 @@ function OrderDetail({ order, onDelete }: { order: any; onDelete: () => void }) 
         </div>
       </div>
 
-      {/* Section 6 — customer's chosen delivery date, directly under the status controls */}
-      <div className="pb-4 border-b border-white/[0.04]">
-        <InfoRow
-          icon={CalendarDays}
-          label="Preferred Delivery Date"
-          value={order.preferredDeliveryDate || ""}
-        />
-      </div>
+      {/* Section 8 — customer's chosen delivery date, directly under the status controls */}
+      {order.preferredDeliveryDate ? (
+        <div className="pb-4 border-b border-white/[0.04]">
+          <InfoRow
+            icon={CalendarDays}
+            label="Preferred delivery date"
+            value={formatPreferredDate(order.preferredDeliveryDate)}
+          />
+        </div>
+      ) : null}
 
       {/* Two column layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

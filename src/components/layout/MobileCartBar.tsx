@@ -10,7 +10,7 @@ export function MobileCartBar() {
 
   if (count === 0) return null;
   return (
-    <div className="fixed bottom-0 inset-x-0 z-30 sm:hidden bg-card/98 border-t border-border px-4 pt-3 pb-4 flex items-center justify-between shadow-2xl">
+    <div className="fixed bottom-0 inset-x-0 z-[60] sm:hidden bg-card/98 border-t border-border px-4 pt-3 pb-4 flex items-center justify-between shadow-2xl">
       <div>
         <div className="text-xs text-muted-foreground font-medium">
           {count} item{count > 1 ? "s" : ""} in basket

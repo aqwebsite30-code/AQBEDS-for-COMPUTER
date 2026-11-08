@@ -22,17 +22,17 @@ export const Route = createFileRoute("/category/$slug")({
   head: ({ loaderData }) => {
     const noindex = !!loaderData?.category.noindex;
     const titleBySlug: Record<string, string> = {
-      "divan-beds": "Divan Beds with Storage Drawers | Free UK Delivery - AQ Beds",
-      "ottoman-beds": "Ottoman Beds with Gas-Lift Storage | From £350 - AQ Beds",
-      "luxury-beds": "Luxury Beds from £210 | Velvet Wingback & Sleigh Beds - AQ Beds",
-      wardrobes: "Wardrobes & Sliding Wardrobes UK from £150 - AQ Beds",
-      sofas: "Velvet Sofas & Sofa Beds from £185 - AQ Beds",
-      "sliding-wardrobes": "Sliding Wardrobes UK | Space-Saving Storage - AQ Beds",
-      "all-beds": "All Beds | Ottoman, Divan & Storage Beds UK - AQ Beds",
+      "divan-beds": "Divan Beds — AQ Beds",
+      "ottoman-beds": "Ottoman Beds — AQ Beds",
+      "luxury-beds": "Luxury Beds — AQ Beds",
+      wardrobes: "Wardrobes — AQ Beds",
+      sofas: "Sofas — AQ Beds",
+      "sliding-wardrobes": "Sliding Wardrobes — AQ Beds",
+      "all-beds": "All Beds — AQ Beds",
     };
     const title = loaderData
-      ? titleBySlug[loaderData.category.slug] || `${loaderData.category.name} - AQ Beds`
-      : "Category - AQ Beds";
+      ? titleBySlug[loaderData.category.slug] || `${loaderData.category.name} — AQ Beds`
+      : "Category — AQ Beds";
     const desc = loaderData
       ? `${loaderData.category.intro || loaderData.category.blurb}`.slice(0, 158)
       : "";

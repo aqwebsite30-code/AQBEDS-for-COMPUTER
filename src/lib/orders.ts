@@ -184,7 +184,9 @@ export const saveOrder = createServerFn({ method: "POST" }).handler(
       }
 
       firePurchaseCAPI({
-        event_id: parsed.event_id || undefined,
+        // Purchase eventID === order id: one key shared by the browser pixel
+        // and this server event, and directly reconcilable with the order row.
+        event_id: order.id,
         value: parsed.total,
         content_ids: orderItems.map((i: any) => i.id).filter(Boolean),
         order_id: order.id,

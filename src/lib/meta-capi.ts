@@ -12,17 +12,14 @@ const CAPI_ENDPOINT = "/api/meta-capi";
 
 let cachedClientIp = "";
 
+/**
+ * No client-side IP lookup: api.ipify.org blocks browser CORS, so the request
+ * only ever produced a console error (and a wasted round trip on checkout).
+ * The server reads the real visitor IP from x-forwarded-for instead, so this
+ * simply reports "unknown" when no IP was supplied explicitly.
+ */
 export async function getClientIp(): Promise<string> {
-  if (cachedClientIp) return cachedClientIp;
-  try {
-    const res = await fetch("https://api.ipify.org?format=json");
-    const data = await res.json();
-    if (data.ip) {
-      cachedClientIp = data.ip;
-      return data.ip;
-    }
-  } catch {}
-  return "";
+  return cachedClientIp;
 }
 
 const TEST_EVENT_CODE_KEY = "fb_test_event_code";

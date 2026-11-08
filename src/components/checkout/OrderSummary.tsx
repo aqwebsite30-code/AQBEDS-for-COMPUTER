@@ -2,6 +2,7 @@ import { useCart } from "@/features/cart/store/cart";
 import { formatGBP } from "@/lib/utils/format";
 import { useDeliveryInfo } from "@/hooks/useDeliveryInfo";
 import { formatDeliveryDate } from "@/lib/delivery-date";
+import { REVIEW_HIGHLIGHT } from "@/lib/reviews";
 
 // C6b RULE: the sticky sidebar (C6) and the final "YOUR ORDER" card render from
 // this ONE component, so their numbers can never disagree. Display only — reads
@@ -68,7 +69,7 @@ export function OrderSummary({
           )}
           <div className="flex justify-between gap-3">
             <span className="text-muted-foreground">Add-ons</span>
-            <span className="font-semibold text-green-500">FREE</span>
+            <span className="font-semibold">Included in item price</span>
           </div>
           <div className="flex justify-between gap-3">
             <span className="text-muted-foreground">UK delivery</span>
@@ -83,18 +84,20 @@ export function OrderSummary({
         <div className="rounded-2xl border border-brand/20 bg-brand/[0.06] p-3 space-y-1 text-sm">
           <p className="font-bold text-brand">
             {chosenLabel
-              ? `📅 Your chosen date: ${chosenLabel}`
-              : `📅 Arriving: ${info.defaultDate.label}`}
+              ? `Your chosen date: ${chosenLabel}`
+              : `Arriving: ${info.defaultDate.label}`}
           </p>
           <p className="text-xs text-muted-foreground">(Sunday orders arrive Tuesday)</p>
           <p className="text-xs font-semibold">
-            🔒 Nothing to pay online — pay the courier after you inspect
+            Nothing to pay online — pay the courier after you inspect
           </p>
         </div>
 
-        <p className="text-sm font-semibold text-muted-foreground">
-          ⭐⭐⭐⭐⭐ “Easiest process ever!” — Louise, verified buyer
-        </p>
+        {REVIEW_HIGHLIGHT && (
+          <p className="text-sm font-semibold text-muted-foreground">
+            {REVIEW_HIGHLIGHT.quote} — {REVIEW_HIGHLIGHT.author}, verified buyer
+          </p>
+        )}
       </section>
     );
   }
@@ -139,8 +142,8 @@ export function OrderSummary({
         </div>
       </div>
       <div className="rounded-2xl border border-brand/20 bg-brand/[0.06] p-3 text-center space-y-1">
-        <p className="text-sm font-black text-brand">📅 Arriving: {info.defaultDate.label}</p>
-        {chosenLabel && <p className="text-sm font-bold">📅 Your chosen date: {chosenLabel}</p>}
+        <p className="text-sm font-black text-brand">Arriving: {info.defaultDate.label}</p>
+        {chosenLabel && <p className="text-sm font-bold">Your chosen date: {chosenLabel}</p>}
       </div>
     </>
   );

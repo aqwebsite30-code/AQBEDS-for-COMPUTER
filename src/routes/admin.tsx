@@ -18,6 +18,10 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
+  // Back office: never indexed, never in the sitemap.
+  head: () => ({
+    meta: [{ name: "robots", content: "noindex, nofollow" }],
+  }),
   component: AdminLayout,
 });
 

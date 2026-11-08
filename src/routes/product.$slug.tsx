@@ -18,6 +18,7 @@ import { ReviewCard } from "@/components/reviews/ReviewCard";
 import {
   REVIEW_AVG_LABEL,
   REVIEW_COUNT,
+  REVIEW_HIGHLIGHT,
   TOP_REVIEWS,
   aggregateRatingJsonLd,
   reviewsJsonLd,
@@ -51,24 +52,23 @@ function buildMetaDescription(product: {
   description: string;
 }): string {
   const meta = product.metaDescription?.trim();
-  if (meta && meta.length <= META_MAX && /[a-z0-9]\.$/i.test(meta)) return meta;
-  if (product.description.length <= META_MAX) return product.description;
-  // Prefer description + the risk-reversal tail when both fit
-  const body = product.description.split(" · ")[0];
-  const withTail = `${body} ${RISK_TAIL}`;
-  if (withTail.length <= META_MAX) return withTail;
-  return wordBoundaryTruncate(withTail, META_MAX);
+  if (meta && meta.length <= META_MAX && meta.length >= 140 && /[a-z0-9]\.$/i.test(meta)) return meta;
+  // A 120-140 character body is under Google's useful range, so pad it with the
+  // shortest true risk-reversal sentence that still fits inside the limit.
+  const body = product.description.split(" · ")[0].trim().replace(/[.\s]+$/, ".");
+  if (body.length >= 140 && body.length <= META_MAX) return body;
+  for (const tail of ["Free UK delivery.", RISK_TAIL]) {
+    const candidate = `${body} ${tail}`;
+    if (candidate.length <= META_MAX) return candidate;
+  }
+  return wordBoundaryTruncate(body, META_MAX);
 }
 
-// Keep every PDP title between 30 and 60 characters (WP-H meta pass).
-function buildTitle(product: { name: string; category: string }): string {
-  const suffix =
-    product.category === "sofas"
-      ? "Velvet Sofas"
-      : product.category.includes("wardrobe")
-        ? "Wardrobes"
-        : "Storage & Mattress";
-  return `${product.name} | ${suffix} - AQ Beds`;
+function buildTitle(product: { name: string }): string {
+  const full = `${product.name} | Handcrafted Beds & Bed Frames | AQ Beds`;
+  if (full.length <= 60) return full;
+  const short = `${product.name} — AQ Beds`;
+  return short.length <= 60 ? short : `${short.slice(0, 57)}...`;
 }
 
 export const Route = createFileRoute("/product/$slug")({
@@ -148,7 +148,7 @@ export const Route = createFileRoute("/product/$slug")({
               image: `https://www.aqbeds.com${loaderData.product.images[0]}`,
               brand: { "@type": "Brand", name: "AQ Beds" },
               aggregateRating: aggregateRatingJsonLd(),
-              review: TOP_REVIEWS.map(reviewsJsonLd),
+              review: reviewsJsonLd(TOP_REVIEWS),
               offers: {
                 "@type": "Offer",
                 price: loaderData.product.basePrice,
@@ -1224,20 +1224,23 @@ function ProductPage() {
               </span>
             </div>
 
-            {/* T2/Section 1b — guarantee block directly under the trust row */}
+            {/* Section 1b — guarantee block (verbatim) */}
             <div className="mt-6 rounded-3xl border border-whatsapp/25 bg-whatsapp/5 p-6 space-y-4">
               <div className="flex items-center gap-3">
                 <ShieldCheck className="h-5 w-5 shrink-0 text-whatsapp" />
                 <p className="font-display font-bold text-base sm:text-lg leading-snug">
-                  Every AQ Bed is protected for 12 months
+                  Check it at your door — that's your guarantee moment
                 </p>
               </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Your bed arrives, you inspect it with the courier. If anything's faulty, we replace
+                it free with next-day delivery. No questions, no fees.
+              </p>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 {[
-                  "Manufacturing defects — covered for a full year",
-                  "Broken frames or slats — replaced free of charge",
-                  "Lift or gas-lift mechanisms — covered for 12 months",
-                  "One claim, one replacement — no repair loops",
+                  "Free next-day replacement if anything's faulty",
+                  "Inspect before the courier leaves",
+                  "One message on WhatsApp and it's handled",
                 ].map((b) => (
                   <li key={b} className="flex gap-2.5">
                     <Check className="h-4 w-4 mt-0.5 shrink-0 text-whatsapp" />
@@ -1245,18 +1248,10 @@ function ProductPage() {
                   </li>
                 ))}
               </ul>
-              <div className="rounded-2xl border border-border bg-card p-4 space-y-1.5">
-                <p className="text-sm font-bold">Does AQ Beds have a price match guarantee?</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Yes. Find the same bed cheaper at another UK retailer and message us the link —
-                  we'll beat it by £20. One price match per order. Screenshot of the cheaper listing
-                  required.
-                </p>
-              </div>
               <div className="flex flex-wrap gap-3 pt-1">
                 <a
                   href={buildWhatsAppUrl(
-                    "Hello AQ Beds — I have a question about your 12-month guarantee.",
+                    "Hello AQ Beds — I have a question about my guarantee.",
                   )}
                   target="_blank"
                   rel="noreferrer"
@@ -1275,9 +1270,11 @@ function ProductPage() {
 
             {/* P5 — review snippet beside/under the buttons */}
             <div className="mt-3 rounded-2xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-center text-sm">
-              <span className="font-semibold text-amber-700 dark:text-amber-400">
-                “Easiest process ever!” — Louise, verified buyer
-              </span>{" "}
+              {REVIEW_HIGHLIGHT && (
+                <span className="font-semibold text-amber-700 dark:text-amber-400">
+                  “{REVIEW_HIGHLIGHT.quote}” — {REVIEW_HIGHLIGHT.author}, verified buyer
+                </span>
+              )}{" "}
               <Link
                 to="/reviews"
                 className="font-black text-brand hover:underline whitespace-nowrap"
@@ -1324,11 +1321,10 @@ function ProductPage() {
           </h2>
           <div className="rounded-3xl border border-border bg-card p-6 space-y-5 max-w-3xl">
             <div>
-              <h3 className="text-sm font-bold">Does AQ Beds have a price match guarantee?</h3>
+              <h3 className="text-sm font-bold">What guarantee comes with my AQ bed?</h3>
               <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
-                Yes. Find the same bed cheaper at another UK retailer and message us the link —
-                we'll beat it by £20. One price match per order. Screenshot of the cheaper listing
-                required.
+                You inspect your bed at the door. If anything is faulty, we replace it free with
+                next-day delivery — just message us on WhatsApp.
               </p>
             </div>
             <div>
@@ -1375,7 +1371,7 @@ function ProductPage() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="hidden lg:flex fixed left-6 sm:left-10 top-1/2 -translate-y-1/2 flex-col items-center gap-4 z-50"
+              className="hidden lg:flex fixed left-6 sm:left-10 top-1/2 -translate-y-1/2 flex-col items-center gap-4 z-[60]"
             >
               <div className="p-6 rounded-[2.5rem] bg-card/95 backdrop-blur-xl border border-border shadow-luxury flex flex-col items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-brand animate-pulse mb-1" />
@@ -1400,7 +1396,7 @@ function ProductPage() {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
-              className={`lg:hidden fixed left-0 right-0 px-3 z-40 transition-all duration-300 ${
+              className={`lg:hidden fixed left-0 right-0 px-3 z-[60] transition-all duration-300 ${
                 cartCount > 0 ? "bottom-[76px]" : "bottom-3"
               }`}
             >

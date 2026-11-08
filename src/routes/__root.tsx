@@ -23,6 +23,35 @@ import { z } from "zod";
 import { sendPageViewEvent } from "@/lib/meta-capi";
 import { generateEventId, getClientTrackingData } from "@/lib/meta-pixel";
 import { trackEvent } from "@/lib/analytics";
+import { CONSENT_BOOTSTRAP, CONSENT_KEY, GTM_ID, hasAdConsent } from "@/lib/consent";
+import { WHATSAPP_NUMBER } from "@/lib/utils/format";
+
+const PIXEL_ID = "1109711544904339";
+
+/**
+ * Meta Pixel loader, defined in the head but only ever executed after the
+ * visitor accepts. fbevents.js cannot honour Google Consent Mode, so the only
+ * compliant option is not to insert it until ad_storage is granted.
+ */
+const PIXEL_LOADER = `
+window.__aqPixelLoaded = false;
+window.__aqLoadPixel = function () {
+  if (window.__aqPixelLoaded) return;
+  window.__aqPixelLoaded = true;
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('set', 'autoConfig', false, '${PIXEL_ID}');
+  fbq.disablePushState = true;
+  fbq.allowDuplicatePageViews = true;
+  fbq('init', '${PIXEL_ID}', { automaticConfiguration: false, automaticConfig: false });
+};
+var aqStoredConsent = null;
+try { aqStoredConsent = localStorage.getItem('${CONSENT_KEY}'); } catch (e) {}
+if (aqStoredConsent === 'accepted') window.__aqLoadPixel();
+`;
 
 const CartDrawer = lazy(() =>
   import("@/features/cart/components/CartDrawer").then((m) => ({ default: m.CartDrawer })),
@@ -33,9 +62,9 @@ const LiveChatWidget = lazy(() =>
 const CookieConsent = lazy(() => import("@/components/layout/CookieConsent"));
 
 function NotFoundComponent() {
-  // Section 8 — honest, brand-consistent 404 with the correct page title.
+  // Section 9 — honest, brand-consistent 404 with the correct page title.
   useEffect(() => {
-    document.title = "404 — Page Not Found";
+    document.title = "Page Not Found — AQ Beds";
   }, []);
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -43,20 +72,40 @@ function NotFoundComponent() {
         <div className="mx-auto h-12 w-12 rounded-xl bg-brand grid place-items-center text-brand-foreground font-display font-black text-sm shadow-[0_0_20px_rgba(11,60,93,0.3)]">
           AQ
         </div>
-        <h1 className="mt-6 text-5xl sm:text-6xl font-display font-black text-foreground">
-          404 — Page not found
+        <h1 className="mt-6 text-4xl sm:text-5xl font-display font-black text-foreground">
+          Page not found
         </h1>
         <p className="mt-4 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+          The page you were looking for has moved or does not exist.
         </p>
-        <div className="mt-6">
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex h-11 items-center justify-center rounded-2xl bg-brand px-5 text-sm font-bold text-brand-foreground transition-opacity hover:opacity-90"
           >
-            Back to Home
+            Back to homepage
+          </Link>
+          <Link
+            to="/track"
+            search={{ token: "" }}
+            className="inline-flex h-11 items-center justify-center rounded-2xl border border-border px-5 text-sm font-bold transition-colors hover:border-brand/40"
+          >
+            Track my order
           </Link>
         </div>
+        <p className="mt-6 text-sm text-muted-foreground">
+          Need help?{" "}
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+              "Hi AQ Beds, I need help finding a page.",
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-brand underline-offset-2 hover:underline"
+          >
+            Message us
+          </a>
+        </p>
       </div>
     </div>
   );
@@ -186,37 +235,32 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('set', 'autoConfig', false, '1109711544904339');
-fbq.disablePushState = true;
-fbq.allowDuplicatePageViews = true;
-fbq('init', '1109711544904339', { automaticConfiguration: false, automaticConfig: false });
-fbq('set', 'autoConfig', false, '1109711544904339');
-fbq.disablePushState = true;
-fbq.allowDuplicatePageViews = true;
-`,
-          }}
+        {/* Search engine ownership verification (Search Console + Bing). */}
+        <meta
+          name="google-site-verification"
+          content="ltp3aArkcYwmRpS3b4xfh47CgwrRO0jDuWHxmavycI0"
         />
-        <noscript>
-          <img
-            height="1"
-            width="1"
-            style={{ display: "none" }}
-            src="https://www.facebook.com/tr?id=1109711544904339&ev=PageView&noscript=1"
-          />
-        </noscript>
+        <meta name="msvalidate.01" content="E166FBD2BC7AA8D07B30C232AA752973" />
+        {/* Consent Mode v2 defaults. Must precede gtm.js so every tag in the
+            container starts denied (see src/lib/consent.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: CONSENT_BOOTSTRAP }} />
+        {/* Google Tag Manager — one container only, and loaded by the bootstrap
+            script above only after an Accept. To switch containers, change
+            GTM_ID in src/lib/consent.ts (never add a second gtm.js script). */}
+        {/* Meta Pixel is defined here but only inserted after an Accept. */}
+        <script dangerouslySetInnerHTML={{ __html: PIXEL_LOADER }} />
       </head>
       <body>
+        {/* Standard GTM fallback for visitors without JavaScript. */}
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+            title="Google Tag Manager"
+          />
+        </noscript>
         {children}
         <Scripts />
       </body>
@@ -331,6 +375,9 @@ function RootComponent() {
       }
     };
     fireBrowserPageView();
+    // UK GDPR: the server-side Meta PageView is advertising measurement, so it
+    // is held back until ad_storage is granted.
+    if (!hasAdConsent()) return;
     const tracking = getClientTrackingData();
     sendPageViewEvent({
       event_id: sharedEventId,

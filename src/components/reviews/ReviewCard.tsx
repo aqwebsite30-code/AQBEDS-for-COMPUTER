@@ -1,5 +1,6 @@
 import { Star } from "lucide-react";
 import { Review, formatReviewDate } from "@/lib/reviews";
+import { VoiceReviewPlayer } from "@/components/VoiceReviewPlayer";
 
 export function ReviewCard({ review, clamp = false }: { review: Review; clamp?: boolean }) {
   return (
@@ -16,11 +17,22 @@ export function ReviewCard({ review, clamp = false }: { review: Review; clamp?: 
         <span className="text-xs text-muted-foreground">{formatReviewDate(review.date)}</span>
       </div>
       <h3 className="mb-1.5 text-sm font-semibold">{review.title}</h3>
-      <blockquote
-        className={`flex-1 text-sm italic leading-relaxed text-foreground/85 ${clamp ? "line-clamp-5" : ""}`}
-      >
-        &ldquo;{review.body}&rdquo;
-      </blockquote>
+      {review.audio_url ? (
+        <VoiceReviewPlayer
+          src={review.audio_url}
+          author={review.author}
+          duration={review.audio_duration_secs}
+          transcript={review.transcript}
+          verified={review.verified}
+        />
+      ) : null}
+      {review.body && review.body !== "PASTE" ? (
+        <blockquote
+          className={`flex-1 text-sm italic leading-relaxed text-foreground/85 ${clamp ? "line-clamp-5" : ""}`}
+        >
+          &ldquo;{review.body}&rdquo;
+        </blockquote>
+      ) : null}
       {review.owner_reply && (
         <div className="mt-4 rounded-2xl border border-brand/10 bg-brand/[0.05] p-3">
           <p className="mb-1 text-[11px] font-bold text-brand">

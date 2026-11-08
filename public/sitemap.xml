@@ -1,307 +1,507 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
-    <loc>https://www.aqbeds.com/</loc>
-    <lastmod>2026-09-26</lastmod>
+    <loc>https://www.aqbeds.com/product/alaska-sofa</loc>
+    <lastmod>2026-10-18</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Alaska Sofaa/alaska-sofa-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Alaska Sofaa/alaska-sofa-gallery-1.webp</image:loc>
+    </image:image>
   </url>
   <url>
-    <loc>https://www.aqbeds.com/shop</loc>
-    <lastmod>2026-09-26</lastmod>
+    <loc>https://www.aqbeds.com/product/alina-wardrobe</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Wardrobes/alina-wardrobe-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Wardrobes/alina-wardrobe-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/ambessador</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Ambessador/1.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Ambessador/2.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/arizona</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Arizona/1.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Arizona/2.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/ashton-sofa</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Ashton Sofa/ashton-sofa-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Ashton Sofa/ashton-sofa-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/divan-ottoman-bed</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Divan Ottoman bed/1.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Divan Ottoman bed/2.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/berlin-sofa-bed</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Berlin Sofa Bed/berlin-sofa-bed-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Berlin Sofa Bed/berlin-sofa-bed-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/bunk-beds</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Bunk beds/1.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Bunk beds/2.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/chesterfield-sofa</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Chesterfield Sofa/chesterfield-sofa-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Chesterfield Sofa/chesterfield-sofa-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/luxury-cube-bed</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Luxury Cube bed/1.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Luxury Cube bed/2.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/diamontee-sofa</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Diamontee sofa/diamontee-sofa-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Diamontee sofa/diamontee-sofa-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/dino-sofa</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Dino sofa/dino-sofa-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Dino sofa/dino-sofa-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/divan</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Divan/1 Panel line head board.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Divan/2 simple plain head board.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/dylan-sofa</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Dylan Sofa/dylan-sofa-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Dylan Sofa/dylan-sofa-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/florida-bed</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Florida bed/1.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Florida bed/2.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/golden-wave-bed</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Golden wave bed/1.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Golden wave bed/2.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/harrison-sofa</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Harrison Sofa/harrison-sofa-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Harrison Sofa/harrison-sofa-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/hilton</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Hilton/1.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Hilton/2.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/lily-sofa</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Lily Sofa/lily-sofa-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Lily Sofa/lily-sofa-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/lucca-anton-sofa-bed</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Lucca &amp; Anton Sofa Bed/lucca-anton-sofa-bed-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Lucca &amp; Anton Sofa Bed/lucca-anton-sofa-bed-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/maya-sofa</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Maya Sofa/maya-sofa-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Maya Sofa/maya-sofa-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/olympia-sofa</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Olympia Sofa/olympia-sofa-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Olympia Sofa/olympia-sofa-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/oxford-wingback</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Oxford Wingback/1.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Oxford Wingback/2.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/panel-line</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Panel Line/1.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Panel Line/2.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/panel-line-bumper</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Panel line bumper/1.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Panel line bumper/2.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/panel-line-gold-strip</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Panel line gold strip/1.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Panel line gold strip/2.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/panel-wing-back</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Panel wing back/1.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Panel wing back/2.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/shanon-sofa</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Shanon Sofa/shanon-sofa-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Shanon Sofa/shanon-sofa-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/sleigh</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Sleigh/1.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/all products img/Sleigh/2.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/sliding-wardrobe</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sliding wardrobe/sliding-wardrobe-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sliding wardrobe/sliding-wardrobe-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/u-shape-sofa</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/U Shape Sofa/u-shape-sofa-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/U Shape Sofa/u-shape-sofa-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/product/verona-sofa</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Verona Sofa/verona-sofa-main.webp</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.aqbeds.com/Sofas/Verona Sofa/verona-sofa-gallery-1.webp</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/category/ottoman-beds</loc>
+    <lastmod>2026-11-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.aqbeds.com/about</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/contact</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/faqs</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/returns</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/delivery</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/category/all-beds</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/category/ottoman-beds</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://www.aqbeds.com/category/divan-beds</loc>
-    <lastmod>2026-09-26</lastmod>
+    <lastmod>2026-11-08</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.aqbeds.com/category/luxury-beds</loc>
-    <lastmod>2026-09-26</lastmod>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/category/sofas</loc>
+    <lastmod>2026-11-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.aqbeds.com/category/wardrobes</loc>
-    <lastmod>2026-09-26</lastmod>
+    <lastmod>2026-11-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.aqbeds.com/category/sliding-wardrobes</loc>
-    <lastmod>2026-09-26</lastmod>
+    <lastmod>2026-11-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.aqbeds.com/category/sofas</loc>
-    <lastmod>2026-09-26</lastmod>
+    <loc>https://www.aqbeds.com/category/bedroom-furniture</loc>
+    <lastmod>2026-11-08</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/ambessador</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/arizona</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/bunk-beds</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/divan</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/divan-ottoman-bed</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/florida-bed</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/golden-wave-bed</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/hilton</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/luxury-cube-bed</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/oxford-wingback</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/panel-line</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/panel-line-bumper</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/panel-line-gold-strip</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/panel-wing-back</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/sleigh</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/alina-wardrobe</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/sliding-wardrobe</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/alaska-sofa</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/ashton-sofa</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/berlin-sofa-bed</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/chesterfield-sofa</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/diamontee-sofa</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/dino-sofa</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/dylan-sofa</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/harrison-sofa</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/lily-sofa</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/lucca-anton-sofa-bed</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/maya-sofa</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/olympia-sofa</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/shanon-sofa</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/u-shape-sofa</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.aqbeds.com/product/verona-sofa</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-    <url>
-    <loc>https://www.aqbeds.com/size-guide</loc>
-    <lastmod>2026-09-26</lastmod>
-    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/</loc>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/shop</loc>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.aqbeds.com/reviews</loc>
-    <lastmod>2026-09-26</lastmod>
+    <lastmod>2026-11-08</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/guides</loc>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.aqbeds.com/guides/ottoman-vs-divan</loc>
-    <lastmod>2026-09-26</lastmod>
+    <lastmod>2026-11-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
-  </url>  <url>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/size-guide</loc>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/delivery</loc>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/returns</loc>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/faqs</loc>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/about</loc>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.aqbeds.com/contact</loc>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://www.aqbeds.com/privacy</loc>
-    <lastmod>2026-09-26</lastmod>
+    <lastmod>2026-11-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.aqbeds.com/terms</loc>
-    <lastmod>2026-09-26</lastmod>
+    <lastmod>2026-11-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

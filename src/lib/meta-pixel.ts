@@ -1,3 +1,5 @@
+import { hasAdConsent } from "@/lib/consent";
+
 declare global {
   interface Window {
     fbq: (...args: any[]) => void;
@@ -53,6 +55,8 @@ export function getFbp(): string {
  */
 function seedFbcCookie(): void {
   if (typeof document === "undefined" || typeof window === "undefined") return;
+  // _fbc is advertising storage: never written before an Accept.
+  if (!hasAdConsent()) return;
   try {
     const fbclid = new URLSearchParams(window.location.search).get("fbclid");
     if (!fbclid) return; // no click ID in URL — leave any existing cookie alone

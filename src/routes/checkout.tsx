@@ -22,7 +22,7 @@ import {
   getClientTrackingData,
   getVisitorId,
 } from "@/lib/meta-pixel";
-import { sendInitiateCheckoutEvent, getTestEventCode, getClientIp } from "@/lib/meta-capi";
+import { sendInitiateCheckoutEvent, getTestEventCode } from "@/lib/meta-capi";
 import { trackEvent } from "@/lib/analytics";
 import { isSelectableDeliveryDate } from "@/lib/delivery-date";
 import { useDeliveryInfo } from "@/hooks/useDeliveryInfo";
@@ -44,6 +44,30 @@ export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
 });
 
+/**
+ * Sends the order email with one retry. Non-blocking: the order is already saved.
+ * Every failed attempt is logged with the order id so it can be traced and
+ * re-sent manually from the admin panel.
+ */
+async function sendOrderEmailWithRetry(payload: any, orderId: string) {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      // @ts-ignore
+      const result = await sendOrderEmail(payload);
+      if (result?.success) return;
+      console.error("[email] order email failed", {
+        orderId,
+        attempt,
+        error: result?.error || "unknown error",
+      });
+    } catch (err) {
+      console.error("[email] order email threw", { orderId, attempt, error: String(err) });
+    }
+    if (attempt === 1) await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+  console.error("[email] order email permanently failed after retry", { orderId });
+}
+
 function CheckoutPage() {
   const { items, total, clear } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,9 +79,11 @@ function CheckoutPage() {
   const [preferredDate, setPreferredDate] = useState("");
   const [secure, setSecure] = useState(false);
   const [waMissing, setWaMissing] = useState<string[]>([]);
-  const [placedOrderNo, setPlacedOrderNo] = useState("");
   // Section 4 — order id used for the /track link (confirmation + WhatsApp message).
   const [placedToken, setPlacedToken] = useState("");
+  // Shown when a browser blocks the WhatsApp popup: the customer gets a
+  // visible, copyable link instead of a button that silently does nothing.
+  const [waBlocked, setWaBlocked] = useState(false);
   const purchaseFired = useRef(false);
   const checkoutEventId = useRef<string>("");
 
@@ -134,8 +160,9 @@ function CheckoutPage() {
 
     const totalAmount = formatGBP(total());
     try {
-      // Generate Purchase event_id upfront for deduplication (client + server)
-      const purchaseEventId = generateEventId();
+      // Deduplication key for Purchase is the saved order id: the browser pixel
+      // and the server CAPI event must share one eventID, and it must be the id
+      // the order is stored under so Events Manager can be reconciled to the DB.
       const trackingData = getClientTrackingData();
 
       // Fire InitiateCheckout CAPI with full customer PII (re-fire on submit for better EMQ)
@@ -184,24 +211,23 @@ function CheckoutPage() {
           preferredDeliveryDate: preferredDate || "",
           trackingToken,
           visitorId: getVisitorId(),
-          event_id: purchaseEventId,
           client_user_agent: navigator.userAgent,
-          // Purchase CAPI fires server-side in saveOrder — it cannot read the
-          // URL/cookies, so hand it the tec (sessionStorage) and the client IP
-          // (ipify, cached from earlier events). Server falls back to
-          // x-forwarded-for when the ipify lookup failed.
-          client_ip_address: (await getClientIp().catch(() => "")) || "",
+          // Purchase CAPI fires server-side in saveOrder. The IP is resolved
+          // from the request's x-forwarded-for header there — never from a
+          // third-party lookup on this click path, which can stall the order.
           test_event_code: getTestEventCode(),
           ...trackingData,
         } as any,
       });
 
-      let orderId = "";
-      if (orderResult && orderResult.success) {
-        orderId = orderResult.orderId ?? "";
-      } else {
+      // The customer must never see a confirmation for an order that was not
+      // saved. A failed write throws here, leaving the basket intact so the
+      // customer can retry instead of believing a lost order went through.
+      if (!orderResult?.success || !orderResult.orderId) {
         console.error("Order save failed:", orderResult?.error);
+        throw new Error(orderResult?.error || "Order save returned no order id");
       }
+      const orderId = orderResult.orderId;
 
       // 2. Send Email via Resend
       const emailPayload: any = {
@@ -223,13 +249,10 @@ function CheckoutPage() {
           total: totalAmount,
         },
       };
-      // @ts-ignore
-      const emailResult = await sendOrderEmail(emailPayload);
-
-      if (emailResult && !emailResult.success) {
-        console.error("Email sending failed:", emailResult.error);
-        toast.error("Email failed to send, but order was placed.");
-      }
+      // Email is secondary: never hold the confirmation screen while a mail
+      // provider responds. The order is already saved at this point. Failures
+      // are logged with the order id and retried once after 2s.
+      void sendOrderEmailWithRetry(emailPayload, orderId);
 
       // 3. Prepare WhatsApp message with order number (opened manually by customer)
       const orderNumber = orderId ? `#${orderId.slice(0, 8).toUpperCase()}` : "";
@@ -264,7 +287,6 @@ function CheckoutPage() {
         (orderId ? `\n\nTrack your order: https://www.aqbeds.com/track?token=${orderId}` : "");
       const waUrl = `https://wa.me/${WHATSAPP_NUMBER.replace(/\+/g, "")}?text=${encodeURIComponent(message)}`;
 
-      setPlacedOrderNo(orderNumber);
       setPlacedToken(orderId);
       setWhatsappUrl(waUrl);
       setPlaced(true);
@@ -281,7 +303,7 @@ function CheckoutPage() {
               content_type: "product",
               order_id: orderId,
             },
-            { eventID: purchaseEventId },
+            { eventID: orderId },
           );
         }
         trackEvent("Purchase", {
@@ -292,7 +314,7 @@ function CheckoutPage() {
       clear();
     } catch (err) {
       console.error("Checkout Error:", err);
-      toast.error("Something went wrong. Please try again.");
+      toast.error("We couldn't place your order. Your basket is saved — please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -317,36 +339,6 @@ function CheckoutPage() {
       first.scrollIntoView({ block: "center", behavior: "smooth" });
       first.focus({ preventScroll: true });
     }
-  };
-
-  // Builds the checkout WhatsApp URL from LIVE form values at click time.
-  // Returns null (and highlights the missing fields) when any of the five
-  // required details are empty — the WhatsApp tab never opens.
-  const checkoutWaUrl = (form: HTMLFormElement | null, orderNo?: string): string | null => {
-    if (!form) return null;
-    const details = readCustomer(form);
-    const missing = missingCustomerFields(details);
-    if (missing.length > 0) {
-      highlightMissing(missing);
-      return null;
-    }
-    setWaMissing([]);
-    const message = buildOrderMessage(
-      items.map((i) => ({
-        id: i.productId,
-        name: i.name,
-        qty: i.qty,
-        unitPrice: i.unitPrice,
-        rows: rowsFromOptionsRecord(i.options),
-        url:
-          typeof window !== "undefined"
-            ? `${window.location.origin}/product/${i.productId}`
-            : undefined,
-      })),
-      details,
-      { arrival: deliveryInfo, orderNo, preferredDate: preferredDate || undefined },
-    );
-    return `https://wa.me/${WHATSAPP_NUMBER.replace(/\+/g, "")}?text=${encodeURIComponent(message)}`;
   };
 
   // Pre-order "Order on WhatsApp": validates live form values, then — only when
@@ -383,7 +375,7 @@ function CheckoutPage() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 animate-fade-in relative min-h-[600px]">
+    <div className="mx-auto max-w-6xl px-4 pt-10 pb-52 sm:pb-10 animate-fade-in relative min-h-[600px]">
       {/* C2 — sticky trust bar: stays visible while scrolling the form */}
       <div className="sticky top-16 lg:top-[68px] z-30 -mx-4 px-4 py-2.5 mb-4 bg-card/95 backdrop-blur border-b border-border shadow-sm">
         <p className="text-center text-xs sm:text-sm font-bold text-brand">
@@ -407,9 +399,30 @@ function CheckoutPage() {
           </div>
           <Card title="Contact">
             <div className="grid sm:grid-cols-2 gap-3">
-              <Field label="Full name" name="name" required error={waMissing.includes("name")} />
-              <Field label="Email" name="email" type="email" required />
-              <Field label="Phone" name="phone" required error={waMissing.includes("phone")} />
+              <Field
+                label="Full name"
+                name="name"
+                required
+                autoComplete="name"
+                error={waMissing.includes("name")}
+              />
+              <Field
+                label="Email"
+                name="email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                required
+              />
+              <Field
+                label="Phone"
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                required
+                error={waMissing.includes("phone")}
+              />
             </div>
           </Card>
           <Card title="Shipping address">
@@ -419,16 +432,30 @@ function CheckoutPage() {
                 name="addr1"
                 required
                 full
+                autoComplete="address-line1"
                 error={waMissing.includes("addr1")}
               />
-              <Field label="City" name="city" required error={waMissing.includes("city")} />
+              <Field
+                label="City"
+                name="city"
+                required
+                autoComplete="address-level2"
+                error={waMissing.includes("city")}
+              />
               <Field
                 label="Postcode"
                 name="postcode"
                 required
+                autoComplete="postal-code"
                 error={waMissing.includes("postcode")}
               />
-              <Field label="Country" name="country" defaultValue="United Kingdom" required />
+              <Field
+                label="Country"
+                name="country"
+                defaultValue="United Kingdom"
+                autoComplete="country-name"
+                required
+              />
               {/* C7 — preferred delivery date (optional; blank = T1 system default) */}
               <div className="sm:col-span-2">
                 <span className="text-[10px] text-brand/50 font-bold uppercase tracking-widest pl-1">
@@ -493,7 +520,7 @@ function CheckoutPage() {
 
           {/* Dual order buttons — equal size, side by side, immediately under the C6b card.
               Handlers/classes identical to the previous placement (logic untouched). */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="relative z-[60] grid grid-cols-2 gap-3">
             <button
               type="submit"
               disabled={isSubmitting}
@@ -653,34 +680,66 @@ function CheckoutPage() {
                           Track your order
                         </Link>
                       )}
-                      {placedToken && (
-                        <Link
-                          to="/track"
-                          search={{ token: placedToken }}
-                          className="w-full h-14 rounded-2xl border border-white/40 text-white font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
-                        >
-                          <Truck className="w-5 h-5" />
-                          Track your order
-                        </Link>
-                      )}
+                      {/* Pre-built from the order that was just saved. Rebuilding
+                          it from the page's first <form> picked up the header
+                          search box instead of the checkout form. */}
                       <a
                         href={whatsappUrl}
                         target="_blank"
                         rel="noreferrer"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          const url = checkoutWaUrl(
-                            document.querySelector<HTMLFormElement>("form"),
-                            placedOrderNo,
-                          );
-                          if (url) window.open(url, "_blank", "noopener,noreferrer");
-                          else setPlaced(false);
+                        onClick={(event) => {
+                          // Try a new tab first; if the browser blocks it, keep
+                          // the customer here and reveal the fallback link.
+                          const popup = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+                          if (popup) {
+                            event.preventDefault();
+                          } else {
+                            setWaBlocked(true);
+                          }
                         }}
                         className="w-full h-14 rounded-2xl bg-whatsapp text-white font-bold flex items-center justify-center gap-2 hover:bg-whatsapp/90 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
                       >
                         <MessageSquare className="w-5 h-5" />
                         Open WhatsApp
                       </a>
+
+                      {/* Popup-blocked fallback: same order message, visible and copyable. */}
+                      <div className="w-full rounded-2xl border border-white/20 bg-white/5 p-3 text-left">
+                        <p className="text-xs font-semibold text-white/85">
+                          WhatsApp did not open? Use this link:
+                        </p>
+                        <a
+                          href={whatsappUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-1 block break-all text-xs font-bold text-white underline underline-offset-2"
+                        >
+                          Open your order message on WhatsApp
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (navigator.clipboard) {
+                              void navigator.clipboard.writeText(whatsappUrl).then(
+                                () => toast.success("Order message link copied"),
+                                () => setWaBlocked(true),
+                              );
+                            } else {
+                              setWaBlocked(true);
+                            }
+                          }}
+                          className="mt-2 text-xs font-semibold text-white/85 underline underline-offset-2"
+                        >
+                          Copy order message link
+                        </button>
+                        {waBlocked && (
+                          <p className="mt-2 text-xs text-white/70">
+                            Your browser is blocking new tabs. Long-press the link above, or copy
+                            it and open it in WhatsApp. Your order is already saved — you can also
+                            track it with the button above.
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -717,6 +776,8 @@ function Field({
   full,
   defaultValue,
   error,
+  autoComplete,
+  inputMode,
 }: {
   label: string;
   name: string;
@@ -725,6 +786,8 @@ function Field({
   full?: boolean;
   defaultValue?: string;
   error?: boolean;
+  autoComplete?: string;
+  inputMode?: "text" | "tel" | "email" | "numeric";
 }) {
   return (
     <label className={`block text-sm ${full ? "sm:col-span-2" : ""}`}>
@@ -736,6 +799,8 @@ function Field({
         name={name}
         required={required}
         defaultValue={defaultValue}
+        autoComplete={autoComplete}
+        inputMode={inputMode}
         aria-invalid={error || undefined}
         className={`mt-2 w-full h-12 rounded-xl bg-brand/[0.02] px-4 text-brand text-sm outline-none transition-all font-medium placeholder:text-brand/30 ${
           error
