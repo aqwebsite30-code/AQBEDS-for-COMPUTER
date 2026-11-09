@@ -1,5 +1,50 @@
+# AQ Beds — https://www.aqbeds.com
+# Search engines and AI answer engines are explicitly welcome.
+# The site serves the same HTML to every user agent: there is no cloaking.
+
 User-agent: *
 Allow: /
 Disallow: /admin
+
+# ---- Search engines ----
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin
+
+# ---- AI crawlers and answer engines ----
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+
+# Google-Extended and CCBot govern use of content for model training,
+# not search indexing. The owner allows both.
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
 
 Sitemap: https://www.aqbeds.com/sitemap.xml

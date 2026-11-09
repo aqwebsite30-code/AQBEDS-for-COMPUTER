@@ -7,7 +7,6 @@ import {
   REVIEW_AVG,
   REVIEW_COUNT,
   REVIEW_AVG_LABEL,
-  aggregateRatingJsonLd,
   reviewsJsonLd,
 } from "@/lib/reviews";
 
@@ -43,7 +42,15 @@ export const Route = createFileRoute("/reviews")({
             "@type": "CollectionPage",
             name: "Customer Reviews — AQ Beds",
             url: "https://www.aqbeds.com/reviews",
-            aggregateRating: aggregateRatingJsonLd(),
+            // The rating object goes directly on the page node; wrapping it in
+            // aggregateRatingJsonLd() nested a LocalBusiness inside aggregateRating.
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: REVIEW_AVG_LABEL,
+              reviewCount: REVIEW_COUNT,
+              bestRating: "5",
+              worstRating: "1",
+            },
             review: reviewsJsonLd(REVIEWS_SORTED),
           }),
         },

@@ -3,6 +3,15 @@ import { CATEGORIES, type Category, getByCategory } from "@/features/products/da
 import { getDbProducts } from "@/lib/products";
 import { responsiveSrc } from "@/lib/responsive-image";
 import { ProductCard } from "@/features/products/components/ProductCard";
+import {
+  CitableFacts,
+  COVERAGE_FACT,
+  DELIVERY_FACT,
+  GUARANTEE_FACT,
+  PAYMENT_FACT,
+  materialsFact,
+  sizeNames,
+} from "@/components/seo/CitableFacts";
 import { motion } from "framer-motion";
 
 // Buying-guide interlinks for the storage-bed family (§7.3)
@@ -127,6 +136,18 @@ function CategoryPage() {
           : "bed";
   const countLabel = `${products.length} ${products.length === 1 ? noun : `${noun}s`}`;
 
+  // Distinct size names across the collection, for the J6 facts block.
+  const categorySizes = sizeNames(
+    products.flatMap((p: { sizes?: unknown }) =>
+      Array.isArray(p.sizes)
+        ? p.sizes
+            .map((s) => (typeof s === "string" ? s : (s as { name?: string })?.name))
+            .filter((s): s is string => !!s)
+            .map((s) => ({ name: s }))
+        : [],
+    ),
+  );
+
   return (
     <div className="animate-fade-in bg-background min-h-screen">
       <section className="relative w-full aspect-video overflow-hidden bg-background">
@@ -168,6 +189,21 @@ function CategoryPage() {
       </section>
       <section className="mx-auto max-w-7xl px-4 py-10">
         <div className="text-sm text-muted-foreground mb-6">{countLabel}</div>
+
+        {/* J6 — citable facts, plain sentences an AI system can quote. */}
+        <CitableFacts
+          facts={[
+            { label: "In this collection", value: countLabel + "." },
+            ...(categorySizes.length
+              ? [{ label: "Sizes", value: categorySizes.join(", ") }]
+              : []),
+            { label: "Materials", value: materialsFact(category.slug) },
+            { label: "Delivery", value: DELIVERY_FACT },
+            { label: "Payment", value: PAYMENT_FACT },
+            { label: "Guarantee", value: GUARANTEE_FACT },
+            { label: "Coverage", value: COVERAGE_FACT },
+          ]}
+        />
         {products.length === 0 ? (
           <div className="text-center py-24 bg-card rounded-3xl border border-dashed border-border">
             <div className="text-5xl mb-4">✨</div>

@@ -47,21 +47,8 @@ export const Route = createFileRoute("/")({
     ],
     links: [{ rel: "canonical", href: "https://www.aqbeds.com/" }],
     scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "AQ Beds",
-          url: "https://www.aqbeds.com",
-          logo: "https://www.aqbeds.com/apple-touch-icon.png",
-          contactPoint: {
-            "@type": "ContactPoint",
-            telephone: "+44-7519-791128",
-            contactType: "customer service",
-          },
-        }),
-      },
+      // The Organization entity now lives in __root.tsx so it is emitted exactly
+      // once per page (Phase J5). Do not re-add it here.
       {
         type: "application/ld+json",
         children: JSON.stringify({

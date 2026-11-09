@@ -24,6 +24,7 @@ import { sendPageViewEvent } from "@/lib/meta-capi";
 import { generateEventId, getClientTrackingData } from "@/lib/meta-pixel";
 import { trackEvent } from "@/lib/analytics";
 import { CONSENT_BOOTSTRAP, CONSENT_KEY, GTM_ID, hasAdConsent } from "@/lib/consent";
+import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
 import { WHATSAPP_NUMBER } from "@/lib/utils/format";
 import { useCart } from "@/features/cart/store/cart";
 
@@ -241,11 +242,49 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+/**
+ * J5 — one Organization entity, emitted on every page.
+ *
+ * No legalName is set because no registered company name is published on the
+ * site, and no postal address is set because none is published either. sameAs
+ * lists only profiles the business actually owns; no social profile URL exists
+ * in this codebase yet, so the key is omitted rather than guessed. Add the URLs
+ * here once they are live.
+ */
+const ORGANIZATION_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": "https://www.aqbeds.com/#organization",
+  name: "AQ Beds",
+  url: "https://www.aqbeds.com",
+  logo: {
+    "@type": "ImageObject",
+    url: "https://www.aqbeds.com/apple-touch-icon.png",
+  },
+  description:
+    "UK retailer of ottoman, divan and luxury beds, sofas, wardrobes and bedroom furniture, sold direct with free UK delivery and cash on delivery.",
+  areaServed: { "@type": "Country", name: "United Kingdom" },
+  contactPoint: [
+    {
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      telephone: "+44-7519-791128",
+      email: "info@aqbeds.com",
+      areaServed: "GB",
+      availableLanguage: "en",
+    },
+  ],
+};
+
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
         <HeadContent />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }}
+        />
         {/* Search engine ownership verification (Search Console + Bing). */}
         <meta
           name="google-site-verification"
@@ -531,6 +570,8 @@ function RootComponent() {
           tabIndex={-1}
           className={`flex-1 ${!isAdmin ? "pb-20 sm:pb-0" : ""}`}
         >
+          {/* J3 — visible breadcrumb + BreadcrumbList, derived from the path. */}
+          <Breadcrumbs />
           <Outlet />
         </main>
 

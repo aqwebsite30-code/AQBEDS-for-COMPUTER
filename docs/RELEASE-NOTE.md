@@ -1,7 +1,7 @@
 # Release note — seo-build
 
-Branch: `seo-build` (local only, not pushed). Production untouched; the owner runs
-`vercel --prod`.
+Branch: `seo-build`. Pushed to `origin` on 9 Nov 2026; production untouched, the owner
+runs `vercel --prod`.
 
 ## What changed
 
@@ -14,7 +14,8 @@ Branch: `seo-build` (local only, not pushed). Production untouched; the owner ru
 - Dynamic sitemap (`scripts/generate-sitemap.mjs`) runs in `npm run build`: 52 URLs, real
   product `lastmod` from `Product.updatedAt`, one `<image:image>` per product, no utility or
   noindex routes. Replaces the static `public/sitemap.xml` dated 2026-09-26.
-- `/llms.txt` added; `/llms-full.txt` generated at build from the catalogue.
+- `/llms.txt` added; `/llms-full.txt` rewritten by hand in Phase J2 (static, no build
+  step — the earlier note claiming it was generated at build was wrong).
 - Metadata rewritten to 50-60 character titles and 140-160 character descriptions on
   /contact, /faqs, /about, /shop, /reviews and the product template.
 - `noindex` on /admin and /track.
@@ -145,6 +146,134 @@ one order row.
 - Task 0 deletions: 19 candidates matched rule (a); the run's own >10 rule forbids
   deleting, so nothing was removed. Candidates are exported in
   `docs/deleted-test-orders.csv` with action `kept-over-10-rule`.
+
+---
+
+## Phase J — AI search visibility (AEO / GEO) technical layer
+
+Run 9 Nov 2026. Eight items, J1-J8.
+
+### J1 — crawler access
+
+`public/robots.txt` now names every crawler the brief lists: Googlebot,
+Googlebot-Image, Bingbot, GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot,
+PerplexityBot, Google-Extended, CCBot. `User-agent: *` still allows everything except
+`/admin`, and the sitemap line is unchanged. Final file is 898 bytes and returns 200
+`text/plain`.
+
+Owner decision to note: `Google-Extended` and `CCBot` govern use of content for model
+training, not search indexing. Allowing them means permitting AI training on the site's
+content. Disallow them if that is not wanted — it does not affect search visibility.
+
+### J2 — llms.txt and llms-full.txt
+
+`public/llms.txt` (3,761 bytes) rewritten: business, what is sold with category URLs,
+sizes, delivery rules including the 20:00 Europe/London cutoff, payment, guarantee and
+returns, contact, key page URLs, sitemap link. `public/llms-full.txt` (8,761 bytes) is
+rewritten: the same facts expanded, plus per-category descriptions, materials, order
+reference format, the site's own FAQ answers, and the full 32-product catalogue carried
+over from the previous version. Both are static and maintained by hand; `llms.txt`
+reproduces no prices, and `llms-full.txt` labels its catalogue prices as "from" prices at
+the review date with the product page as authoritative.
+
+### J3 — no-JavaScript parity
+
+18 templates fetched with plain HTTP (no JavaScript) using a Googlebot user agent:
+home, shop, 4 categories, 2 products, guides hub, guide, faqs, delivery, returns,
+size-guide, about, contact, reviews, track. Result after fixes: **0 failures**, all 200.
+
+Per-template checks: H1 present on all 18; price on all commercial and product
+templates; delivery promise on all 18; guarantee line on all 18; product description on
+both products; FAQ text on /faqs.
+
+Two things failed on the first run and were fixed:
+
+- **Breadcrumb.** Only the product template emitted `BreadcrumbList`; the other 17 had
+  no breadcrumb at all. Added `src/components/seo/Breadcrumbs.tsx`, mounted once in
+  `__root.tsx`, deriving the trail from the pathname: visible `<nav aria-label="Breadcrumb">`
+  plus matching `BreadcrumbList` JSON-LD. Home, `/admin` and `/checkout` are excluded.
+  The product route's own breadcrumb schema was removed so exactly one is emitted.
+- **Facts block.** Added in J6 (below); it is what carries the delivery and guarantee
+  sentences on category pages, which had no delivery promise in their HTML before.
+
+### J4 — Product schema
+
+`offers` now carries `shippingDetails` (shippingRate 0 GBP, `DefinedRegion` GB,
+handling 0-1 day, transit 1-2 days — the 1-2 days follows the delivery engine, since a
+Sunday order arrives Tuesday) and `hasMerchantReturnPolicy` (`MerchantReturnPolicy`,
+`applicableCountry: GB`, `MerchantReturnNotPermitted` with a description that restates
+`/returns`). `merchantReturnDays` is deliberately absent: the policy is at-door only, so
+there is no post-delivery window to state.
+
+A real defect found while validating: `aggregateRating` was being filled with the whole
+`LocalBusiness` object returned by `aggregateRatingJsonLd()`, which made the Product
+invalid. It now carries the `AggregateRating` object directly, and its review nodes no
+longer nest a foreign `itemReviewed`. The same bug existed on `/reviews` and was fixed
+there too. The rating value and count remain visible on the page (4.86 from 38 reviews),
+which is the condition for keeping `aggregateRating`.
+
+### J5 — Organization entity
+
+One Organization block in `__root.tsx`, so it is emitted once on every page: name, url,
+`@id`, logo, description, `areaServed: United Kingdom`, `contactPoint` with telephone,
+email, areaServed GB. No `legalName` (no registered name is published anywhere on the
+site, so it would have been invented), no postal address (none is published), and no
+`sameAs` — no social profile URL exists in the codebase, so the key is omitted rather
+than guessed. Add real profile URLs to `ORGANIZATION_JSON_LD` when they exist.
+
+Validation across 7 templates: every ld+json block parses, Organization exactly once per
+page, BreadcrumbList exactly once per non-home page, 0 problems.
+
+### J6 — citable facts block
+
+`src/components/seo/CitableFacts.tsx`, rendered server-side on every category and product
+template as "Key facts": sizes, mattress inclusion, materials, delivery window with the
+20:00 cutoff and Monday/bank-holiday exclusion, payment method, guarantee, coverage area.
+Wording restates copy already published elsewhere on the site; nothing new is claimed and
+no discount, gift or bundle wording appears in it.
+
+### J7 — AI referrer grouping
+
+Not possible in code: GA4 channel groups live in the GA4 property admin, and the property
+does not exist yet (container `GTM-K8P8CZL6` still has no GA4 tag). When the property
+exists: Admin > Data display > Channel groups > Create new channel group, add a rule
+`Session source matches regex chatgpt\.com|perplexity\.ai|copilot\.microsoft\.com|gemini\.google\.com|bing\.com`, name it "AI assistants". Tracked as an owner task, not a code gap.
+
+### J8 — no cloaking
+
+Every template fetched twice with a Googlebot UA and once with a desktop Chrome UA and
+compared byte for byte after normalising the router's per-request hydration timestamp
+(`u:<ms>`). All 18 are identical; where a page differed between two fetches it also
+differed between two identical UAs (time-varying countdown), which the script reports
+separately. No user-agent branching exists in the app.
+
+### Verified
+
+- `npx tsc --noEmit`: 31 errors, all pre-existing in untouched files (`products.ts`,
+  `__root.tsx`, `admin.*`); none in the files changed here.
+- `npx cross-env NITRO_PRESET=vercel vite build`: exit 0.
+- 18/18 templates pass the no-JS parity crawl; 0 cloaking differences.
+- Structured data: all blocks parse; Product, Organization and BreadcrumbList counts as
+  specified.
+- Browser smoke at 375px on home, product, category, shop and faqs: no horizontal
+  scroll, breadcrumb and facts block visible, no page errors. The only failed requests
+  are `/api/analytics` and `/api/meta-capi`, which the local preview shim does not serve
+  (real Vercel functions, unchanged by this phase).
+
+### Not done in Phase J / found and left for later
+
+- `/faqs` says beds ship in "3 to 7 business days" while `/delivery` and the delivery
+  engine promise next-day before 20:00. A claim conflict, out of scope for J; fix in
+  Phase L (claim audit).
+- AI referral reporting (J7) needs the GA4 property and the tag first.
+
+### Git and deploy
+
+- Commit on `seo-build` pushed to `origin` (GitHub, `aqwebsite30-code/AQBEDS-for-COMPUTER`).
+- `.env` and `.env.local` are gitignored and were **not** committed: they hold
+  `DATABASE_URL`, `RESEND_API_KEY` and `META_CAPI_ACCESS_TOKEN`. Vercel already has these
+  per environment under Settings > Environment Variables.
+- Vercel preview deployment built and verified; `vercel --prod` not run.
 - Preview is behind Vercel SSO, so browsers (and the OG/Facebook/Twitter validators)
   cannot reach it from this machine; only `vercel curl` gets through.
 - Owner actions: Resend domain verification, `META_CAPI_ACCESS_TOKEN` in Preview, GA4 tag

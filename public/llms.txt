@@ -1,47 +1,83 @@
 # AQ Beds
 
-> AQ Beds is a UK bed and bedroom furniture retailer selling handcrafted beds direct to
-> customers since 2018. The range covers ottoman beds with gas-lift storage, divan beds,
-> luxury velvet beds, sofas, wardrobes and bedroom furniture. Free UK delivery, next-day
-> on orders placed before 20:00 Europe/London, Monday to Saturday. Payment is cash on
-> delivery.
+> AQ Beds is a UK bed and bedroom furniture retailer selling direct to customers.
+> The range covers ottoman beds, divan beds, luxury beds, sofas, wardrobes and
+> bedroom furniture. Delivery is free across the UK and payment is cash on
+> delivery. Nothing is paid online.
 
 Canonical domain: https://www.aqbeds.com
+Site language: en-GB. Prices are shown in GBP on each product page.
+Machine-readable index of this file's full version: https://www.aqbeds.com/llms-full.txt
 
-## Collections
+## What is sold
 
-- [All beds](https://www.aqbeds.com/shop): every bed and furniture product in one catalogue.
-- [Ottoman beds](https://www.aqbeds.com/category/ottoman-beds): gas-lift storage beds, storage under the whole mattress base.
-- [Divan beds](https://www.aqbeds.com/category/divan-beds): divan bases with one to four built-in drawers.
+- [All products](https://www.aqbeds.com/shop): every bed and furniture product in one catalogue.
+- [Ottoman beds](https://www.aqbeds.com/category/ottoman-beds): beds with gas-lift storage under the whole mattress base.
+- [Divan beds](https://www.aqbeds.com/category/divan-beds): divan bases with built-in drawers.
 - [Luxury beds](https://www.aqbeds.com/category/luxury-beds): wingback, sleigh and gold-strip detail bed frames.
 - [Sofas](https://www.aqbeds.com/category/sofas): velvet sofas and sofa beds.
-- [Wardrobes](https://www.aqbeds.com/category/wardrobes): sliding and hinged wardrobes.
-- [Bedroom furniture](https://www.aqbeds.com/category/bedroom-furniture): matching bedroom pieces.
+- [Wardrobes](https://www.aqbeds.com/category/wardrobes): free-standing wardrobes, flat-packed.
+- [Sliding wardrobes](https://www.aqbeds.com/category/sliding-wardrobes): sliding-door wardrobes, flat-packed.
 
-## Buying facts
+Beds are sold in 2ft6 small single, 3ft single, 4ft small double, 4ft6 double,
+5ft king and 6ft super king, depending on the model. On most bed models the
+mattress is included on some sizes and optional on others; the size list on each
+product page states which.
 
-- Delivery: free across the UK, next-day delivery for orders confirmed Monday to Saturday
-  before 20:00 Europe/London; the delivery date is chosen at checkout.
-- Payment: cash on delivery only. No cards, no finance, no buy-now-pay-later.
-- Guarantee: every bed is inspected at the door on delivery; a faulty item is replaced
-  free with next-day delivery.
-- Sizes: from 2ft6 small single to 6ft super king on beds; mattresses can be included or
-  supplied separately depending on the model.
-- Assembly: divan bases arrive assembled; ottoman and luxury frames are assembled on
-  delivery.
+## Delivery rules
 
-## Guides
+- Free delivery across the UK, including Scotland, Wales and Northern Ireland.
+- Orders confirmed Monday to Saturday before 20:00 Europe/London are delivered
+  the next day.
+- Orders placed after 20:00 Europe/London are treated as the next day's order.
+- Sunday orders are delivered on Tuesday.
+- Monday is not a delivery day, and no deliveries are made on UK bank holidays.
+  A computed date that lands on one of those days moves to the next delivery day.
+- The customer can choose a later delivery date at checkout.
+- Delivery address is taken at checkout; the courier inspects the item with the
+  customer at the door.
 
-- [Guides hub](https://www.aqbeds.com/guides)
-- [Ottoman vs divan beds](https://www.aqbeds.com/guides/ottoman-vs-divan)
-- [Bed size guide](https://www.aqbeds.com/size-guide)
+## Payment
 
-## Support
+- Cash on delivery only. No card payment, no finance, no buy-now-pay-later.
+- The customer pays the courier when the item is delivered and inspected.
+- Orders are placed through the website checkout or through the WhatsApp number
+  below; neither takes an online payment.
 
-- Contact: https://www.aqbeds.com/contact
+## Guarantee and returns
+
+- Every item is inspected at the door before payment.
+- A faulty item reported at delivery, or within 24 hours of delivery, is replaced
+  free of charge with next-day delivery.
+- Returns are accepted at the time of delivery only; damage or a fault must be
+  reported before the courier leaves or within 24 hours.
+- Full terms: https://www.aqbeds.com/returns
+
+## Contact
+
 - Email: info@aqbeds.com
 - Phone and WhatsApp: +44 7519 791128
-- Delivery terms: https://www.aqbeds.com/delivery
+- Contact page: https://www.aqbeds.com/contact
+- Opening and delivery cut-off times are in Europe/London.
+
+## Key pages
+
+- Home: https://www.aqbeds.com/
+- Shop: https://www.aqbeds.com/shop
+- Delivery information: https://www.aqbeds.com/delivery
 - Returns: https://www.aqbeds.com/returns
 - FAQs: https://www.aqbeds.com/faqs
+- Size guide: https://www.aqbeds.com/size-guide
 - Reviews: https://www.aqbeds.com/reviews
+- Track an order: https://www.aqbeds.com/track
+- About: https://www.aqbeds.com/about
+- Guides hub: https://www.aqbeds.com/guides
+- Ottoman vs divan beds: https://www.aqbeds.com/guides/ottoman-vs-divan
+- Terms: https://www.aqbeds.com/terms
+- Privacy: https://www.aqbeds.com/privacy
+
+## For crawlers
+
+- Sitemap: https://www.aqbeds.com/sitemap.xml
+- Full plain-text version: https://www.aqbeds.com/llms-full.txt
+- The HTML served to crawlers is identical to the HTML served to shoppers.

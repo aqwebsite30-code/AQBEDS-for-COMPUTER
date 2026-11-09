@@ -17,12 +17,20 @@ import { useCart, useUI, useWishlist } from "@/features/cart/store/cart";
 import { ProductCard } from "@/features/products/components/ProductCard";
 import { ReviewCard } from "@/components/reviews/ReviewCard";
 import {
+  CitableFacts,
+  COVERAGE_FACT,
+  DELIVERY_FACT,
+  GUARANTEE_FACT,
+  PAYMENT_FACT,
+  materialsFact,
+  mattressFact,
+  sizeNames,
+} from "@/components/seo/CitableFacts";
+import {
   REVIEW_AVG_LABEL,
   REVIEW_COUNT,
   REVIEW_HIGHLIGHT,
   TOP_REVIEWS,
-  aggregateRatingJsonLd,
-  reviewsJsonLd,
 } from "@/lib/reviews";
 import {
   Truck,
@@ -178,8 +186,30 @@ export const Route = createFileRoute("/product/$slug")({
               description: loaderData.product.description,
               image: `https://www.aqbeds.com${loaderData.product.images[0]}`,
               brand: { "@type": "Brand", name: "AQ Beds" },
-              aggregateRating: aggregateRatingJsonLd(),
-              review: reviewsJsonLd(TOP_REVIEWS),
+              // J4 — the rating object must sit directly on the Product. Passing
+              // aggregateRatingJsonLd() here embedded a whole LocalBusiness as the
+              // aggregateRating, which made the Product invalid.
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: REVIEW_AVG_LABEL,
+                reviewCount: REVIEW_COUNT,
+                bestRating: "5",
+                worstRating: "1",
+              },
+              // Reviews attach to this Product, so they carry no itemReviewed
+              // of their own and no nested @context.
+              review: TOP_REVIEWS.map((r) => ({
+                "@type": "Review",
+                author: { "@type": "Person", name: r.author },
+                datePublished: r.date,
+                reviewRating: {
+                  "@type": "Rating",
+                  ratingValue: r.rating,
+                  bestRating: "5",
+                  worstRating: "1",
+                },
+                reviewBody: r.body,
+              })),
               offers: {
                 "@type": "Offer",
                 price: loaderData.product.basePrice,
@@ -189,31 +219,51 @@ export const Route = createFileRoute("/product/$slug")({
                     ? "https://schema.org/InStock"
                     : "https://schema.org/OutOfStock",
                 url: `https://www.aqbeds.com/product/${loaderData.product.slug}`,
+                // J4 — mirrors the delivery engine: Mon–Sat before 20:00 UK
+                // arrives next day, Sunday orders arrive Tuesday, Monday and
+                // bank holidays are not delivery days (hence 1–2 days).
+                shippingDetails: {
+                  "@type": "OfferShippingDetails",
+                  shippingRate: {
+                    "@type": "MonetaryAmount",
+                    value: 0,
+                    currency: "GBP",
+                  },
+                  shippingDestination: {
+                    "@type": "DefinedRegion",
+                    addressCountry: "GB",
+                  },
+                  deliveryTime: {
+                    "@type": "ShippingDeliveryTime",
+                    handlingTime: {
+                      "@type": "QuantitativeValue",
+                      minValue: 0,
+                      maxValue: 1,
+                      unitCode: "DAY",
+                    },
+                    transitTime: {
+                      "@type": "QuantitativeValue",
+                      minValue: 1,
+                      maxValue: 2,
+                      unitCode: "DAY",
+                    },
+                  },
+                },
+                // J4 — mirrors /returns: returns are handled at the door, and a
+                // fault is replaced free rather than refunded by post.
+                hasMerchantReturnPolicy: {
+                  "@type": "MerchantReturnPolicy",
+                  applicableCountry: "GB",
+                  returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
+                  returnMethod: "https://schema.org/ReturnAtKiosk",
+                  returnPolicyDescription:
+                    "Returns are accepted at the time of delivery only: inspect the item before the courier leaves. A fault reported at delivery, or within 24 hours, is replaced free with next-day delivery.",
+                },
               },
             }),
           },
-          {
-            type: "application/ld+json",
-            children: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "BreadcrumbList",
-              itemListElement: [
-                { "@type": "ListItem", position: 1, name: "Home", item: "https://www.aqbeds.com/" },
-                {
-                  "@type": "ListItem",
-                  position: 2,
-                  name: "Shop",
-                  item: "https://www.aqbeds.com/shop",
-                },
-                {
-                  "@type": "ListItem",
-                  position: 3,
-                  name: loaderData.product.name,
-                  item: `https://www.aqbeds.com/product/${loaderData.product.slug}`,
-                },
-              ],
-            }),
-          },
+          // BreadcrumbList now comes from the site-wide <Breadcrumbs /> in
+          // __root.tsx (Phase J3), so it is emitted exactly once per page.
         ]
       : [],
   }),
@@ -866,6 +916,23 @@ function ProductPage() {
               </div>
             </div>
             <p className="mt-4 text-muted-foreground leading-relaxed">{product.description}</p>
+
+            {/* J6 — citable facts, plain sentences an AI system can quote. */}
+            <CitableFacts
+              facts={[
+                ...(sizeNames(product.sizes).length
+                  ? [{ label: "Sizes", value: sizeNames(product.sizes).join(", ") }]
+                  : []),
+                ...(mattressFact(product.sizes)
+                  ? [{ label: "Mattress", value: mattressFact(product.sizes) as string }]
+                  : []),
+                { label: "Materials", value: materialsFact(product.category) },
+                { label: "Delivery", value: DELIVERY_FACT },
+                { label: "Payment", value: PAYMENT_FACT },
+                { label: "Guarantee", value: GUARANTEE_FACT },
+                { label: "Coverage", value: COVERAGE_FACT },
+              ]}
+            />
 
             {/* Options mapping here */}
             {isSofa ? (
