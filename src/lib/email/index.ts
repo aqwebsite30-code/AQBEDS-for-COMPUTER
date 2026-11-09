@@ -27,6 +27,8 @@ function escapeHtml(text: string): string {
 }
 
 interface OrderEmailData {
+  // Short human-readable reference shown in both subjects and both bodies.
+  orderNumber?: string;
   customer: {
     name: string;
     email: string;
@@ -51,6 +53,8 @@ export const sendOrderEmail = createServerFn({ method: "POST" }).handler(async (
     const NOTIFICATION_EMAIL = "info@aqbeds.com";
     const data = ctx?.data || ctx;
     const { customer, items, total: clientTotal } = data;
+    const orderRef = typeof data.orderNumber === "string" ? data.orderNumber.trim() : "";
+    const safeRef = orderRef ? escapeHtml(orderRef) : "";
 
     // Escape user input
     const safeCustomer = {
@@ -96,7 +100,9 @@ export const sendOrderEmail = createServerFn({ method: "POST" }).handler(async (
     const adminResponse = await resend.emails.send({
       from: SENDER,
       to: [NOTIFICATION_EMAIL],
-      subject: `New Order from ${safeCustomer.name}`,
+      subject: orderRef
+        ? `New order ${orderRef} from ${safeCustomer.name}`
+        : `New Order from ${safeCustomer.name}`,
       html: `
           <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; color: #333; background-color: #f9fafb; padding: 20px;">
             <div style="background: #000; padding: 40px 20px; text-align: center; border-radius: 16px 16px 0 0; border-bottom: 4px solid #2563eb;">
@@ -108,6 +114,11 @@ export const sendOrderEmail = createServerFn({ method: "POST" }).handler(async (
               
               <div style="margin-bottom: 35px;">
                 <h2 style="font-size: 20px; margin: 0 0 20px; color: #111; border-left: 4px solid #2563eb; padding-left: 15px;">Customer Information</h2>
+                ${
+                  safeRef
+                    ? `<p style="margin: 0 0 16px; font-size: 15px; color: #111;">Order reference: <strong style="letter-spacing: 1px;">${safeRef}</strong></p>`
+                    : ""
+                }
                 <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #f1f5f9;">
                   <table style="width: 100%; border-collapse: collapse;">
                     <tr>
@@ -173,7 +184,9 @@ export const sendOrderEmail = createServerFn({ method: "POST" }).handler(async (
       const customerResponse = await resend.emails.send({
         from: SENDER,
         to: [safeCustomer.email],
-        subject: `Your AQ Beds Order Confirmation — Thank You!`,
+        subject: orderRef
+          ? `Your AQ Beds order ${orderRef} is confirmed`
+          : `Your AQ Beds Order Confirmation — Thank You!`,
         html: `
             <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; color: #333; background-color: #f9fafb; padding: 20px;">
               <div style="background: #000; padding: 40px 20px; text-align: center; border-radius: 16px 16px 0 0; border-bottom: 4px solid #2563eb;">
@@ -184,6 +197,11 @@ export const sendOrderEmail = createServerFn({ method: "POST" }).handler(async (
               <div style="padding: 40px; background: #fff; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 16px 16px; shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 <div style="text-align: center; margin-bottom: 35px;">
                   <h2 style="font-size: 24px; margin: 0 0 10px; color: #111;">Thank You!</h2>
+                  ${
+                    safeRef
+                      ? `<p style="margin: 0 0 6px; color: #111; font-size: 15px;">Your order number is <strong style="letter-spacing: 1px;">${safeRef}</strong></p>`
+                      : ""
+                  }
                   <p style="color: #64748b; font-size: 16px; margin: 0;">We've received your order, <strong>${safeCustomer.name}</strong>.</p>
                   <p style="color: #64748b; font-size: 14px; margin-top: 5px;">Your premium sleep journey begins today.</p>
                 </div>

@@ -60,6 +60,7 @@ model Order {
   items           String        // JSON string of cart items
   instructions    String?
   status          String        @default("pending")
+  reference       String?       @unique // short human-readable order reference, e.g. AQ-7K2M9P
   total           Float
   salespersonId   String?
   salesperson     Salesperson?  @relation(fields: [salespersonId], references: [id])

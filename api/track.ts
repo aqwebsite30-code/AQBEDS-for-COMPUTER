@@ -1,9 +1,8 @@
+// Self-contained on purpose: this file runs as a Vercel function, and relative
+// imports into src/ are not bundled on the ESM path (the function crashed with
+// ERR_MODULE_NOT_FOUND). The client derives the delivery estimate from the same
+// engine the site uses, so no delivery policy is duplicated here.
 import { PrismaClient } from "@prisma/client";
-import {
-  formatDeliveryDate,
-  getDeliveryInfo,
-  isDeliveryDay,
-} from "../src/lib/delivery-date";
 
 const prisma = new PrismaClient();
 
@@ -68,7 +67,12 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const token = typeof req.query?.token === "string" ? req.query.token.trim() : "";
+  const token =
+    typeof req.query?.token === "string"
+      ? req.query.token.trim()
+      : typeof req.query?.reference === "string"
+        ? req.query.reference.trim()
+        : "";
   if (!token) {
     jsonResponse(res, 400, { success: false, error: "Token parameter required" });
     return;
@@ -76,10 +80,18 @@ export default async function handler(req: any, res: any) {
 
   try {
     const order = await prisma.order.findFirst({
-      // Checkout links new orders with the order id; older confirmation links use
-      // the stored tracking token. Accept either so both keep working.
-      where: { OR: [{ trackingToken: token }, { id: token }] },
+      // Checkout links new orders with the short reference (AQ-7K2M9P); older
+      // confirmation links carry the order id or the stored tracking token.
+      // Accept all three so past emails and bookmarks keep working.
+      where: {
+        OR: [
+          { reference: token.toUpperCase() },
+          { trackingToken: token },
+          { id: token },
+        ],
+      },
       select: {
+        reference: true,
         status: true,
         createdAt: true,
         customerName: true,
@@ -94,20 +106,15 @@ export default async function handler(req: any, res: any) {
       return;
     }
 
-    const preferred =
-      order.preferredDeliveryDate && isDeliveryDay(order.preferredDeliveryDate)
-        ? order.preferredDeliveryDate
-        : null;
-    const estimatedISO = preferred ?? getDeliveryInfo(order.createdAt).defaultDate.iso;
-
     jsonResponse(res, 200, {
       success: true,
+      reference: order.reference,
       status: order.status,
       createdAt: order.createdAt.toISOString(),
       firstName: (order.customerName || "").trim().split(/\s+/)[0] || "",
       postcode: partialPostcode(order.customerAddress || ""),
       itemsCount: itemCount(order.items),
-      estimatedDeliveryDate: formatDeliveryDate(estimatedISO),
+      preferredDeliveryDate: order.preferredDeliveryDate,
     });
   } catch (error) {
     console.error("Error fetching order:", error);

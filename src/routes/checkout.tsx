@@ -28,7 +28,12 @@ import { isSelectableDeliveryDate } from "@/lib/delivery-date";
 import { useDeliveryInfo } from "@/hooks/useDeliveryInfo";
 import { OrderSummary } from "@/components/checkout/OrderSummary";
 import { REVIEW_AVG_LABEL, REVIEW_COUNT } from "@/lib/reviews";
-import { CONSENT_EVENT, CONSENT_KEY } from "@/lib/consent";
+import {
+  trackBeginCheckout,
+  trackCheckoutError,
+  trackGenerateLead,
+  trackPurchase,
+} from "@/lib/gtm";
 import {
   buildOrderMessage,
   missingCustomerFields,
@@ -72,22 +77,6 @@ async function sendOrderEmailWithRetry(payload: any, orderId: string) {
 function CheckoutPage() {
   const { items, total, clear } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // The cookie card owns the bottom of the screen until the visitor chooses.
-  // The mobile sticky CTA only appears once that choice is made, so the two
-  // can never overlap.
-  const [consentDecided, setConsentDecided] = useState(false);
-  useEffect(() => {
-    const sync = () => {
-      try {
-        setConsentDecided(Boolean(localStorage.getItem(CONSENT_KEY)));
-      } catch {
-        setConsentDecided(false);
-      }
-    };
-    sync();
-    window.addEventListener(CONSENT_EVENT, sync);
-    return () => window.removeEventListener(CONSENT_EVENT, sync);
-  }, []);
   const [placed, setPlaced] = useState(false);
   const [whatsappUrl, setWhatsappUrl] = useState("");
   // T1 — shared delivery engine (live countdown + T1 default date).
@@ -98,11 +87,28 @@ function CheckoutPage() {
   const [waMissing, setWaMissing] = useState<string[]>([]);
   // Section 4 — order id used for the /track link (confirmation + WhatsApp message).
   const [placedToken, setPlacedToken] = useState("");
+  const [placedReference, setPlacedReference] = useState("");
   // Shown when a browser blocks the WhatsApp popup: the customer gets a
   // visible, copyable link instead of a button that silently does nothing.
   const [waBlocked, setWaBlocked] = useState(false);
   const purchaseFired = useRef(false);
+  const beginCheckoutFired = useRef(false);
   const checkoutEventId = useRef<string>("");
+
+  // GA4 begin_checkout: fires once, after the cart has rehydrated. The helper is
+  // consent-gated, so an unaccepted visitor generates no dataLayer entry at all.
+  useEffect(() => {
+    if (beginCheckoutFired.current || items.length === 0) return;
+    beginCheckoutFired.current = true;
+    trackBeginCheckout(
+      items.map((i) => ({
+        item_id: String(i.productId),
+        item_name: i.name,
+        price: i.unitPrice,
+        quantity: i.qty,
+      })),
+    );
+  }, [items]);
 
   useEffect(() => {
     setSecure(window.location.protocol === "https:");
@@ -245,12 +251,18 @@ function CheckoutPage() {
         throw new Error(orderResult?.error || "Order save returned no order id");
       }
       const orderId = orderResult.orderId;
+      // Short quotable reference (AQ-7K2M9P) printed on the confirmation, sent in
+      // both emails and used as the tracking key. Falls back to the old id slice
+      // only if an older API response has no reference.
+      const orderReference =
+        (orderResult as { reference?: string }).reference ||
+        `AQ-${orderId.slice(0, 6).toUpperCase()}`;
 
       // 2. Send Email via Resend
       const emailPayload: any = {
         data: {
           orderId,
-          orderNumber: orderId ? `#${orderId.slice(0, 8).toUpperCase()}` : "",
+          orderNumber: orderReference,
           customer: {
             ...customer,
             country: formData.get("country") as string,
@@ -272,7 +284,7 @@ function CheckoutPage() {
       void sendOrderEmailWithRetry(emailPayload, orderId);
 
       // 3. Prepare WhatsApp message with order number (opened manually by customer)
-      const orderNumber = orderId ? `#${orderId.slice(0, 8).toUpperCase()}` : "";
+      const orderNumber = orderReference;
       const waDetails: CustomerDetails = {
         name: customer.name,
         phone: customer.phone,
@@ -301,10 +313,13 @@ function CheckoutPage() {
           },
         ) +
         // Section 4 — order reply carries a personal track link once the id exists.
-        (orderId ? `\n\nTrack your order: https://www.aqbeds.com/track?token=${orderId}` : "");
+        (orderId
+          ? `\n\nTrack your order: https://www.aqbeds.com/track?token=${encodeURIComponent(orderReference)}`
+          : "");
       const waUrl = `https://wa.me/${WHATSAPP_NUMBER.replace(/\+/g, "")}?text=${encodeURIComponent(message)}`;
 
-      setPlacedToken(orderId);
+      setPlacedToken(orderReference);
+      setPlacedReference(orderReference);
       setWhatsappUrl(waUrl);
       setPlaced(true);
       if (!purchaseFired.current) {
@@ -327,6 +342,18 @@ function CheckoutPage() {
           value: total(),
           productName: `${items.length} item(s)`,
         });
+        // GA4 purchase — once per order, transaction_id is the short reference
+        // printed on screen and in both emails.
+        trackPurchase(
+          orderReference,
+          items.map((i) => ({
+            item_id: String(i.productId),
+            item_name: i.name,
+            price: i.unitPrice,
+            quantity: i.qty,
+          })),
+          total(),
+        );
       }
       clear();
     } catch (err) {
@@ -350,6 +377,8 @@ function CheckoutPage() {
 
   const highlightMissing = (missing: (keyof CustomerDetails)[]) => {
     const toInputName = (key: keyof CustomerDetails) => (key === "address" ? "addr1" : key);
+    // Field name only — never what the visitor typed.
+    trackCheckoutError(toInputName(missing[0]) || "unknown");
     setWaMissing(missing.map(toInputName));
     const first = document.querySelector<HTMLInputElement>(`[name="${toInputName(missing[0])}"]`);
     if (first) {
@@ -388,6 +417,7 @@ function CheckoutPage() {
       preferredDeliveryDate: preferredDate || undefined,
       source: "checkout",
     });
+    trackGenerateLead("whatsapp_preorder");
     return true;
   };
 
@@ -403,7 +433,17 @@ function CheckoutPage() {
 
       <h1 className="font-display font-bold text-3xl sm:text-4xl">Checkout</h1>
 
-      <form id="checkout-form" onSubmit={placeOrder} className="grid lg:grid-cols-[1fr_380px] gap-8 mt-6">
+      <form
+        id="checkout-form"
+        onSubmit={placeOrder}
+        // Native validation blocks submit before onSubmit runs; capture the invalid
+        // field name for the checkout_error event (name only, never the value).
+        onInvalidCapture={(event) => {
+          const field = (event.target as HTMLInputElement | null)?.name;
+          if (field) trackCheckoutError(field);
+        }}
+        className="grid lg:grid-cols-[1fr_380px] gap-8 mt-6"
+      >
         <div className="space-y-8">
           {/* C1 — progress steps at top of form */}
           <div className="rounded-2xl border border-brand/15 bg-brand/[0.04] px-5 py-4">
@@ -628,24 +668,30 @@ function CheckoutPage() {
 
       {/* Mobile sticky CTA — the form is long, so the primary action and the
           pay-at-door guarantee stay reachable without scrolling on phones.
-          Desktop keeps the in-flow buttons only. Hidden until the cookie card
-          is dismissed so the two never overlap; the WhatsApp bubble sits at
-          bottom-20 and its 56px height clears this 76px bar. */}
-      {consentDecided && (
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-[55] border-t border-border bg-card/98 backdrop-blur px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(0,0,0,0.10)]">
-          <p className="mb-1.5 text-center text-[10px] font-bold leading-tight text-whatsapp">
-            Pay cash at your door · Inspect before you pay · Free next-day replacement
-          </p>
-          <button
-            type="submit"
-            form="checkout-form"
-            disabled={isSubmitting}
-            className="w-full h-11 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-base shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Place Order"}
-          </button>
-        </div>
-      )}
+          Consent gates tracking, never the ability to buy: this bar is always
+          rendered. The cookie card lifts itself to bottom-[104px] on /checkout
+          so the two never overlap. */}
+      {/* Portalled to body: inside the page wrapper (animate-fade-in creates a
+          stacking context) the footer painted over the bar, so the button was
+          visible in the layout but untappable. */}
+      {typeof document !== "undefined"
+        ? createPortal(
+            <div className="lg:hidden fixed bottom-0 inset-x-0 z-[70] border-t border-border bg-card/98 backdrop-blur px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(0,0,0,0.10)]">
+              <p className="mb-1.5 text-center text-[10px] font-bold leading-tight text-whatsapp">
+                Pay cash at your door · Inspect before you pay · Free next-day replacement
+              </p>
+              <button
+                type="submit"
+                form="checkout-form"
+                disabled={isSubmitting}
+                className="w-full h-11 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-base shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Place Order"}
+              </button>
+            </div>,
+            document.body,
+          )
+        : null}
 
       {placed && typeof document !== "undefined"
         ? createPortal(
@@ -694,6 +740,23 @@ function CheckoutPage() {
                       </p>
                     </div>
 
+                    {placedReference && (
+                      <div className="w-full rounded-2xl border border-white/25 bg-white/10 px-5 py-4">
+                        <p className="text-white/60 text-[11px] font-semibold uppercase tracking-[0.2em]">
+                          Your order number
+                        </p>
+                        <p
+                          className="mt-1 font-display text-2xl font-bold tracking-[0.12em] text-white"
+                          data-testid="order-reference"
+                        >
+                          {placedReference}
+                        </p>
+                        <p className="mt-1 text-white/60 text-xs">
+                          Quote this number on WhatsApp or when you track your order.
+                        </p>
+                      </div>
+                    )}
+
                     <div className="w-full h-px bg-white/10" />
 
                     <div className="space-y-4 w-full">
@@ -726,6 +789,7 @@ function CheckoutPage() {
                         target="_blank"
                         rel="noreferrer"
                         onClick={(event) => {
+                          trackGenerateLead("whatsapp_confirmation");
                           // Try a new tab first; if the browser blocks it, keep
                           // the customer here and reveal the fallback link.
                           const popup = window.open(whatsappUrl, "_blank", "noopener,noreferrer");

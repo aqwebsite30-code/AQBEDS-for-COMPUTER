@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { useCart } from "@/features/cart/store/cart";
 import { CONSENT_EVENT, CONSENT_KEY, loadGtm, loadMetaPixel, updateConsent } from "@/lib/consent";
 
@@ -11,6 +11,10 @@ export default function CookieConsent() {
   // The sticky mobile basket bar sits at the bottom on phones; lift the consent
   // card above it so neither the card's buttons nor the basket bar overlap.
   const cartCount = useCart((s) => s.count());
+  // Checkout has its own sticky Place Order bar (always visible, never gated on
+  // consent), and it is taller than the basket bar: 92px. The card clears it so
+  // a visitor can read the consent choices and still tap Place Order.
+  const onCheckout = useLocation({ select: (l) => l.pathname === "/checkout" });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -49,8 +53,8 @@ export default function CookieConsent() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 28 }}
-          className={`fixed left-0 right-0 z-50 p-4 sm:bottom-0 sm:p-6 ${
-            cartCount > 0 ? "bottom-[76px]" : "bottom-0"
+          className={`fixed left-0 right-0 z-50 p-4 sm:p-6 ${
+            onCheckout ? "bottom-[104px]" : cartCount > 0 ? "bottom-[76px]" : "bottom-0"
           }`}
         >
           <div className="mx-auto max-w-3xl bg-card border border-border rounded-2xl shadow-2xl shadow-black/20 p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">

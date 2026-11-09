@@ -75,6 +75,59 @@ Branch: `seo-build` (local only, not pushed). Production untouched; the owner ru
 - Preview deployment Ready: https://aqbeds-hwtu9kjho-abdulraheem1.vercel.app (`/shop`,
   `/guides`, product titles and `/checkout` checked through `vercel curl`).
 
+## Final patch (P0-P4)
+
+Preview: https://aqbeds-gq99xy71x-abdulraheem1.vercel.app (deployment `gq99xy71x`, Ready).
+Commit: the single patch commit on `seo-build` recorded in the run report.
+
+### P0 — order table cleanup (conditional approval)
+
+- Deleted **18** rows: name or email matched test/mock/proof/demo/sample **and** status was
+  not Delivered, with no real postcode and no real-looking email.
+- Excluded **1** row: `08E4F8DB "test" test@gmail.com £185 pending` — the address is a
+  valid mailbox format, so it was left for the owner to confirm rather than guessed at.
+- Rows before **43**, after **25**. Mary `AQ-M2EZYE` (£220, delivered) and Joseph
+  `AQ-KX3RZ5` (£190, delivered) untouched. Evidence: `docs/deleted-test-orders.csv` now
+  carries a decision and reason per row.
+
+### P1 — order reference
+
+- New `Order.reference` column, `AQ-` + 6 characters from an unambiguous alphabet
+  (no 0/O/1/I/L), unique, generated with Web Crypto and retried on collision. Existing 25
+  rows backfilled; the reference is never derived from the database id.
+- Shown as "Your order number" on the confirmation, in both email subjects and bodies, in
+  the WhatsApp message, and on `/track` (lookup accepts reference, tracking token or id).
+- Email subject lines: customer `Your AQ Beds order AQ-XXXXXX is confirmed`; owner
+  `New order AQ-XXXXXX from <name>`.
+- Proof: confirmation captured at 375px (`tmp/shots/p1-confirmation-375.png`) showing
+  `AQ-AMGRX8`; the row saved with the same reference; purchase `transaction_id` equals it.
+- Note: email delivery itself could not be verified locally — `RESEND_API_KEY` is set only
+  for Preview and Production. The send failure was logged and did not block the order.
+- `/api/track` was returning 500 on every deployment: the ESM function imported
+  `../src/lib/delivery-date`, which Vercel does not bundle, so `/track` never worked in
+  production. The function is now self-contained and returns the reference plus the raw
+  inputs; the page derives the delivery date from the same engine the rest of the site uses.
+  Verified on the preview: `?token=AQ-M2EZYE` and `?token=aq-kx3rz5` both return the order.
+
+### P2 — sticky CTA independent of consent
+
+The bar was gated on a cookie choice. It is now always rendered, and the consent card lifts
+itself to `bottom-[104px]` on `/checkout` so neither covers the other. It is also portalled
+to `document.body`: inside the page wrapper (`animate-fade-in` creates a stacking context)
+the footer painted over the bar, so the button was in view but untappable. At 375px with no
+consent stored: banner box bottom 740, Place Order button 792-836, `elementFromPoint` returns
+the button itself, `tappable: true`. Screenshot `tmp/shots/p2-consent-bar-375.png`.
+
+### P3 — GA4 ecommerce dataLayer
+
+`src/lib/gtm.ts` pushes standard GA4 ecommerce events, gated on `aq_cookie_consent ===
+"accepted"`. Before Accept the dataLayer contains no event entries at all. After Accept the
+same session produced, in order: `view_item`, `add_to_cart`, `begin_checkout`,
+`checkout_error` (field name only, never the value), one `purchase` with
+`transaction_id: AQ-AMGRX8`, `value: 185`, `currency: GBP`, and `generate_lead` on the
+WhatsApp button. A double click on Place Order still produced exactly one purchase event and
+one order row.
+
 ### Known defects found, not fixed
 
 - No GA4 tag inside container `GTM-K8P8CZL6`, and the app pushes no ecommerce events to

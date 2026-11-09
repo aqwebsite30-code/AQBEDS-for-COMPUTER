@@ -1,20 +1,20 @@
-id,name,email,total,date,status,rule,action
-8344cc1e-a840-4022-9f53-d5789d017bc6,"9/17Test","9/17Test@gmail",220.00,2026-09-17,pending,"a: name contains test/mock/proof/demo/sample | a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-08e4f8db-6929-4e58-963e-c2676695beae,"test","test@gmail.com",185.00,2026-09-19,pending,"a: name contains test/mock/proof/demo/sample | a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-ab0f40de-37c1-48a1-babb-8a2270c8b92f,"test","test@g",1655.00,2026-09-19,pending,"a: name contains test/mock/proof/demo/sample | a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-89424437-6509-414e-8496-8d7b94c8c593,"test","test@g",360.00,2026-09-19,pending,"a: name contains test/mock/proof/demo/sample | a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-f2e5f60b-7781-4f6f-832c-6d2475a46ddd,"abdul","test@gmil",315.00,2026-09-20,pending,"a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-e4af309e-d881-4530-849f-e71071649342,"test","test@ad",185.00,2026-09-20,pending,"a: name contains test/mock/proof/demo/sample | a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-c91d009f-1bae-4d41-9aa6-f9d0f4c01a69,"test","test@gmail",185.00,2026-09-20,pending,"a: name contains test/mock/proof/demo/sample | a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-f15f4b78-599d-40af-92e8-c654d3bf7214,"test","test@test",649.00,2026-10-01,pending,"a: name contains test/mock/proof/demo/sample | a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-c698a1fb-81c4-4251-946c-434e698207ab,"5:07","test@t",185.00,2026-10-03,pending,"a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-af7e2478-165e-45b1-9749-97bc0095f0ae,"5:53","test@t",165.00,2026-10-07,pending,"a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-bf86fac0-7ae4-4ecb-b99f-5ad2497a940b,"5:18","test@gmail",185.00,2026-10-08,pending,"a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-ee8c75e4-5987-4d81-a0ed-160771c939b1,"5:37","test@gmail",740.00,2026-10-13,pending,"a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-1bfc7112-ff79-4345-82a8-cc4f51c1d4c4,"12:45","test@gmil",185.00,2026-10-15,pending,"a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-dc549de4-2a58-46e3-8c96-869960c469b3,"10:51","test@gmil",185.00,2026-10-16,pending,"a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-d7552d4b-811f-419a-8118-08afbe50235c,"test","test@test",555.00,2026-10-17,pending,"a: name contains test/mock/proof/demo/sample | a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-7bbc1271-9906-4ac0-ba62-584f1b47d462,"5:42","test@gmail",395.00,2026-10-17,pending,"a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-24c7f721-f154-41ec-900b-7cc158fd7eb0,"3:02","test@g",980.00,2026-10-18,pending,"a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-fb468ad0-9782-4fae-bf01-d47a8f2633c7,"12:3","test@gmil",185.00,2026-11-01,pending,"a: email contains test/mock/proof/demo/sample",kept-over-10-rule
-dfb9e7cc-6207-4194-8864-1d825b5ba426,"test","test@gmil",190.00,2026-11-03,pending,"a: name contains test/mock/proof/demo/sample | a: email contains test/mock/proof/demo/sample",kept-over-10-rule
+id,name,email,total,date,status,decision,reason
+8344cc1e-a840-4022-9f53-d5789d017bc6,"9/17Test","9/17Test@gmail",220.00,2026-09-17,pending,deleted,pattern match, not delivered, no real postcode, fake email
+ab0f40de-37c1-48a1-babb-8a2270c8b92f,"test","test@g",1655.00,2026-09-19,pending,deleted,pattern match, not delivered, no real postcode, fake email
+89424437-6509-414e-8496-8d7b94c8c593,"test","test@g",360.00,2026-09-19,pending,deleted,pattern match, not delivered, no real postcode, fake email
+f2e5f60b-7781-4f6f-832c-6d2475a46ddd,"abdul","test@gmil",315.00,2026-09-20,pending,deleted,pattern match, not delivered, no real postcode, fake email
+e4af309e-d881-4530-849f-e71071649342,"test","test@ad",185.00,2026-09-20,pending,deleted,pattern match, not delivered, no real postcode, fake email
+c91d009f-1bae-4d41-9aa6-f9d0f4c01a69,"test","test@gmail",185.00,2026-09-20,pending,deleted,pattern match, not delivered, no real postcode, fake email
+f15f4b78-599d-40af-92e8-c654d3bf7214,"test","test@test",649.00,2026-10-01,pending,deleted,pattern match, not delivered, no real postcode, fake email
+c698a1fb-81c4-4251-946c-434e698207ab,"5:07","test@t",185.00,2026-10-03,pending,deleted,pattern match, not delivered, no real postcode, fake email
+af7e2478-165e-45b1-9749-97bc0095f0ae,"5:53","test@t",165.00,2026-10-07,pending,deleted,pattern match, not delivered, no real postcode, fake email
+bf86fac0-7ae4-4ecb-b99f-5ad2497a940b,"5:18","test@gmail",185.00,2026-10-08,pending,deleted,pattern match, not delivered, no real postcode, fake email
+ee8c75e4-5987-4d81-a0ed-160771c939b1,"5:37","test@gmail",740.00,2026-10-13,pending,deleted,pattern match, not delivered, no real postcode, fake email
+1bfc7112-ff79-4345-82a8-cc4f51c1d4c4,"12:45","test@gmil",185.00,2026-10-15,pending,deleted,pattern match, not delivered, no real postcode, fake email
+dc549de4-2a58-46e3-8c96-869960c469b3,"10:51","test@gmil",185.00,2026-10-16,pending,deleted,pattern match, not delivered, no real postcode, fake email
+d7552d4b-811f-419a-8118-08afbe50235c,"test","test@test",555.00,2026-10-17,pending,deleted,pattern match, not delivered, no real postcode, fake email
+7bbc1271-9906-4ac0-ba62-584f1b47d462,"5:42","test@gmail",395.00,2026-10-17,pending,deleted,pattern match, not delivered, no real postcode, fake email
+24c7f721-f154-41ec-900b-7cc158fd7eb0,"3:02","test@g",980.00,2026-10-18,pending,deleted,pattern match, not delivered, no real postcode, fake email
+fb468ad0-9782-4fae-bf01-d47a8f2633c7,"12:3","test@gmil",185.00,2026-11-01,pending,deleted,pattern match, not delivered, no real postcode, fake email
+dfb9e7cc-6207-4194-8864-1d825b5ba426,"test","test@gmil",190.00,2026-11-03,pending,deleted,pattern match, not delivered, no real postcode, fake email
+08e4f8db-6929-4e58-963e-c2676695beae,"test","test@gmail.com",185.00,2026-09-19,pending,excluded,"real-looking email (test@gmail.com)"

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { trackPixelWithId, getClientTrackingData } from "@/lib/meta-pixel";
 import { sendAddToCartEvent, sendViewContentEvent } from "@/lib/meta-capi";
 import { trackEvent } from "@/lib/analytics";
+import { trackAddToCart, trackViewItem } from "@/lib/gtm";
 
 import { getProduct, PRODUCTS, DISCOUNT_POSTCODES } from "@/features/products/data/products";
 import productCopy from "@/features/products/data/product-copy.json";
@@ -420,6 +421,15 @@ function ProductPage() {
       productName: product.name,
       value: product.basePrice,
     });
+    // GA4 ecommerce. Consent-gated inside the helper: nothing is pushed before
+    // the visitor accepts, and nothing is retried later.
+    trackViewItem({
+      item_id: product.id,
+      item_name: product.name,
+      price: product.basePrice,
+      quantity: 1,
+      item_category: product.category,
+    });
   }, [product.id]);
 
   const isSofa = product.category === "sofas";
@@ -737,6 +747,15 @@ function ProductPage() {
       productName: product.name,
       value: unitPrice,
     });
+    trackAddToCart([
+      {
+        item_id: product.id,
+        item_name: product.name,
+        price: unitPrice,
+        quantity: qty,
+        item_category: product.category,
+      },
+    ]);
     setCartOpen(true);
   };
 

@@ -11,6 +11,21 @@ function sha256(value: string): string {
   return createHash("sha256").update(value.trim().toLowerCase()).digest("hex");
 }
 
+// Ambiguous characters (0/O, 1/I/L) are left out so a reference read off a phone
+// or typed back by a customer cannot collide with its partner character.
+const REF_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+
+/** Short, quotable order reference: AQ-7K2M9P. Never the database id. */
+export function generateOrderReference(): string {
+  // Web Crypto works in the browser bundle and on Node 18+, so this module stays
+  // importable from client code (crypto.randomBytes is node-only and broke the build).
+  const bytes = new Uint8Array(6);
+  globalThis.crypto.getRandomValues(bytes);
+  let out = "";
+  for (let i = 0; i < 6; i += 1) out += REF_ALPHABET[bytes[i] % REF_ALPHABET.length];
+  return `AQ-${out}`;
+}
+
 /**
  * Fire Purchase CAPI directly from server — bypasses createServerFn entirely.
  * Uses Node.js crypto for hashing and direct fetch to Meta Graph API.
@@ -138,22 +153,34 @@ export const saveOrder = createServerFn({ method: "POST" }).handler(
         if (sp) salespersonId = sp.id;
       }
 
-      const order = await db.order.create({
-        data: {
-          customerName: parsed.customerName,
-          customerEmail: parsed.customerEmail,
-          customerPhone: parsed.customerPhone,
-          customerAddress: parsed.customerAddress,
-          items: parsed.items,
-          instructions: parsed.instructions || null,
-          preferredDeliveryDate: parsed.preferredDeliveryDate || null,
-          total: parsed.total,
-          status: "pending",
-          salespersonId,
-          trackingToken: parsed.trackingToken || null,
-          visitorId: parsed.visitorId || null,
-        },
-      });
+      // A reference collision is vanishingly rare (31^6), but a retry keeps the
+      // unique index honest instead of failing the customer's order.
+      let order: Awaited<ReturnType<typeof db.order.create>> | null = null;
+      for (let attempt = 0; attempt < 4 && !order; attempt += 1) {
+        try {
+          order = await db.order.create({
+            data: {
+              customerName: parsed.customerName,
+              customerEmail: parsed.customerEmail,
+              customerPhone: parsed.customerPhone,
+              customerAddress: parsed.customerAddress,
+              items: parsed.items,
+              instructions: parsed.instructions || null,
+              preferredDeliveryDate: parsed.preferredDeliveryDate || null,
+              total: parsed.total,
+              status: "pending",
+              reference: generateOrderReference(),
+              salespersonId,
+              trackingToken: parsed.trackingToken || null,
+              visitorId: parsed.visitorId || null,
+            },
+          });
+        } catch (err: any) {
+          if (err?.code === "P2002" && attempt < 3) continue;
+          throw err;
+        }
+      }
+      if (!order) throw new Error("could not allocate an order reference");
 
       let orderItems: any[] = [];
       try {
@@ -204,7 +231,7 @@ export const saveOrder = createServerFn({ method: "POST" }).handler(
         test_event_code: parsed.test_event_code || undefined,
       }).catch(() => {});
 
-      return { success: true, orderId: order.id };
+      return { success: true, orderId: order.id, reference: order.reference };
     } catch (err: any) {
       console.error("saveOrder error:", err?.message || err);
       return { success: false, error: err?.message || "unknown error" };

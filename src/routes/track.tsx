@@ -2,15 +2,17 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { CheckCircle2, Loader2, MessageCircle, Truck } from "lucide-react";
 import { WHATSAPP_NUMBER } from "@/lib/utils/format";
+import { formatDeliveryDate, getDeliveryInfo, isDeliveryDay } from "@/lib/delivery-date";
 
 type TrackResult = {
   success: true;
+  reference?: string | null;
   status: string;
   createdAt: string;
   firstName: string;
   postcode: string;
   itemsCount: number;
-  estimatedDeliveryDate: string;
+  preferredDeliveryDate?: string | null;
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -92,6 +94,16 @@ function TrackPage() {
       cancelled = true;
     };
   }, [token]);
+
+  // The delivery date is derived here with the same engine the site uses, so the
+  // API function never has to carry a second copy of the delivery policy.
+  const estimatedDelivery = result
+    ? formatDeliveryDate(
+        result.preferredDeliveryDate && isDeliveryDay(result.preferredDeliveryDate)
+          ? result.preferredDeliveryDate
+          : getDeliveryInfo(new Date(result.createdAt)).defaultDate.iso,
+      )
+    : "";
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -176,6 +188,14 @@ function TrackPage() {
           <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                Order number
+              </dt>
+              <dd className="mt-1 font-display text-base font-bold tracking-[0.08em]">
+                {result.reference || "—"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 Order placed
               </dt>
               <dd className="mt-1">{new Date(result.createdAt).toLocaleDateString("en-GB")}</dd>
@@ -206,7 +226,7 @@ function TrackPage() {
               <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 Estimated delivery
               </p>
-              <p className="mt-1 text-sm font-semibold">{result.estimatedDeliveryDate}</p>
+              <p className="mt-1 text-sm font-semibold">{estimatedDelivery}</p>
             </div>
           </div>
 
