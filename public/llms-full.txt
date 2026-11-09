@@ -2,62 +2,26 @@
 
 Source: https://www.aqbeds.com
 Summary file: https://www.aqbeds.com/llms.txt
-Maintained by hand. Last reviewed: 9 November 2026.
+Generated from the product catalogue on 2026-11-09: 32 products.
 
-This file states what AQ Beds sells, where it delivers, how payment works and
-what happens if an item is faulty. It contains no marketing copy. Prices are not
-reproduced here because they change; the price on the product page is the price
-that applies.
+This file states what AQ Beds sells, where it delivers, how payment works and what
+happens if an item is faulty. It contains no marketing copy.
 
 ## Business
 
 Name: AQ Beds
 Website: https://www.aqbeds.com
-Sells: beds, mattresses supplied with beds, sofas and bedroom furniture, direct
-to customers in the United Kingdom.
-Business model: direct-to-consumer, order online or by WhatsApp, cash paid on
-delivery. There is no showroom address published and none should be inferred.
+Sells: beds, mattresses supplied with beds, sofas and bedroom furniture, direct to
+customers in the United Kingdom.
+Business model: direct-to-consumer, order online or by WhatsApp, cash paid on delivery.
+No showroom address is published and none should be inferred, and no company
+registration number or VAT number is published on this site.
 Contact: info@aqbeds.com · +44 7519 791128 (phone and WhatsApp)
 
-## Catalogue
+## Catalogue (32 products)
 
-### All products
-URL: https://www.aqbeds.com/shop
-Every bed, sofa, wardrobe and bedroom furniture product in one catalogue, with
-filters for size, style and price.
-
-### Ottoman beds
-URL: https://www.aqbeds.com/category/ottoman-beds
-Beds where the whole mattress base lifts on gas struts to reveal a storage
-cavity the full size of the bed. Upholstered in crushed or plush velvet.
-
-### Divan beds
-URL: https://www.aqbeds.com/category/divan-beds
-Divan bases with built-in drawers, in soft-touch or velvet finishes. Drawer
-count is chosen per product. Sizes from 3ft single to 6ft super king.
-
-### Luxury beds
-URL: https://www.aqbeds.com/category/luxury-beds
-Wingback, sleigh and gold-strip detail bed frames.
-
-### Sofas
-URL: https://www.aqbeds.com/category/sofas
-Velvet sofas, sofa beds and corner sets.
-
-### Wardrobes
-URL: https://www.aqbeds.com/category/wardrobes
-Free-standing wardrobes with adjustable rails and shelving, supplied flat-packed.
-
-### Sliding wardrobes
-URL: https://www.aqbeds.com/category/sliding-wardrobes
-Sliding-door wardrobes for rooms where a hinged door will not open, supplied
-flat-packed.
-
-## Product catalogue (all 32 products)
-
-Prices below are the "from" price at the time of review (9 November 2026); the price on
-the product page applies.
-
+Prices are the "from" price at the time this file was generated; the price on each
+product page is authoritative.
 
 ### sofas
 
@@ -111,59 +75,55 @@ the product page applies.
 
 ## Sizes
 
-Bed sizes offered across the range, where the model supports them:
-2ft6 small single, 3ft single, 4ft small double, 4ft6 double, 5ft king,
-6ft super king.
+Bed sizes offered across the range, where the model supports them: 2ft6 small single,
+3ft single, 4ft small double, 4ft6 double, 5ft king, 6ft super king.
 
-Mattresses: on most bed models the mattress is included on some sizes and
-optional on others. Each product page lists the sizes with and without a
-mattress, and the price differs between them.
+Mattresses: on most bed models the mattress is included on some sizes and optional on
+others. Each product page lists the sizes with and without a mattress, and the price
+differs between them.
 
 ## Materials
 
-Frames are built from solid timber and engineered wood. Upholstery options
-across the range are crushed velvet, plush velvet, chenille and soft matte
-finishes, in a fixed colour palette per product shown on the product page.
-Mattress options range from comfort foam to 2000 pocket sprung, with
-orthopaedic options on some models.
+Frames are built from solid timber and engineered wood. Upholstery options across the
+range are crushed velvet, plush velvet, chenille and soft matte finishes, in a fixed
+colour palette per product shown on the product page. Mattress options range from
+comfort foam to 2000 pocket sprung, with orthopaedic options on some models.
 
 ## Delivery
 
 - Cost: free, to any UK address, including Scotland, Wales and Northern Ireland.
-- Cut-off: orders confirmed Monday to Saturday before 20:00 Europe/London are
-  delivered the next day.
-- After the cut-off: an order placed after 20:00 Europe/London counts as the
-  next day's order.
+- Cut-off: orders confirmed Monday to Saturday before 20:00 Europe/London are delivered
+  the next day.
+- After the cut-off: an order placed after 20:00 Europe/London counts as the next day's
+  order.
 - Sunday: orders placed on Sunday are delivered on Tuesday.
 - Non-delivery days: Monday, and UK bank holidays observed in England and Wales,
-  Scotland or Northern Ireland. A date that falls on one of these moves to the
-  next delivery day.
+  Scotland or Northern Ireland. A date that falls on one of these moves to the next
+  delivery day.
 - Choice: the customer can pick a later delivery date at checkout.
 - On the day: the item is inspected with the customer at the door before payment.
 
 ## Payment
 
 - Method: cash on delivery only.
-- Nothing is paid online. The website checkout and the WhatsApp order flow both
-  record the order without taking payment.
+- Nothing is paid online. The website checkout and the WhatsApp order flow both record
+  the order without taking payment.
 - No card payment, no finance and no buy-now-pay-later is offered.
 
 ## Guarantee, returns and faults
 
 - Inspection: every item is inspected at the door before the customer pays.
-- Fault or damage: report it before the courier leaves, or within 24 hours of
-  delivery, and the item is replaced free of charge with next-day delivery.
+- Fault or damage: report it before the courier leaves, or within 24 hours of delivery,
+  and the item is replaced free of charge with next-day delivery.
 - Returns: accepted at the time of delivery only.
 - Contact for a fault: info@aqbeds.com or +44 7519 791128 (WhatsApp).
 - Full wording: https://www.aqbeds.com/returns
 
 ## Orders and tracking
 
-- Order reference format: AQ- followed by six characters, for example AQ-M2EZYE.
-  This is the reference quoted in the confirmation email and used for tracking.
+- Order reference format: AQ- followed by six characters, for example AQ-M2EZYE. This is
+  the reference quoted in the confirmation email and used for tracking.
 - Track an order: https://www.aqbeds.com/track (accepts the order reference).
-- Order confirmation is shown on screen after checkout and sent by email when an
-  email address is supplied.
 
 ## Pages
 
@@ -184,27 +144,22 @@ orthopaedic options on some models.
 
 ## Questions answered on the site
 
-Do you offer free delivery?
-Yes. Delivery is free on every order to any UK address.
+Do you offer free delivery? Yes. Delivery is free on every order to any UK address.
 
-Do you offer cash on delivery?
-Yes. Cash on delivery is the only payment method, and the item is inspected
-before payment is made.
+Do you offer cash on delivery? Yes. Cash on delivery is the only payment method, and
+the item is inspected before payment is made.
 
-How quickly is an order delivered?
-Orders confirmed Monday to Saturday before 20:00 Europe/London are delivered the
-next day. Sunday orders arrive on Tuesday. Monday and UK bank holidays are not
-delivery days.
+How quickly is an order delivered? Orders confirmed Monday to Saturday before 20:00
+Europe/London are delivered the next day. Sunday orders arrive on Tuesday. Monday and UK
+bank holidays are not delivery days.
 
-What happens if the item is faulty?
-Report it before the courier leaves, or within 24 hours of delivery, and it is
-replaced free of charge with next-day delivery.
+What happens if the item is faulty? Report it before the courier leaves, or within 24
+hours of delivery, and it is replaced free of charge with next-day delivery.
 
-What sizes are available?
-2ft6 small single to 6ft super king on beds, depending on the model.
+What sizes are available? 2ft6 small single to 6ft super king on beds, depending on the
+model.
 
-Can the delivery date be changed?
-Yes. A later delivery date can be chosen at checkout.
+Can the delivery date be changed? Yes. A later delivery date can be chosen at checkout.
 
 ## Crawler notes
 

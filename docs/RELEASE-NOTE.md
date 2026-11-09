@@ -167,14 +167,16 @@ content. Disallow them if that is not wanted — it does not affect search visib
 
 ### J2 — llms.txt and llms-full.txt
 
-`public/llms.txt` (3,761 bytes) rewritten: business, what is sold with category URLs,
-sizes, delivery rules including the 20:00 Europe/London cutoff, payment, guarantee and
-returns, contact, key page URLs, sitemap link. `public/llms-full.txt` (8,761 bytes) is
-rewritten: the same facts expanded, plus per-category descriptions, materials, order
-reference format, the site's own FAQ answers, and the full 32-product catalogue carried
-over from the previous version. Both are static and maintained by hand; `llms.txt`
-reproduces no prices, and `llms-full.txt` labels its catalogue prices as "from" prices at
-the review date with the product page as authoritative.
+`public/llms.txt` (3,761 bytes) rewritten by hand: business, what is sold with category
+URLs, sizes, delivery rules including the 20:00 Europe/London cutoff, payment, guarantee
+and returns, contact, key page URLs, sitemap link. No prices, so it cannot go stale.
+
+`llms-full.txt` is **generated at build** by `scripts/generate-sitemap.mjs`, which is why
+hand-editing the file had no effect on the deployment — the first deploy proved it
+(3,527 bytes, the old copy). The generator's template was rewritten to the same factual
+sections plus the catalogue it already pulled from `Product`; output is 7,483 bytes for
+32 products on this run. Catalogue prices are labelled "from" prices at generation time
+with the product page authoritative.
 
 ### J3 — no-JavaScript parity
 
@@ -269,11 +271,22 @@ separately. No user-agent branching exists in the app.
 
 ### Git and deploy
 
-- Commit on `seo-build` pushed to `origin` (GitHub, `aqwebsite30-code/AQBEDS-for-COMPUTER`).
+- Commit `22a29ab` on `seo-build`. GitHub push was **rejected**: the branch history
+  contains `public/voice messages/opencode-desktop-win-x64.exe`, a 251.7 MB installer
+  added in `55c4f7c` and deleted later, which exceeds GitHub's 100 MB file limit. See
+  "Push blocker" below.
 - `.env` and `.env.local` are gitignored and were **not** committed: they hold
   `DATABASE_URL`, `RESEND_API_KEY` and `META_CAPI_ACCESS_TOKEN`. Vercel already has these
   per environment under Settings > Environment Variables.
-- Vercel preview deployment built and verified; `vercel --prod` not run.
+- Vercel preview deployment `aqbeds-esde8laef` built and verified; `vercel --prod` not run.
+
+### Push blocker (needs an owner decision)
+
+GitHub refuses the branch as-is because of one historical blob. Options: (a) rewrite the
+branch history to drop that path — changes every SHA on `seo-build`, which is safe here
+because the branch has never been pushed; (b) push a filtered copy to a new branch and
+keep local history intact; (c) keep the file and use Git LFS (requires migrating history
+and a paid LFS quota for 251 MB). Nothing was rewritten without the owner's word.
 - Preview is behind Vercel SSO, so browsers (and the OG/Facebook/Twitter validators)
   cannot reach it from this machine; only `vercel curl` gets through.
 - Owner actions: Resend domain verification, `META_CAPI_ACCESS_TOKEN` in Preview, GA4 tag
