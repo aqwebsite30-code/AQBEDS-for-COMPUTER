@@ -271,7 +271,8 @@ separately. No user-agent branching exists in the app.
 
 ### Git and deploy
 
-- Commit `22a29ab` on `seo-build`. GitHub push was **rejected**: the branch history
+- Two commits on `seo-build` for Phase J (the generator follow-up included). GitHub push
+  was **rejected**: the branch history
   contains `public/voice messages/opencode-desktop-win-x64.exe`, a 251.7 MB installer
   added in `55c4f7c` and deleted later, which exceeds GitHub's 100 MB file limit. See
   "Push blocker" below.
