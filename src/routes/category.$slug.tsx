@@ -22,20 +22,24 @@ export const Route = createFileRoute("/category/$slug")({
   head: ({ loaderData }) => {
     const noindex = !!loaderData?.category.noindex;
     const titleBySlug: Record<string, string> = {
-      "divan-beds": "Divan Beds — AQ Beds",
-      "ottoman-beds": "Ottoman Beds — AQ Beds",
-      "luxury-beds": "Luxury Beds — AQ Beds",
-      wardrobes: "Wardrobes — AQ Beds",
-      sofas: "Sofas — AQ Beds",
-      "sliding-wardrobes": "Sliding Wardrobes — AQ Beds",
-      "all-beds": "All Beds — AQ Beds",
+      "divan-beds": "Divan Beds with Drawers | Free UK Delivery | AQ Beds",
+      "ottoman-beds": "Ottoman Beds with Gas Lift Storage | Free Delivery | AQ Beds",
+      "luxury-beds": "Luxury Bed Frames | Velvet and Wingback Beds | AQ Beds",
+      wardrobes: "Wardrobes and Bedroom Storage | Free UK Delivery | AQ Beds",
+      sofas: "Velvet Sofas and Sofa Beds | Free UK Delivery | AQ Beds",
+      "sliding-wardrobes": "Sliding Wardrobes | Mirrored and Wood Effect | AQ Beds",
+      "all-beds": "All Beds | Ottoman, Divan and Storage Frames | AQ Beds",
     };
     const title = loaderData
-      ? titleBySlug[loaderData.category.slug] || `${loaderData.category.name} — AQ Beds`
-      : "Category — AQ Beds";
-    const desc = loaderData
-      ? `${loaderData.category.intro || loaderData.category.blurb}`.slice(0, 158)
-      : "";
+      ? titleBySlug[loaderData.category.slug] || `${loaderData.category.name} | Beds and Bedroom Furniture | AQ Beds`
+      : "Beds and Bedroom Furniture | AQ Beds";
+    // Category intros vary in length. Add the two delivery facts that hold for
+    // every category, then cut at a word boundary inside the 140-160 window.
+    const rawDesc = loaderData ? `${loaderData.category.intro || loaderData.category.blurb || ""}`.trim() : "";
+    const withFacts = rawDesc.length >= 140 ? rawDesc : `${rawDesc} Free UK delivery and cash on delivery available.`.trim();
+    const desc = withFacts.length <= 160
+      ? withFacts
+      : `${withFacts.slice(0, 157).replace(/[\s,.;:-]+\S*$/, "")}.`;
     return {
       meta: loaderData
         ? [
@@ -44,7 +48,14 @@ export const Route = createFileRoute("/category/$slug")({
             ...(noindex ? [{ name: "robots", content: "noindex, follow" }] : []),
             { property: "og:title", content: title },
             { property: "og:description", content: desc },
-            { property: "og:image", content: `https://www.aqbeds.com${loaderData.category.image}` },
+            {
+              property: "og:image",
+              content: `https://www.aqbeds.com/og/category-${loaderData.category.slug}.jpg`,
+            },
+            {
+              property: "og:image:alt",
+              content: `${loaderData.category.name} collection — product image from AQ Beds`,
+            },
             {
               property: "og:url",
               content: `https://www.aqbeds.com/category/${loaderData.category.slug}`,
@@ -55,7 +66,11 @@ export const Route = createFileRoute("/category/$slug")({
             { name: "twitter:description", content: desc },
             {
               name: "twitter:image",
-              content: `https://www.aqbeds.com${loaderData.category.image}`,
+              content: `https://www.aqbeds.com/og/category-${loaderData.category.slug}.jpg`,
+            },
+            {
+              name: "twitter:image:alt",
+              content: `${loaderData.category.name} collection — product image from AQ Beds`,
             },
           ]
         : [],
@@ -118,7 +133,9 @@ function CategoryPage() {
         <img
           {...responsiveSrc(category.image)}
           sizes="100vw"
-          alt={category.name}
+          width={1600}
+          height={900}
+          alt={`${category.name} collection — product images from AQ Beds`}
           className="h-full w-full object-cover object-center"
         />
         {/* Cinematic Overlay */}

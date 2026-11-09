@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import { useCart } from "@/features/cart/store/cart";
-import { CONSENT_KEY, loadGtm, loadMetaPixel, updateConsent } from "@/lib/consent";
+import { CONSENT_EVENT, CONSENT_KEY, loadGtm, loadMetaPixel, updateConsent } from "@/lib/consent";
 
 const COOKIE_CONSENT_KEY = CONSENT_KEY;
 
@@ -30,6 +30,7 @@ export default function CookieConsent() {
       window.fbq("track", "PageView");
     }
     setVisible(false);
+    window.dispatchEvent(new Event(CONSENT_EVENT));
   };
 
   const reject = () => {
@@ -37,6 +38,7 @@ export default function CookieConsent() {
     // Stays denied: no analytics or advertising storage, no pixel.
     updateConsent(false);
     setVisible(false);
+    window.dispatchEvent(new Event(CONSENT_EVENT));
   };
 
   return (

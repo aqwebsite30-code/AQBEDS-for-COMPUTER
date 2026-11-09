@@ -75,7 +75,7 @@ export function Footer() {
                 All Beds
               </Link>
             </li>
-            {CATEGORIES.slice(1, 6).map((c) => (
+            {CATEGORIES.slice(1, 8).map((c) => (
               <li key={c.slug}>
                 <Link
                   to="/category/$slug"
@@ -101,6 +101,7 @@ export function Footer() {
               { label: "Contact Us", to: "/contact" },
               { label: "Customer Reviews", to: "/reviews" },
               { label: "FAQs", to: "/faqs" },
+              { label: "Bed Buying Guides", to: "/guides" },
               { label: "Delivery Info", to: "/delivery" },
               { label: "Returns Policy", to: "/returns" },
             ].map((l) => (

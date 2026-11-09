@@ -15,6 +15,9 @@ export const GTM_ID = "GTM-K8P8CZL6";
 /** localStorage key holding the visitor's choice: "accepted" | "rejected". */
 export const CONSENT_KEY = "aq_cookie_consent";
 
+/** Fired on window whenever the visitor accepts or rejects, so UI can react. */
+export const CONSENT_EVENT = "aq-consent-change";
+
 export type ConsentChoice = "accepted" | "rejected";
 
 const GRANTED = {

@@ -1,6 +1,10 @@
+import { useRouter } from "@tanstack/react-router";
 import { buildWhatsAppUrl } from "@/lib/utils/format";
 
 export function FloatingWhatsApp() {
+  // Checkout has its own sticky Place Order bar; the floating bubble would sit
+  // on top of it, so it stands down there.
+  const isCheckout = useRouter().state.location.pathname.startsWith("/checkout");
   return (
     <a
       href={buildWhatsAppUrl("Hello AQ Beds, I have a question.")}
@@ -8,7 +12,7 @@ export function FloatingWhatsApp() {
       rel="noreferrer"
       aria-label="Chat on WhatsApp"
       title="💬 Questions? Chat with us — we reply fast, 9am–9pm UK"
-      className="group floating-wa-btn fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-30 h-14 w-14 rounded-full bg-whatsapp text-whatsapp-foreground grid place-items-center shadow-luxury hover:scale-105 transition"
+      className={`group floating-wa-btn fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-30 h-14 w-14 rounded-full bg-whatsapp text-whatsapp-foreground place-items-center shadow-luxury hover:scale-105 transition ${isCheckout ? "hidden" : "grid"}`}
     >
       {/* B8 — tooltip text (hover on desktop; title covers touch devices) */}
       <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-3 hidden sm:block whitespace-nowrap rounded-2xl bg-brand text-white text-xs font-semibold px-3 py-2 shadow-luxury opacity-0 group-hover:opacity-100 transition-opacity">

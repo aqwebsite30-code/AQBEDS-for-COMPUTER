@@ -28,6 +28,7 @@ import { isSelectableDeliveryDate } from "@/lib/delivery-date";
 import { useDeliveryInfo } from "@/hooks/useDeliveryInfo";
 import { OrderSummary } from "@/components/checkout/OrderSummary";
 import { REVIEW_AVG_LABEL, REVIEW_COUNT } from "@/lib/reviews";
+import { CONSENT_EVENT, CONSENT_KEY } from "@/lib/consent";
 import {
   buildOrderMessage,
   missingCustomerFields,
@@ -71,6 +72,22 @@ async function sendOrderEmailWithRetry(payload: any, orderId: string) {
 function CheckoutPage() {
   const { items, total, clear } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // The cookie card owns the bottom of the screen until the visitor chooses.
+  // The mobile sticky CTA only appears once that choice is made, so the two
+  // can never overlap.
+  const [consentDecided, setConsentDecided] = useState(false);
+  useEffect(() => {
+    const sync = () => {
+      try {
+        setConsentDecided(Boolean(localStorage.getItem(CONSENT_KEY)));
+      } catch {
+        setConsentDecided(false);
+      }
+    };
+    sync();
+    window.addEventListener(CONSENT_EVENT, sync);
+    return () => window.removeEventListener(CONSENT_EVENT, sync);
+  }, []);
   const [placed, setPlaced] = useState(false);
   const [whatsappUrl, setWhatsappUrl] = useState("");
   // T1 — shared delivery engine (live countdown + T1 default date).
@@ -375,7 +392,7 @@ function CheckoutPage() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pt-10 pb-52 sm:pb-10 animate-fade-in relative min-h-[600px]">
+    <div className="mx-auto max-w-6xl px-4 pt-10 pb-40 lg:pb-10 animate-fade-in relative min-h-[600px]">
       {/* C2 — sticky trust bar: stays visible while scrolling the form */}
       <div className="sticky top-16 lg:top-[68px] z-30 -mx-4 px-4 py-2.5 mb-4 bg-card/95 backdrop-blur border-b border-border shadow-sm">
         <p className="text-center text-xs sm:text-sm font-bold text-brand">
@@ -386,7 +403,7 @@ function CheckoutPage() {
 
       <h1 className="font-display font-bold text-3xl sm:text-4xl">Checkout</h1>
 
-      <form onSubmit={placeOrder} className="grid lg:grid-cols-[1fr_380px] gap-8 mt-6">
+      <form id="checkout-form" onSubmit={placeOrder} className="grid lg:grid-cols-[1fr_380px] gap-8 mt-6">
         <div className="space-y-8">
           {/* C1 — progress steps at top of form */}
           <div className="rounded-2xl border border-brand/15 bg-brand/[0.04] px-5 py-4">
@@ -608,6 +625,27 @@ function CheckoutPage() {
         {/* TODO(owner): supply UK warehouse address — render here when provided */}
         <p>+44 7519 791128 · info@aqbeds.com · SSL secured</p>
       </div>
+
+      {/* Mobile sticky CTA — the form is long, so the primary action and the
+          pay-at-door guarantee stay reachable without scrolling on phones.
+          Desktop keeps the in-flow buttons only. Hidden until the cookie card
+          is dismissed so the two never overlap; the WhatsApp bubble sits at
+          bottom-20 and its 56px height clears this 76px bar. */}
+      {consentDecided && (
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-[55] border-t border-border bg-card/98 backdrop-blur px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(0,0,0,0.10)]">
+          <p className="mb-1.5 text-center text-[10px] font-bold leading-tight text-whatsapp">
+            Pay cash at your door · Inspect before you pay · Free next-day replacement
+          </p>
+          <button
+            type="submit"
+            form="checkout-form"
+            disabled={isSubmitting}
+            className="w-full h-11 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-base shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Place Order"}
+          </button>
+        </div>
+      )}
 
       {placed && typeof document !== "undefined"
         ? createPortal(

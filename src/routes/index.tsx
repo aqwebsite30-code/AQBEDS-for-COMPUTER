@@ -14,7 +14,7 @@ const HOME_CATEGORY_COUNT = 1 + HOME_CATEGORIES.length;
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AQ Beds — Premium Beds & Mattresses" },
+      { title: "Handcrafted Beds, Sofas and Wardrobes UK | AQ Beds" },
       {
         name: "description",
         content:

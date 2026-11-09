@@ -93,7 +93,7 @@ const FAQS: { q: string; a: string }[] = [
 export const Route = createFileRoute("/guides/ottoman-vs-divan")({
   head: () => ({
     meta: [
-      { title: "Ottoman vs Divan Bed — Which Storage Bed Is Right for You? | AQ Beds" },
+      { title: "Ottoman vs Divan Bed | Which Has More Storage? | AQ Beds" },
       {
         name: "description",
         content:
@@ -271,6 +271,31 @@ function OttomanVsDivanPage() {
             Browse all beds
           </Link>
         </div>
+      </section>
+
+      <section className="mt-14 rounded-[32px] border border-border bg-card p-8">
+        <h2 className="font-display font-black text-xl mb-2">See both beds side by side</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed mb-5">
+          The three models below cover the divan base and the storage frame the comparison above
+          keeps coming back to.
+        </p>
+        <ul className="grid gap-3 sm:grid-cols-3">
+          {[
+            { slug: "divan", label: "Divan bed" },
+            { slug: "divan-ottoman-bed", label: "Divan ottoman bed" },
+            { slug: "bunk-beds", label: "Bunk beds" },
+          ].map((p) => (
+            <li key={p.slug}>
+              <Link
+                to="/product/$slug"
+                params={{ slug: p.slug }}
+                className="flex h-12 items-center justify-center rounded-2xl border border-border text-sm font-bold hover:border-brand/40 transition-colors"
+              >
+                {p.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="mt-14" aria-labelledby="faq-heading">

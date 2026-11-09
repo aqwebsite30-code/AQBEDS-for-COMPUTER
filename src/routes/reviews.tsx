@@ -13,7 +13,7 @@ import {
 
 export const Route = createFileRoute("/reviews")({
   head: () => {
-    const title = `Customer Reviews | AQ Beds Rated ${REVIEW_AVG_LABEL} from ${REVIEW_COUNT} Buyers`;
+    const title = `Rated ${REVIEW_AVG_LABEL} from ${REVIEW_COUNT} UK Buyers | Customer Reviews | AQ Beds`;
     const description = `${REVIEW_AVG_LABEL} out of 5 from ${REVIEW_COUNT} customer reviews of AQ Beds beds, sofas and wardrobes. Free UK delivery. Cash on delivery available. Every review is from a UK buyer.`;
     return {
       meta: [

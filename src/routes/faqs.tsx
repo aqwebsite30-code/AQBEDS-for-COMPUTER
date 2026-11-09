@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/faqs")({
   head: () => ({
     meta: [
-      { title: "AQ Beds FAQs | Bed Delivery, Storage and Payment Answers" },
+      { title: "Bed Delivery, Storage and Payment Questions | AQ Beds" },
       {
         name: "description",
         content:

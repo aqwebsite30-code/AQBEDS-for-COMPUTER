@@ -41,7 +41,7 @@ const PROMISES = [
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About AQ Beds | Handcrafted UK Bed Frames Since 2018" },
+      { title: "Handcrafted UK Beds and Sofas Since 2018 | AQ Beds" },
       {
         name: "description",
         content:

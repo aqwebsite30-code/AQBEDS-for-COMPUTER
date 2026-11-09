@@ -33,7 +33,9 @@ export function ProductCard({ product }: { product: Product }) {
         <img
           {...responsiveSrc(product.images[0])}
           sizes="(min-width: 1280px) 300px, (min-width: 1024px) 33vw, 50vw"
-          alt={`${product.name} — AQ Beds`}
+          width={800}
+          height={800}
+          alt={`${product.name} — product image from AQ Beds`}
           loading="lazy"
           decoding="async"
           onLoad={() => setImgLoaded(true)}

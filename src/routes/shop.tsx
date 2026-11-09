@@ -25,6 +25,18 @@ type ShopSearch = {
 const asList = (v: unknown): string[] =>
   v === undefined || v === null ? [] : Array.isArray(v) ? v.map(String) : [String(v)];
 
+/**
+ * Keep absent filters absent. Returning empty arrays (or a default sort) from
+ * validateSearch made the router treat the clean /shop URL as different from
+ * the validated search and answer with a 307 to /shop?cat=[]&size=[]…, which
+ * is an indexable duplicate of the shop page. Undefined values are read as
+ * "no filter" downstream, so the clean URL is served as a 200.
+ */
+const listOrUndefined = (v: unknown): string[] | undefined => {
+  const list = asList(v).filter(Boolean);
+  return list.length ? list : undefined;
+};
+
 const sentence = (s: string) => s.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase());
 
 // Size options are written "5ft King Size - With Mattress" → split into a size
@@ -41,26 +53,25 @@ export const Route = createFileRoute("/shop")({
     const dbProducts = await getDbProducts();
     return { dbProducts };
   },
-  validateSearch: (s: Record<string, unknown>): ShopSearch => ({
-    q: typeof s.q === "string" && s.q.trim() ? s.q : undefined,
-    cat: asList(s.cat),
-    size: asList(s.size),
-    mattress: asList(s.mattress),
-    color: asList(s.color),
-    fabric: asList(s.fabric),
-    headboard: asList(s.headboard),
-    storage: asList(s.storage),
+  validateSearch: (s: Record<string, unknown>): ShopSearch => ({    q: typeof s.q === "string" && s.q.trim() ? s.q : undefined,
+    cat: listOrUndefined(s.cat),
+    size: listOrUndefined(s.size),
+    mattress: listOrUndefined(s.mattress),
+    color: listOrUndefined(s.color),
+    fabric: listOrUndefined(s.fabric),
+    headboard: listOrUndefined(s.headboard),
+    storage: listOrUndefined(s.storage),
     max:
       typeof s.max === "number" && Number.isFinite(s.max)
         ? s.max
         : typeof s.max === "string" && Number(s.max)
           ? Number(s.max)
           : undefined,
-    sort: s.sort === "low" || s.sort === "high" ? s.sort : "featured",
+    sort: s.sort === "low" || s.sort === "high" ? s.sort : undefined,
   }),
   head: () => ({
     meta: [
-      { title: "Shop All Beds, Sofas and Wardrobes | AQ Beds UK Store" },
+      { title: "Shop All Beds and Sofas | Free UK Delivery | AQ Beds" },
       {
         name: "description",
         content:

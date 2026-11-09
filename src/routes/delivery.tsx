@@ -3,11 +3,11 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/delivery")({
   head: () => ({
     meta: [
-      { title: "UK Delivery Information — AQ Beds" },
+      { title: "Free Next-Day UK Bed Delivery | 8 PM Cut-Off | AQ Beds" },
       {
         name: "description",
         content:
-          "Free UK next-day delivery on orders before 8 PM UK, Monday–Saturday. Sunday orders arrive Tuesday.",
+          "Free UK next-day delivery on orders placed before 8 PM UK, Monday to Saturday. Sunday orders arrive Tuesday. Inspect your bed at the door before you pay.",
       },
       { property: "og:title", content: "UK Delivery Information — AQ Beds" },
       {

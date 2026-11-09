@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import { ShoppingBag } from "lucide-react";
 import { useCart, useUI } from "@/features/cart/store/cart";
 import { formatGBP } from "@/lib/utils/format";
@@ -7,8 +7,10 @@ export function MobileCartBar() {
   const count = useCart((s) => s.count());
   const total = useCart((s) => s.total());
   const setCartOpen = useUI((s) => s.setCartOpen);
+  const pathname = useRouter().state.location.pathname;
 
-  if (count === 0) return null;
+  // Checkout owns the bottom of the screen with its own sticky Place Order bar.
+  if (count === 0 || pathname.startsWith("/checkout")) return null;
   return (
     <div className="fixed bottom-0 inset-x-0 z-[60] sm:hidden bg-card/98 border-t border-border px-4 pt-3 pb-4 flex items-center justify-between shadow-2xl">
       <div>

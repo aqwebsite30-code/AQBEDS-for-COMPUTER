@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "npx prisma generate && node scripts/generate-sitemap.mjs && cross-env NITRO_PRESET=vercel vite build",
+    "build": "npx prisma generate && node scripts/generate-sitemap.mjs && node scripts/generate-og-images.mjs && cross-env NITRO_PRESET=vercel vite build",
     "postbuild": "node scripts/submit-indexnow.js",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",

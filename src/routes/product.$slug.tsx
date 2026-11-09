@@ -36,7 +36,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 // Meta description must never be cut mid-word (WP-A.2).
-const META_MAX = 158;
+const META_MAX = 156;
 const RISK_TAIL = "Free UK delivery. Cash on delivery available.";
 
 function wordBoundaryTruncate(text: string, max: number): string {
@@ -52,7 +52,7 @@ function buildMetaDescription(product: {
   description: string;
 }): string {
   const meta = product.metaDescription?.trim();
-  if (meta && meta.length <= META_MAX && meta.length >= 140 && /[a-z0-9]\.$/i.test(meta)) return meta;
+  if (meta && meta.length <= 160 && meta.length >= 140 && /[a-z0-9]\.$/i.test(meta)) return meta;
   // A 120-140 character body is under Google's useful range, so pad it with the
   // shortest true risk-reversal sentence that still fits inside the limit.
   const body = product.description.split(" · ")[0].trim().replace(/[.\s]+$/, ".");
@@ -64,11 +64,33 @@ function buildMetaDescription(product: {
   return wordBoundaryTruncate(body, META_MAX);
 }
 
-function buildTitle(product: { name: string }): string {
-  const full = `${product.name} | Handcrafted Beds & Bed Frames | AQ Beds`;
-  if (full.length <= 60) return full;
-  const short = `${product.name} — AQ Beds`;
-  return short.length <= 60 ? short : `${short.slice(0, 57)}...`;
+const CATEGORY_LABEL: Record<string, string> = {
+  "ottoman-beds": "Ottoman Beds",
+  "divan-beds": "Divan Beds",
+  "luxury-beds": "Luxury Beds",
+  sofas: "Sofas",
+  wardrobes: "Wardrobes",
+  "sliding-wardrobes": "Sliding Wardrobes",
+};
+
+/** Product titles land in the 50-60 character window without padding. */
+function buildTitle(product: { name: string; category?: string }): string {
+  const cat = CATEGORY_LABEL[product.category ?? ""] ?? "Beds & Bed Frames";
+  const options = [
+    `Handcrafted ${product.name} | ${cat} | Free UK Delivery | AQ Beds`,
+    `Handcrafted ${product.name} | ${cat} | AQ Beds`,
+    `${product.name} | ${cat} | Free UK Delivery | AQ Beds`,
+    `Handcrafted ${product.name} | Free UK Delivery | AQ Beds`,
+    `${product.name} | ${cat} UK | AQ Beds`,
+    `${product.name} | ${cat} | AQ Beds`,
+    `${product.name} | ${cat} UK | AQ Beds`,
+    `${product.name} | Handcrafted Bed Frames UK | AQ Beds`,
+  ];
+  for (const candidate of options) {
+    if (candidate.length >= 50 && candidate.length <= 60) return candidate;
+  }
+  const base = `${product.name} | AQ Beds`;
+  return base.length > 60 ? `${product.name.slice(0, 60 - 11).trim()} | AQ Beds` : base;
 }
 
 export const Route = createFileRoute("/product/$slug")({
@@ -117,7 +139,11 @@ export const Route = createFileRoute("/product/$slug")({
           { property: "og:description", content: buildMetaDescription(loaderData.product) },
           {
             property: "og:image",
-            content: `https://www.aqbeds.com${loaderData.product.images[0]}`,
+            content: `https://www.aqbeds.com/og/${loaderData.product.slug}.jpg`,
+          },
+          {
+            property: "og:image:alt",
+            content: `${loaderData.product.name} — product image from AQ Beds`,
           },
           {
             property: "og:url",
@@ -129,7 +155,11 @@ export const Route = createFileRoute("/product/$slug")({
           { name: "twitter:description", content: buildMetaDescription(loaderData.product) },
           {
             name: "twitter:image",
-            content: `https://www.aqbeds.com${loaderData.product.images[0]}`,
+            content: `https://www.aqbeds.com/og/${loaderData.product.slug}.jpg`,
+          },
+          {
+            name: "twitter:image:alt",
+            content: `${loaderData.product.name} — product image from AQ Beds`,
           },
         ]
       : [],
@@ -568,9 +598,19 @@ function ProductPage() {
   ]);
 
   const total = unitPrice * qty;
-  const related = (PRODUCTS as any[])
-    .filter((p: any) => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
+  // Same-category products first. Single-product categories leave nothing to
+  // link to, so top up from the rest of the catalogue to keep at least two
+  // onward links on every product page.
+  const sameCategory = (PRODUCTS as any[]).filter(
+    (p: any) => p.category === product.category && p.id !== product.id,
+  );
+  const related =
+    sameCategory.length >= 2
+      ? sameCategory.slice(0, 4)
+      : [
+          ...sameCategory,
+          ...(PRODUCTS as any[]).filter((p: any) => p.category !== product.category),
+        ].slice(0, 4);
 
   // Sizes come as two groups: "… – With Mattress" and "… – No Mattress".
   // Show only the group matching the With/Without Mattress toggle.
@@ -741,7 +781,9 @@ function ProductPage() {
               <div className="rounded-[2.5rem] overflow-hidden bg-white border border-border aspect-video relative shadow-2xl flex items-center justify-center">
                 <img
                   src={product.images[activeImg]}
-                  alt={`${product.name} — AQ Beds`}
+                  width={1600}
+                  height={900}
+                  alt={`${product.name}${color ? ` in ${color}` : ""} — product image from AQ Beds`}
                   className="h-full w-full object-contain"
                   fetchPriority="high"
                   loading="eager"
@@ -763,7 +805,9 @@ function ProductPage() {
                   >
                     <img
                       src={src}
-                      alt={`${product.name} view ${i + 1} — AQ Beds`}
+                      width={320}
+                      height={180}
+                      alt={`${product.name} — alternate product image ${i + 1} from AQ Beds`}
                       className="absolute inset-0 h-full w-full object-contain p-1"
                       loading="eager"
                       decoding="async"

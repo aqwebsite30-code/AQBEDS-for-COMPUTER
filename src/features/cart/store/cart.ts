@@ -52,7 +52,10 @@ export const useCart = create<CartState>()(
       total: () => get().subtotal(),
       count: () => get().items.reduce((s, i) => s + i.qty, 0),
     }),
-    { name: "aq-beds-cart" },
+    // The server has no localStorage, so hydrating the store before React does
+    // its first client render makes checkout markup differ from the server HTML
+    // (React error 418). Rehydrate explicitly after mount instead.
+    { name: "aq-beds-cart", skipHydration: true },
   ),
 );
 

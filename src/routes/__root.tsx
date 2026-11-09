@@ -25,6 +25,7 @@ import { generateEventId, getClientTrackingData } from "@/lib/meta-pixel";
 import { trackEvent } from "@/lib/analytics";
 import { CONSENT_BOOTSTRAP, CONSENT_KEY, GTM_ID, hasAdConsent } from "@/lib/consent";
 import { WHATSAPP_NUMBER } from "@/lib/utils/format";
+import { useCart } from "@/features/cart/store/cart";
 
 const PIXEL_ID = "1109711544904339";
 
@@ -150,7 +151,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "AQ Beds — Luxury Ottoman, Divan & Storage Beds | Handcrafted in the UK" },
+      { title: "Handcrafted Ottoman, Divan and Storage Beds | AQ Beds" },
       {
         name: "description",
         content:
@@ -163,19 +164,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Premium ottoman, divan & storage beds with a mattress included. Free UK delivery. Cash on delivery available.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "AQ Beds" },
       { property: "og:url", content: "https://www.aqbeds.com" },
+      { property: "og:image", content: "https://www.aqbeds.com/og-default.jpg" },
       {
-        property: "og:image",
-        content: "https://www.aqbeds.com/Home%20page%20images/1000152185-clean.webp",
+        property: "og:image:alt",
+        content: "AQ Beds — ottoman, divan and storage beds",
       },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
         content: "AQ Beds — Luxury Ottoman, Divan & Storage Beds | Handcrafted in the UK",
       },
       {
-        name: "twitter:image",
-        content: "https://www.aqbeds.com/Home%20page%20images/1000152185-clean.webp",
+        name: "twitter:description",
+        content:
+          "Premium ottoman, divan & storage beds with a mattress included. Free UK delivery. Cash on delivery available.",
+      },
+      { name: "twitter:image", content: "https://www.aqbeds.com/og-default.jpg" },
+      {
+        name: "twitter:image:alt",
+        content: "AQ Beds — ottoman, divan and storage beds",
       },
       {
         name: "facebook-domain-verification",
@@ -348,6 +359,12 @@ function RootComponent() {
         .then((r) => console.log("[track] ", r))
         .catch((e) => console.error("[track] ", e));
     }
+  }, []);
+
+  useEffect(() => {
+    // The cart store skips hydration so the first client render matches the
+    // server HTML; pull the saved basket in once React is mounted.
+    void useCart.persist.rehydrate();
   }, []);
 
   useEffect(() => {

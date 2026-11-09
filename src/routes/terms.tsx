@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms of Service | AQ Beds Conditions of Sale — AQ Beds" },
+      { title: "Terms of Service | Ordering and Delivery Terms | AQ Beds" },
       {
         name: "description",
         content:

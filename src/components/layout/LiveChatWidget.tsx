@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, type ReactNode } from "react";
 import { MessageCircle, X, Send, ChevronDown, Loader2, Sparkles, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "@tanstack/react-router";
 import { sendChatMessage } from "@/lib/chat";
 import { getChatMessages } from "@/lib/chat";
 
@@ -49,6 +50,9 @@ type ChatMode = "ai" | "team";
 
 export function LiveChatWidget() {
   const [open, setOpen] = useState(false);
+  // The checkout's sticky Place Order bar owns the bottom of the screen.
+  // Router location (not window) so server and client render the same class.
+  const isCheckout = useRouter().state.location.pathname.startsWith("/checkout");
   const [mode, setMode] = useState<ChatMode>("ai");
   const [messages, setMessages] = useState<Message[]>([]);
   const [aiMessages, setAiMessages] = useState<AiMessage[]>([]);
@@ -196,7 +200,7 @@ export function LiveChatWidget() {
             whileTap={{ scale: 0.94 }}
             onClick={() => setOpen(true)}
             aria-label="Open live chat"
-            className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 h-14 w-14 rounded-full bg-brand text-white shadow-[0_8px_32px_rgba(11,60,93,0.45)] flex items-center justify-center"
+            className={`fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 h-14 w-14 rounded-full bg-brand text-white shadow-[0_8px_32px_rgba(11,60,93,0.45)] items-center justify-center ${isCheckout ? "hidden" : "flex"}`}
           >
             <MessageCircle className="h-6 w-6" />
             {unread > 0 && (

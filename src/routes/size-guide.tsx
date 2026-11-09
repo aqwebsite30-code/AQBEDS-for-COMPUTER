@@ -33,7 +33,7 @@ const CHECKLIST = [
 export const Route = createFileRoute("/size-guide")({
   head: () => ({
     meta: [
-      { title: "UK Bed Size Guide — cm, ft & Inches | AQ Beds" },
+      { title: "Bed Sizes UK | Mattress and Frame Size Chart | AQ Beds" },
       {
         name: "description",
         content:

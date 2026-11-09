@@ -62,6 +62,9 @@ const url = ({ loc, lastmod, freq = "weekly", priority, images = [] }) => `  <ur
   </url>`;
 
 let entries = [];
+// Only categories that actually render products get a sitemap entry; an empty
+// category 404s, which is worse than being absent from the sitemap.
+const filledCategories = new Set();
 try {
   const { PrismaClient } = await import("@prisma/client");
   const db = new PrismaClient();
@@ -79,6 +82,7 @@ try {
     orderBy: { name: "asc" },
   });
   await db.$disconnect();
+  for (const p of products) if (p.category) filledCategories.add(p.category);
 
   entries = products.map((p) =>
     url({
@@ -142,6 +146,7 @@ ${catalogue}
 }
 
 for (const [slug, priority] of CATEGORIES) {
+  if (!filledCategories.has(slug)) continue;
   entries.push(url({ loc: `/category/${slug}`, lastmod: today, priority, freq: "weekly" }));
 }
 for (const [loc, priority, freq] of PAGES) {

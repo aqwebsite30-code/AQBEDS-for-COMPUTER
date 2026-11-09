@@ -5,7 +5,7 @@ import { Mail, MessageCircle, Phone } from "lucide-react";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact AQ Beds | Orders, Delivery and Bed Advice UK" },
+      { title: "Bed Order Help, Delivery Dates and Bed Advice | AQ Beds" },
       {
         name: "description",
         content:

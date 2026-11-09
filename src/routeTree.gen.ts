@@ -37,6 +37,7 @@ import { Route as AdminSalesRouteImport } from './routes/admin.sales'
 import { Route as AdminSalesDashboardRouteImport } from './routes/admin.sales-dashboard'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
+import { Route as GuidesIndexRouteImport } from './routes/guides.index'
 import { Route as GuidesOttomanVsDivanRouteImport } from './routes/guides.ottoman-vs-divan'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as AdminProductsIndexRouteImport } from './routes/admin.products.index'
@@ -184,6 +185,11 @@ const CategorySlugRoute = CategorySlugRouteImport.update({
   path: '/category/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuidesIndexRoute = GuidesIndexRouteImport.update({
+  id: '/guides/',
+  path: '/guides/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GuidesOttomanVsDivanRoute = GuidesOttomanVsDivanRouteImport.update({
   id: '/guides/ottoman-vs-divan',
   path: '/guides/ottoman-vs-divan',
@@ -246,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/guides/ottoman-vs-divan': typeof GuidesOttomanVsDivanRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/guides/': typeof GuidesIndexRoute
   '/admin/products/new': typeof AdminProductsNewRoute
   '/admin/sales/$id': typeof AdminSalesIdRoute
   '/admin/products/': typeof AdminProductsIndexRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/guides/ottoman-vs-divan': typeof GuidesOttomanVsDivanRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin': typeof AdminIndexRoute
+  '/guides': typeof GuidesIndexRoute
   '/admin/products/new': typeof AdminProductsNewRoute
   '/admin/sales/$id': typeof AdminSalesIdRoute
   '/admin/products': typeof AdminProductsIndexRoute
@@ -317,6 +325,7 @@ export interface FileRoutesById {
   '/guides/ottoman-vs-divan': typeof GuidesOttomanVsDivanRoute
   '/product/$slug': typeof ProductSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/guides/': typeof GuidesIndexRoute
   '/admin/products/new': typeof AdminProductsNewRoute
   '/admin/sales/$id': typeof AdminSalesIdRoute
   '/admin/products/': typeof AdminProductsIndexRoute
@@ -355,6 +364,7 @@ export interface FileRouteTypes {
     | '/guides/ottoman-vs-divan'
     | '/product/$slug'
     | '/admin/'
+    | '/guides/'
     | '/admin/products/new'
     | '/admin/sales/$id'
     | '/admin/products/'
@@ -389,6 +399,7 @@ export interface FileRouteTypes {
     | '/guides/ottoman-vs-divan'
     | '/product/$slug'
     | '/admin'
+    | '/guides'
     | '/admin/products/new'
     | '/admin/sales/$id'
     | '/admin/products'
@@ -425,6 +436,7 @@ export interface FileRouteTypes {
     | '/guides/ottoman-vs-divan'
     | '/product/$slug'
     | '/admin/'
+    | '/guides/'
     | '/admin/products/new'
     | '/admin/sales/$id'
     | '/admin/products/'
@@ -453,6 +465,7 @@ export interface RootRouteChildren {
   CategorySlugRoute: typeof CategorySlugRoute
   GuidesOttomanVsDivanRoute: typeof GuidesOttomanVsDivanRoute
   ProductSlugRoute: typeof ProductSlugRoute
+  GuidesIndexRoute: typeof GuidesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -653,6 +666,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategorySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guides/': {
+      id: '/guides/'
+      path: '/guides'
+      fullPath: '/guides/'
+      preLoaderRoute: typeof GuidesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/guides/ottoman-vs-divan': {
       id: '/guides/ottoman-vs-divan'
       path: '/guides/ottoman-vs-divan'
@@ -774,6 +794,7 @@ const rootRouteChildren: RootRouteChildren = {
   CategorySlugRoute: CategorySlugRoute,
   GuidesOttomanVsDivanRoute: GuidesOttomanVsDivanRoute,
   ProductSlugRoute: ProductSlugRoute,
+  GuidesIndexRoute: GuidesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

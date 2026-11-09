@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy | How AQ Beds Uses Your Data — AQ Beds" },
+      { title: "Privacy Policy | How AQ Beds Handles Your Data | AQ Beds" },
       {
         name: "description",
         content:

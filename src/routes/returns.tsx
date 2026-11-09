@@ -3,17 +3,17 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/returns")({
   head: () => ({
     meta: [
-      { title: "Returns Policy — AQ Beds" },
+      { title: "Bed Returns and Free Next-Day Replacement | AQ Beds" },
       {
         name: "description",
         content:
-          "At-Door Returns and Next Day Free Replacement at AQ Beds. Free UK delivery. Cash on delivery available.",
+          "Inspect your bed at the door before you pay. If it is not right, AQ Beds replaces it free the next day. Free UK delivery and cash on delivery on every order.",
       },
       { property: "og:title", content: "Returns Policy — AQ Beds" },
       {
         property: "og:description",
         content:
-          "At-Door Returns and Next Day Free Replacement at AQ Beds. Free UK delivery. Cash on delivery available.",
+          "Inspect your bed at the door before you pay. If it is not right, AQ Beds replaces it free the next day. Free UK delivery and cash on delivery on every order.",
       },
       {
         property: "og:image",
