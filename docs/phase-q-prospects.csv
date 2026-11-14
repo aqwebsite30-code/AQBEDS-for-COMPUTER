@@ -1,0 +1,51 @@
+tier,prospect,domain,type,why_them,pitch_angle,status,link_type
+1,Yorkshire Post,yorkshirepost.co.uk,Regional daily,Business pages cover Yorkshire retail and manufacturing,"Bradford retailer selling beds with cash on delivery as cost-of-living response — data from 26 orders showing COD share",verified 200,editorial
+1,Telegraph & Argus,thetelegraphandargus.co.uk,Local daily (Bradford),Home city paper; covers local independent retail,"Local independent opens/expands; cash-on-delivery demand in BD postcodes",verified 200,editorial
+1,Yorkshire Evening Post,yorkshireeveningpost.co.uk,Local daily (Leeds),Leeds is the largest nearby delivery market,"Leeds delivery data: which bed sizes sell where",verified 200,editorial
+1,The Business Desk,thebusinessdesk.com,Regional business news,Yorkshire business audience,"Small retailer's fulfilment model: next-day before 20:00 cutoff",verified 200,editorial
+1,Insider Media,insidermedia.com,Regional business magazine,Yorkshire editions cover independents,"Independent retail profile",verified 403 (bot-blocked, site live),editorial
+1,Bdaily,bdaily.co.uk,Regional business news,Yorkshire business feed,"Same story as Business Desk, rewritten",verified 200,editorial
+1,Yorkshire Life,yorkshirelife.co.uk,Regional lifestyle magazine,Home and property features,"Yorkshire homes: how to choose a bed for a stone-built terrace",verified 200,editorial
+1,Living North,livingnorth.com,Northern lifestyle magazine,Interiors and homes coverage,"Small-space storage beds for northern terraces",verified 200,editorial
+1,Dalesman,dalesman.co.uk,Yorkshire rural lifestyle,Cottage and farmhouse homes,"Storage beds in cottages with low ceilings and awkward stairs",verified 200,editorial
+1,The Star (Sheffield),thestar.co.uk,Regional daily,South Yorkshire delivery area,"Sheffield delivery footprint and lead times",verified 200,editorial
+1,Huddersfield Examiner,examiner.co.uk,Local daily,West Yorkshire delivery area,"Local retail story",verified 200,editorial
+1,Craven Herald,cravenherald.co.uk,Local weekly,Skipton and Dales readers,"Delivery to rural BD23 postcodes",verified 200,editorial
+1,Wharfedale Observer,wharfedaleobserver.co.uk,Local weekly,Otley/Ilkley readers,"Local delivery story",verified 200,editorial
+2,Ideal Home,idealhome.co.uk,Consumer interiors title,Buys and tests furniture; publishes buying guides,"Expert comment on ottoman bed gas-lift safety and mattress weight limits",verified 200,editorial (often nofollow)
+2,Real Homes,realhomes.com,Consumer homes title,Bedroom buying guides,"What size bed fits a 10ft x 10ft bedroom — dimension table",verified 200,editorial (often nofollow)
+2,House Beautiful (UK),housebeautiful.com,Consumer interiors title,Styling and storage features,"Under-bed storage that does not wreck the room",verified 200,editorial
+2,Livingetc,livingetc.com,Consumer interiors title,Design-led bedroom features,"Bedroom styling with upholstered beds",verified 200,editorial
+2,Period Living,periodliving.co.uk,Period homes title,Cottage and period property readers,"Divan vs ottoman in a period cottage",verified 200,editorial
+2,House to Home,housetohome.co.uk,Consumer homes site,Buying guides,"Bed buying checklist",verified 200,editorial
+2,Grand Designs Magazine,granddesignsmagazine.com,Self-build title,New-build bedroom planning,"Bedroom sizing at planning stage",verified 200,editorial
+2,25 Beautiful Homes,25beautifulhomes.com,Homes magazine,Real home tours,"Reader home with storage bed",verified 200,editorial
+2,Elle Decoration,elledecoration.co.uk,Design title,Trend features,"Upholstered bed trend commentary",verified 200,editorial (rare)
+2,Country Living,countryliving.com,Consumer lifestyle,Country homes,"Storage beds for farmhouses",verified 200,editorial
+2,The English Home,theenglishhome.co.uk,Interiors title,English home styling,"Bedroom textile and bed frame pairing",verified 403 (bot-blocked, site live),editorial
+2,Homebuilding & Renovating,homebuilding.co.uk,Self-build/renovation,Bedroom and storage planning,"Fitted vs freestanding wardrobes",verified 200,editorial
+2,Design Week,designweek.co.uk,Design trade,Product design angle,"Why bed frames are designed the way they are",verified 200,editorial
+2,e-architect.co.uk,e-architect.co.uk,Architecture publication,Bedroom space standards,"Minimum bedroom dimensions for a king bed plus circulation",verified 200,editorial
+2,Houzz UK,houzz.co.uk,Home platform,Product tags and professional profiles,"Supplier profile (profile link, not editorial)",verified 200,profile
+3,Mad About The House,madaboutthehouse.com,Interiors blog,Large UK readership,Comment on bed styling (no payment, no product-for-link),verified 200,editorial
+3,Decorator's Notebook,decoratorsnotebook.co.uk,Interiors blog,Styling and sourcing,"Sourcing upholstered beds under £400",verified 200,editorial
+3,Melanie Lissack Interiors,melanielissackinteriors.com,Interiors blog,DIY and colour-led projects,"Bedroom colour plus bed frame pairing",verified 200,editorial
+3,Grillo Designs,grillo-designs.com,DIY/upcycle blog,Storage and small-space projects,"Ottoman storage in a small bedroom",verified 200,editorial
+3,Sleep Council,sleepcouncil.org.uk,Sleep industry body,Consumer sleep guidance,"Mattress replacement cycle and bed base support",verified 200,resource/editorial
+3,The Sleep Charity,thesleepcharity.org.uk,Sleep charity,Consumer sleep advice,"Bedroom environment guidance for adults",verified 200,resource
+3,SleepStation,sleepstation.org.uk,Sleep health service,CBTI and sleep environment,"Bedroom setup for better sleep",verified 200,resource
+3,National Bed Federation,bedfed.org.uk,Trade body,Sector standards,"Membership enquiry — not an editorial link tactic",verified 200,membership
+3,FIRA,fira.co.uk,Furniture research association,Testing and standards,"Furniture testing explainer",verified 403 (bot-blocked, site live),trade
+3,The Furniture Makers' Company,furnituremakers.org.uk,Furniture trade charity,Industry community,"Apprenticeship/industry story",verified 200,trade
+3,Furniture Reuse Network,frn.org.uk,Reuse charity,Mattress and furniture reuse,"Old mattress disposal and reuse partnership",verified 403 (bot-blocked, site live),partnership
+3,WRAP,wrap.org.uk,Sustainability body,Textiles and waste,"Mattress recycling and circularity",verified 200,resource
+3,Recycle Now,recycle-more.co.uk,Recycling service,Consumer recycling advice,"How to recycle a mattress in West Yorkshire",verified 200,resource
+4,ResponseSource,responsesource.com,Journalist request service,UK journalists request expert quotes,"Register as a bedroom/bed expert for quotes",verified 200,earned mention
+4,Press Plugs,pressplugs.co.uk,Journalist request service,UK press requests,"Monitor 'bed' and 'bedroom' requests",verified 200,earned mention
+4,Small Business UK,smallbusiness.co.uk,Small business publication,Retail operations audience,"Cash on delivery as a payment model for small retailers",verified 200,editorial
+4,Startups.co.uk,startups.co.uk,Startup publication,Founder stories,"Founder story: launching a bed retailer in Bradford",verified 200,editorial
+4,Ethical Consumer,ethicalconsumer.org,Consumer ethics guide,Ethical sourcing angle,"Cash on delivery vs card fees and returns waste",verified 200,editorial (research-based)
+4,Inside Housing,insidehousing.co.uk,Housing trade,Social housing furniture,"Furnishing social housing bedrooms affordably",verified 200,editorial (unlikely)
+4,SBID,sbid.org,Interior design body,Design community,"Industry commentary",verified 200,membership
+4,BIID,biid.org.uk,Interior design institute,Designers sourcing beds,"Designer trade supply enquiry",verified 200,membership/trade
+4,UK public service broadcaster,BBC.co.uk,National broadcaster,Consumer/retail stories,"Only with a genuine regional consumer story",verified 200,editorial (rare)

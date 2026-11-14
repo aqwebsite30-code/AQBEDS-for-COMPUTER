@@ -18,13 +18,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Handcrafted ottoman, divan & luxury beds from £185, with mattresses included. Free UK delivery. Cash on delivery available. 10,000+ happy customers.",
+          "Handcrafted ottoman, divan & luxury beds from £185, with mattresses included. Free UK delivery. Cash on delivery available.",
       },
       { property: "og:title", content: "AQ Beds — Premium Beds & Mattresses" },
       {
         property: "og:description",
         content:
-          "Handcrafted ottoman, divan & luxury beds from £185, with mattresses included. Free UK delivery. Cash on delivery available. 10,000+ happy customers.",
+          "Handcrafted ottoman, divan & luxury beds from £185, with mattresses included. Free UK delivery. Cash on delivery available.",
       },
       {
         property: "og:image",

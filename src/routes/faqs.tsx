@@ -71,7 +71,7 @@ const faqs = [
   {
     question: "How long does shipping normally take?",
     answer:
-      "Beds and mattresses typically ship within 3 to 7 business days. Sofas and upholstery take 5 to 10 business days. Made-to-order items may take 2–4 weeks.",
+      "Orders confirmed Monday to Saturday before 20:00 UK time are delivered the next day. Orders placed on Sunday arrive on Tuesday. Monday and UK bank holidays are not delivery days, so a date that falls on one moves to the next available day. You can pick a later delivery date at checkout.",
   },
   {
     question: "What materials are used in AQ Beds?",

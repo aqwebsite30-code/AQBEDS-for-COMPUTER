@@ -69,8 +69,26 @@ export const Route = createFileRoute("/shop")({
           : undefined,
     sort: s.sort === "low" || s.sort === "high" ? s.sort : undefined,
   }),
-  head: () => ({
+  head: ({ match }) => {
+    // N8 — canonical always points at the clean /shop URL (see links below).
+    // Any active filter, search term or sort order is a duplicate of /shop for a
+    // crawler, so those URLs are noindex,follow instead of being indexed.
+    const s = (match?.search ?? {}) as ShopSearch;
+    const filtered = Boolean(
+      s.q ||
+        s.cat?.length ||
+        s.size?.length ||
+        s.mattress?.length ||
+        s.color?.length ||
+        s.fabric?.length ||
+        s.headboard?.length ||
+        s.storage?.length ||
+        s.max ||
+        s.sort,
+    );
+    return {
     meta: [
+      ...(filtered ? [{ name: "robots", content: "noindex,follow" }] : []),
       { title: "Shop All Beds and Sofas | Free UK Delivery | AQ Beds" },
       {
         name: "description",
@@ -97,7 +115,8 @@ export const Route = createFileRoute("/shop")({
       },
     ],
     links: [{ rel: "canonical", href: "https://www.aqbeds.com/shop" }],
-  }),
+    };
+  },
   component: ShopPage,
 });
 

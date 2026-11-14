@@ -85,8 +85,8 @@ function About() {
         <p className="text-muted-foreground leading-relaxed">
           AQ Beds started in 2018 with one idea: sell properly built beds directly, at prices that
           make sense when there is no showroom in the middle. We design the frames, pick the fabrics
-          and handle the order ourselves, then ship it free anywhere in the UK. More than 10,000
-          customers have slept on one since.
+          and handle the order ourselves, then ship it free anywhere in the UK. Every order is
+          inspected with you at the door before you pay.
         </p>
         <p className="mt-4 text-muted-foreground leading-relaxed">
           We design and build premium beds for people who care about how they sleep — and how their
@@ -166,9 +166,9 @@ function About() {
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { stat: "10,000+", label: "customers since 2018" },
             { stat: "32", label: "products in the range" },
-            { stat: "4", label: "fabric families" },
+            { stat: "Free", label: "UK delivery on every order" },
+            { stat: "20:00", label: "cut-off for next-day delivery" },
             { stat: "Next Day", label: "free replacement, any time" },
           ].map((s) => (
             <div key={s.label} className="rounded-2xl bg-brand/[0.05] border border-brand/10 p-4">

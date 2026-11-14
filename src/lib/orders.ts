@@ -91,13 +91,35 @@ async function firePurchaseCAPI(payload: {
     ...(payload.test_event_code ? { test_event_code: payload.test_event_code } : {}),
   };
 
+  const url = `https://graph.facebook.com/v21.0/${PIXEL_ID}/events?access_token=${CAPI_TOKEN}`;
+
+  // M6 — bounded and retried: Meta can be slow, and a hung request must never
+  // hold the customer's order open. Two attempts, 6s each, then give up and log.
+  // Nothing here throws: the order is already saved before this is called.
+  const attemptSend = async (): Promise<Response> => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
+    try {
+      return await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
   try {
-    const url = `https://graph.facebook.com/v21.0/${PIXEL_ID}/events?access_token=${CAPI_TOKEN}`;
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    let res: Response;
+    try {
+      res = await attemptSend();
+      if (res.status >= 500) throw new Error(`HTTP ${res.status}`);
+    } catch (first: any) {
+      console.warn("[CAPI] Purchase attempt 1 failed, retrying once:", first?.message || first);
+      res = await attemptSend();
+    }
     const result = await res.json();
     if (!res.ok) {
       console.error("[CAPI] Purchase FAILED:", JSON.stringify(result));
@@ -117,6 +139,9 @@ async function firePurchaseCAPI(payload: {
     console.error("[CAPI] Purchase fetch error:", err?.message || err);
   }
 }
+
+// Per-instance attempt log for the order endpoint (see O1 in saveOrder).
+const orderAttempts = new Map<string, number[]>();
 
 export const saveOrder = createServerFn({ method: "POST" }).handler(
   async ({ data }: { data: any }) => {
@@ -143,6 +168,48 @@ export const saveOrder = createServerFn({ method: "POST" }).handler(
       });
 
       const parsed = schema.parse(data);
+
+      // O1 — one click, one order. A double-click, a retried fetch or a customer
+      // re-submitting after a slow response produces an identical payload; inside
+      // this window we return the order that already exists instead of a second
+      // one. The attempt log is per instance, so it is a guard rail rather than a
+      // distributed lock.
+      const attemptIp = (() => {
+        try {
+          return getRequestIP({ xForwardedFor: true }) || "anonymous";
+        } catch {
+          return "anonymous";
+        }
+      })();
+      const now = Date.now();
+      const recent = (orderAttempts.get(attemptIp) || []).filter((t) => now - t < 10 * 60_000);
+      if (recent.length >= 6) {
+        return {
+          success: false,
+          error: "Too many order attempts. Please wait a few minutes or contact us on WhatsApp.",
+        };
+      }
+      recent.push(now);
+      orderAttempts.set(attemptIp, recent);
+
+      const duplicate = await db.order.findFirst({
+        where: {
+          customerEmail: parsed.customerEmail,
+          total: parsed.total,
+          items: parsed.items,
+          createdAt: { gte: new Date(now - 3 * 60_000) },
+        },
+        select: { id: true, reference: true },
+        orderBy: { createdAt: "desc" },
+      });
+      if (duplicate) {
+        return {
+          success: true,
+          orderId: duplicate.id,
+          reference: duplicate.reference,
+          deduplicated: true,
+        };
+      }
 
       let salespersonId: string | null = null;
       if (parsed.trackingToken && parsed.trackingToken.trim().length > 0) {

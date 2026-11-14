@@ -154,7 +154,7 @@ export function HeroCarousel() {
             className="hidden sm:flex justify-center mb-6"
           >
             <span className="inline-block px-5 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/70 text-[10px] sm:text-[11px] font-bold tracking-[0.3em] uppercase">
-              Est. 2018 · 10,000+ Beds Delivered Across the UK
+              Free UK delivery · Cash on delivery · Next day before 20:00
             </span>
           </motion.div>
 

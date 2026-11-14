@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestIP } from "@tanstack/react-start/server";
 import { db } from "../db";
 import { z } from "zod";
 
@@ -55,9 +56,33 @@ export const unauthorized = {
 };
 
 // ─── 1. LOGIN ─────────────────────────────────────────────────────────────────
+// Admin login throttle (Phase O): eight failures per IP per 15 minutes. Without
+// it a single shared access key can be brute-forced at full request speed.
+// Per instance, so it slows an attacker rather than stopping a botnet.
+const loginAttempts = new Map<string, number[]>();
+
+function loginThrottled(): boolean {
+  let ip = "anonymous";
+  try {
+    ip = getRequestIP({ xForwardedFor: true }) || "anonymous";
+  } catch {}
+  const now = Date.now();
+  const recent = (loginAttempts.get(ip) || []).filter((t) => now - t < 15 * 60_000);
+  if (recent.length >= 8) {
+    loginAttempts.set(ip, recent);
+    return true;
+  }
+  recent.push(now);
+  loginAttempts.set(ip, recent);
+  return false;
+}
+
 export const loginAdmin = createServerFn({ method: "POST" }).handler(
   async ({ data }: { data: any }) => {
     try {
+      if (loginThrottled()) {
+        return { success: false as const, error: "Too many attempts. Please wait 15 minutes." };
+      }
       const { password } = loginSchema.parse(data);
       const adminEmail = process.env.ADMIN_EMAIL || "admin@aqbeds.com";
 

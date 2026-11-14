@@ -293,3 +293,64 @@ and a paid LFS quota for 251 MB). Nothing was rewritten without the owner's word
 - Owner actions: Resend domain verification, `META_CAPI_ACCESS_TOKEN` in Preview, GA4 tag
   in the GTM container, GA4/GSC accounts, PageSpeed Insights API key, named author for
   articles, monitoring destination for alerts.
+
+## Phases K–Q — growth, measurement and compliance (14 Nov 2026)
+
+Seven phases delivered in one pass. Code changes are small and testable; the rest is
+documentation that states what is measured and what is blocked, rather than inventing
+numbers.
+
+### Code changes
+
+- `src/routes/shop.tsx` — filtered, searched or sorted shop URLs now emit
+  `<meta name="robots" content="noindex,follow">`; the canonical stays `/shop`. Verified:
+  clean `/shop` has 0 robots tags, `/shop?q=bed` and `/shop?sort=low` are noindex.
+- `src/lib/orders.ts` — order idempotency guard: an identical payload (email + total +
+  items) inside 3 minutes returns the existing order instead of creating a second one, and
+  the endpoint is limited to 6 attempts per IP per 10 minutes. Per instance, not a
+  distributed lock.
+- `src/lib/auth/index.ts` — admin login limited to 8 attempts per IP per 15 minutes.
+- Earlier in the pass (Phase L claim audit): removed "More than 10,000 customers since
+  2018" from `/about`, replaced the 10,000+ stat with Free delivery / 20:00 cutoff / Next
+  day, corrected the hero badge and the home meta description, and rewrote the FAQ shipping
+  answer to match the delivery engine.
+- Phase M: `firePurchaseCAPI` now aborts after 6s and retries once on network/timeout/5xx,
+  still never blocking the order.
+
+### Documents
+
+- `docs/phase-k.md` + `docs/phase-k-keywords.csv` — 250 sourced keywords from 1,755 live
+  Google UK autocomplete queries, clusters, four cannibalisation conflicts, missing
+  categories, 12-week calendar. Volume/difficulty left as "unmeasured" with the export
+  needed, because no GSC property or Keyword Planner access exists.
+- `docs/phase-l.md` — claim audit with before/after, objection matrix, persona map, copy
+  variants, owner decisions flagged (not silently deleted).
+- `docs/phase-m.md` — UTM taxonomy, event dedup proof, pixel/AEM procedures, env parity
+  (`META_CAPI_ACCESS_TOKEN` missing in Preview is a real gap).
+- `docs/phase-n.md` — 40 screenshots at 375/390/768/1440, CLS 0.0796–0.0898, no horizontal
+  overflow, no missing alt, one H1 per page, size change keeps scroll position, empty/zero
+  states present, tap-target and thank-you capture limits stated.
+- `docs/phase-o.md` — measured query latency (218 ms warm, 2.4–4.8 s cold), database in
+  us-east-1 while the audience is UK, 13 production advisories (12 high), consent verified,
+  no secrets in the client bundle.
+- `docs/phase-p.md` — KPI sheet with source per metric, one five-step funnel, 13 alerts each
+  with a named owner, weekly and monthly templates. GA4 and GSC marked blocked.
+- `docs/phase-q.md` + `docs/phase-q-prospects.csv` — 50 real UK prospects, all domains
+  checked live, four campaigns, link log schema, Trustpilot recommended against until
+  replies can be answered within 48h.
+
+### Verified
+
+- `npx tsc --noEmit` — no new errors in the touched files (`shop.tsx`, `orders.ts`,
+  `auth/index.ts`); the 31 pre-existing admin route errors are unchanged.
+- `npx cross-env NITRO_PRESET=vercel vite build` — exit 0.
+- `tmp/j3-parity.mjs` — 18/18 templates, no non-200, no UA cloaking.
+- Rendered HTML checked for the noindex rule and for canonical on category filters.
+
+### Still blocked, owner action required
+
+1. Move the Neon project to eu-west-2 (London) — the single biggest speed win available.
+2. GA4 property + GSC property; then Phase K positions and the Phase P funnel become real.
+3. `META_CAPI_ACCESS_TOKEN` in the Preview environment.
+4. Decide: stock decrement, email-failure persistence, analytics retention, Trustpilot.
+5. `npm audit fix` in its own commit, then retest checkout.
