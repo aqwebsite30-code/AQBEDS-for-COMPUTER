@@ -354,3 +354,17 @@ numbers.
 3. `META_CAPI_ACCESS_TOKEN` in the Preview environment.
 4. Decide: stock decrement, email-failure persistence, analytics retention, Trustpilot.
 5. `npm audit fix` in its own commit, then retest checkout.
+
+## Product and category layout fix (14 Nov 2026)
+
+- Citable "Key facts" is now a collapsed one-line `<details>` instead of a
+  seven-row block at the top of the page. It sits below the buy box on product
+  pages and below the grid on category pages. The text stays server-rendered, so
+  crawlers and answer engines still read every fact.
+- Product description split into a lead sentence plus body, with the repeated
+  "Free UK delivery · Pay on delivery available · …" tail removed — those facts
+  are already badges under the buttons.
+- Removed the duplicate breadcrumb on product pages (the site-wide trail already
+  renders one).
+- Category hero: minimum 360px height on mobile with a stronger gradient and a
+  smaller mobile H1, so the intro no longer spills onto a light part of the photo.

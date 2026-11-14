@@ -150,7 +150,7 @@ function CategoryPage() {
 
   return (
     <div className="animate-fade-in bg-background min-h-screen">
-      <section className="relative w-full aspect-video overflow-hidden bg-background">
+      <section className="relative w-full overflow-hidden bg-background min-h-[360px] sm:min-h-0 sm:aspect-video">
         <img
           {...responsiveSrc(category.image)}
           sizes="100vw"
@@ -160,7 +160,7 @@ function CategoryPage() {
           className="h-full w-full object-cover object-center"
         />
         {/* Cinematic Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/20 sm:via-black/25 sm:to-transparent" />
         <div className="absolute inset-x-0 bottom-0 mx-auto max-w-7xl px-4 pb-8 sm:pb-12 text-white">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -170,10 +170,10 @@ function CategoryPage() {
             <span className="text-[10px] sm:text-xs uppercase tracking-[0.3em] text-white/70 font-bold">
               {category.name}
             </span>
-            <h1 className="font-display font-black text-4xl sm:text-6xl lg:text-7xl mt-2 tracking-tighter leading-none">
+            <h1 className="font-display font-black text-3xl sm:text-6xl lg:text-7xl mt-2 tracking-tighter leading-none">
               {category.name}
             </h1>
-            <p className="mt-4 text-sm sm:text-lg text-white/70 max-w-3xl font-light leading-relaxed">
+            <p className="mt-3 text-sm sm:text-lg text-white/80 max-w-3xl font-light leading-relaxed">
               {category.intro || category.blurb}
             </p>
             {GUIDE_LINKS[category.slug] && (
@@ -190,20 +190,6 @@ function CategoryPage() {
       <section className="mx-auto max-w-7xl px-4 py-10">
         <div className="text-sm text-muted-foreground mb-6">{countLabel}</div>
 
-        {/* J6 — citable facts, plain sentences an AI system can quote. */}
-        <CitableFacts
-          facts={[
-            { label: "In this collection", value: countLabel + "." },
-            ...(categorySizes.length
-              ? [{ label: "Sizes", value: categorySizes.join(", ") }]
-              : []),
-            { label: "Materials", value: materialsFact(category.slug) },
-            { label: "Delivery", value: DELIVERY_FACT },
-            { label: "Payment", value: PAYMENT_FACT },
-            { label: "Guarantee", value: GUARANTEE_FACT },
-            { label: "Coverage", value: COVERAGE_FACT },
-          ]}
-        />
         {products.length === 0 ? (
           <div className="text-center py-24 bg-card rounded-3xl border border-dashed border-border">
             <div className="text-5xl mb-4">✨</div>
@@ -220,6 +206,22 @@ function CategoryPage() {
             ))}
           </div>
         )}
+
+        {/* J6 — citable facts, plain sentences an AI system can quote. Collapsed
+            and placed after the grid so the products stay above the fold. */}
+        <CitableFacts
+          facts={[
+            { label: "In this collection", value: countLabel + "." },
+            ...(categorySizes.length
+              ? [{ label: "Sizes", value: categorySizes.join(", ") }]
+              : []),
+            { label: "Materials", value: materialsFact(category.slug) },
+            { label: "Delivery", value: DELIVERY_FACT },
+            { label: "Payment", value: PAYMENT_FACT },
+            { label: "Guarantee", value: GUARANTEE_FACT },
+            { label: "Coverage", value: COVERAGE_FACT },
+          ]}
+        />
       </section>
     </div>
   );

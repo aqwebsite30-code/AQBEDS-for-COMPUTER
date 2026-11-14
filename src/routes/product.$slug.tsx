@@ -83,6 +83,33 @@ const CATEGORY_LABEL: Record<string, string> = {
 };
 
 /** Product titles land in the 50-60 character window without padding. */
+// The stored descriptions end with a " · " offer tail that is already shown as
+// badges under the buy buttons. Splitting it out keeps the body readable, and the
+// first sentence gets a stronger weight so the paragraph is scannable on a phone.
+const DESCRIPTION_TAIL = [
+  "Free UK delivery",
+  "Pay on delivery available",
+  "Mattress included",
+  "Next Day Free Replacement",
+];
+
+function ProductDescription({ description }: { description: string }) {
+  const parts = description.split(" · ").map((p) => p.trim()).filter(Boolean);
+  const body = parts.filter((p) => !DESCRIPTION_TAIL.includes(p)).join(" · ");
+  const sentences = body.match(/[^.!?]+[.!?]+/g) ?? [body];
+  const lead = (sentences[0] || "").trim();
+  const rest = sentences.slice(1).join(" ").trim();
+
+  return (
+    <div className="mt-4 space-y-3 max-w-[62ch]">
+      <p className="text-[15px] sm:text-base font-medium leading-7 text-foreground">{lead}</p>
+      {rest && (
+        <p className="text-sm sm:text-[15px] leading-7 text-muted-foreground">{rest}</p>
+      )}
+    </div>
+  );
+}
+
 function buildTitle(product: { name: string; category?: string }): string {
   const cat = CATEGORY_LABEL[product.category ?? ""] ?? "Beds & Bed Frames";
   const options = [
@@ -833,17 +860,6 @@ function ProductPage() {
   return (
     <div className="animate-fade-in bg-background">
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <nav className="text-xs text-muted-foreground mb-6">
-          <Link to="/" className="hover:text-brand">
-            Home
-          </Link>{" "}
-          /{" "}
-          <Link to="/shop" className="hover:text-brand">
-            Shop
-          </Link>{" "}
-          / <span>{product.name}</span>
-        </nav>
-
         <div className="grid lg:grid-cols-2 gap-10 items-stretch">
           <div className="relative" ref={galleryRef}>
             <div className="flex flex-col">
@@ -915,24 +931,7 @@ function ProductPage() {
                 )}
               </div>
             </div>
-            <p className="mt-4 text-muted-foreground leading-relaxed">{product.description}</p>
-
-            {/* J6 — citable facts, plain sentences an AI system can quote. */}
-            <CitableFacts
-              facts={[
-                ...(sizeNames(product.sizes).length
-                  ? [{ label: "Sizes", value: sizeNames(product.sizes).join(", ") }]
-                  : []),
-                ...(mattressFact(product.sizes)
-                  ? [{ label: "Mattress", value: mattressFact(product.sizes) as string }]
-                  : []),
-                { label: "Materials", value: materialsFact(product.category) },
-                { label: "Delivery", value: DELIVERY_FACT },
-                { label: "Payment", value: PAYMENT_FACT },
-                { label: "Guarantee", value: GUARANTEE_FACT },
-                { label: "Coverage", value: COVERAGE_FACT },
-              ]}
-            />
+            <ProductDescription description={product.description} />
 
             {/* Options mapping here */}
             {isSofa ? (
@@ -1353,6 +1352,24 @@ function ProductPage() {
                 {REVIEW_AVG_LABEL}/5 ({REVIEW_COUNT})
               </span>
             </div>
+
+            {/* J6 — citable facts, behind a one-line disclosure and below the buy
+                box, so the first phone screen is product, price and CTA. */}
+            <CitableFacts
+              facts={[
+                ...(sizeNames(product.sizes).length
+                  ? [{ label: "Sizes", value: sizeNames(product.sizes).join(", ") }]
+                  : []),
+                ...(mattressFact(product.sizes)
+                  ? [{ label: "Mattress", value: mattressFact(product.sizes) as string }]
+                  : []),
+                { label: "Materials", value: materialsFact(product.category) },
+                { label: "Delivery", value: DELIVERY_FACT },
+                { label: "Payment", value: PAYMENT_FACT },
+                { label: "Guarantee", value: GUARANTEE_FACT },
+                { label: "Coverage", value: COVERAGE_FACT },
+              ]}
+            />
 
             {/* Section 1b — guarantee block (verbatim) */}
             <div className="mt-6 rounded-3xl border border-whatsapp/25 bg-whatsapp/5 p-6 space-y-4">

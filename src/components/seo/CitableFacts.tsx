@@ -68,19 +68,36 @@ export function CitableFacts({
 }) {
   if (!facts.length) return null;
 
+  // Collapsed by default: a seven-row facts table at the top of a phone screen
+  // pushed the product behind a wall of text. The content is still server-rendered
+  // inside <details>, so crawlers and answer engines read every word; shoppers see
+  // one line until they ask for it.
   return (
-    <section
+    <details
       data-testid="citable-facts"
-      aria-labelledby="citable-facts-heading"
-      className="mt-8 rounded-2xl border border-border bg-card/60 p-5 sm:p-6"
+      className="group mt-6 rounded-2xl border border-border bg-card/60"
     >
-      <h2
-        id="citable-facts-heading"
-        className="font-display font-bold text-xs uppercase tracking-widest text-muted-foreground"
-      >
-        {heading}
-      </h2>
-      <dl className="mt-4 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 marker:hidden [&::-webkit-details-marker]:hidden">
+        <span className="font-display font-bold text-xs uppercase tracking-widest text-muted-foreground">
+          {heading}
+        </span>
+        <span className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
+          <span className="hidden sm:inline">Sizes, delivery, payment</span>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 20 20"
+            className="h-4 w-4 shrink-0 transition-transform duration-200 group-open:rotate-180"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M5 7.5 10 12.5 15 7.5" />
+          </svg>
+        </span>
+      </summary>
+      <dl className="grid gap-x-8 gap-y-3.5 border-t border-border/70 px-4 pb-4 pt-3.5 sm:grid-cols-2">
         {facts.map((fact) => (
           <div key={fact.label}>
             <dt className="text-[11px] font-bold uppercase tracking-widest text-brand">
@@ -90,6 +107,6 @@ export function CitableFacts({
           </div>
         ))}
       </dl>
-    </section>
+    </details>
   );
 }
