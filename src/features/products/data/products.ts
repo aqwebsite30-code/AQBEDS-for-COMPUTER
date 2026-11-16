@@ -29,7 +29,7 @@ export const CATEGORIES: {
     image: "/all products img/Panel Line/1.webp",
     blurb: "Our entire collection of handcrafted beds",
     intro:
-      "Every AQ Beds frame in one place - ottoman, divan, storage and luxury beds in crushed and plush velvet, with a mattress included and free UK delivery. Filter by size, style and budget from £185.",
+      "Every AQ Beds frame in one place - ottoman, divan, storage and luxury beds in crushed and plush velvet, with a mattress included and free UK delivery. Filter by size, style and budget from £235.",
   },
   {
     slug: "luxury-beds",
@@ -37,7 +37,7 @@ export const CATEGORIES: {
     image: "/all products img/Ambessador/1.webp",
     blurb: "Velvet, wingback & sleigh frames that anchor the room",
     intro:
-      "Statement beds for the room everyone remembers. Wingback headboards, sleigh frames and gold-strip detailing in crushed and plush velvet - handcrafted, made to order, from £210. Free UK delivery and a mattress included on every frame.",
+      "Statement beds for the room everyone remembers. Wingback headboards, sleigh frames and gold-strip detailing in crushed and plush velvet - handcrafted, made to order, from £260. Free UK delivery and a mattress included on every frame.",
   },
   {
     slug: "ottoman-beds",
@@ -318,7 +318,7 @@ function product(
 const baseProducts: Product[] = [
   // ══════════════════════════════════════════════════════════════════════════
   // 1. LUXURY AMBESSADOR BED
-  // base = £360 (standard single, with mattress)  |  original = £400
+  // base = £410 (standard single, with mattress)  |  original = £450
   // WITH mattress:  sts=360, sd=410, std=410, k=420, sk=460
   // NO  mattress:   sts=420, sd=480, std=480, k=510, sk=600
   // ══════════════════════════════════════════════════════════════════════════
@@ -326,8 +326,8 @@ const baseProducts: Product[] = [
     "ambessador",
     "Ambessador Bed",
     "luxury-beds",
-    360,
-    400,
+    410,
+    450,
     "/all products img/Ambessador/1.webp",
     {
       sizes: [
@@ -355,11 +355,11 @@ const baseProducts: Product[] = [
 
   // ══════════════════════════════════════════════════════════════════════════
   // 2. LUXURY ARIZONA BED
-  // base = £250 (2ft small single, with mattress)  |  original = £300
+  // base = £300 (2ft small single, with mattress)  |  original = £350
   // WITH mattress:  ss=250, sts=260, sd=290, std=300, k=330, sk=390
   // NO  mattress:   ss=210, sts=220, sd=250, std=260, k=280, sk=300
   // ══════════════════════════════════════════════════════════════════════════
-  product("arizona", "Arizona Bed", "luxury-beds", 250, 300, "/all products img/Arizona/1.webp", {
+  product("arizona", "Arizona Bed", "luxury-beds", 300, 350, "/all products img/Arizona/1.webp", {
     sizes: [
       { name: "2ft Small Single – With Mattress", extraPrice: 0 },
       { name: "3ft Standard Single – With Mattress", extraPrice: 10 },
@@ -384,11 +384,11 @@ const baseProducts: Product[] = [
 
   // ══════════════════════════════════════════════════════════════════════════
   // 3. BUNK BED
-  // base = £449 (Double metal, with mattress)  |  original = £500
+  // base = £499 (Double metal, with mattress)  |  original = £550
   // WITH: Double=449, Trio=499
   // NO:   Double=349, Trio=399
   // ══════════════════════════════════════════════════════════════════════════
-  product("bunk-beds", "Bunk Bed", "ottoman-beds", 449, 500, "/all products img/Bunk beds/1.webp", {
+  product("bunk-beds", "Bunk Bed", "ottoman-beds", 499, 550, "/all products img/Bunk beds/1.webp", {
     sizes: [
       { name: "Double Metal Bunk Bed – With Mattress", extraPrice: 0 },
       { name: "Trio Metal Bunk Beds – With Mattress", extraPrice: 50 },
@@ -414,7 +414,7 @@ const baseProducts: Product[] = [
 
   // ══════════════════════════════════════════════════════════════════════════
   // 4. LUXURY DIVAN BED
-  // base = £185 (2ft small single, with mattress)  |  original = £200
+  // base = £235 (2ft small single, with mattress)  |  original = £350
   // WITH: ss=185, sts=190, sd=215, std=220, k=235, sk=290 (discounted from 300)
   // NO:   ss=150, sts=155, sd=160, std=170, k=180, sk=220
   // Storage: No storage (default), 2 Drawers +£40, 4 Drawers +£70
@@ -424,8 +424,8 @@ const baseProducts: Product[] = [
     "divan",
     "Divan Bed",
     "divan-beds",
-    185,
-    200,
+    235,
+    250,
     "/all products img/Divan/1 Panel line head board.webp",
     {
       sizes: [
@@ -460,7 +460,7 @@ const baseProducts: Product[] = [
 
   // ══════════════════════════════════════════════════════════════════════════
   // 5. LUXURY DIVAN OTTOMAN GAS LIFT STORAGE BED
-  // base = £350 (3ft standard single, with mattress)  |  original = £400
+  // base = £400 (3ft standard single, with mattress)  |  original = £450
   // WITH: sts=350, sd=400, std=410, k=440, sk=499 (includes Irish mattress 10")
   // NO:   sts=310, sd=340, std=350, k=370, sk=420
   // Headboard: Standard 45" (free), 54" headboard +£80
@@ -470,8 +470,8 @@ const baseProducts: Product[] = [
     "divan-ottoman-bed",
     "Aurora Ottoman Gas-Lift Bed",
     "ottoman-beds",
-    350,
     400,
+    450,
     "/all products img/Divan Ottoman bed/1.webp",
     {
       sizes: [
@@ -502,13 +502,13 @@ const baseProducts: Product[] = [
         "/all products img/Divan Ottoman bed/4.webp",
       ],
       description:
-        'A full storage room hiding under your mattress. One hand, one motion: the gas-lift base rises to reveal a full-width cavity — bedding, suitcases, winter coats, gone. Built on a solid timber frame with a 45" standard headboard (54" available), upholstered in 16 velvet and chenille shades, and delivered free with a mattress included from £350. Free UK delivery · Pay on delivery available · Mattress included · Next Day Free Replacement.',
+        'A full storage room hiding under your mattress. One hand, one motion: the gas-lift base rises to reveal a full-width cavity — bedding, suitcases, winter coats, gone. Built on a solid timber frame with a 45" standard headboard (54" available), upholstered in 16 velvet and chenille shades, and delivered free with a mattress included from £400. Free UK delivery · Pay on delivery available · Mattress included · Next Day Free Replacement.',
     },
   ),
 
   // ══════════════════════════════════════════════════════════════════════════
   // 6. LUXURY FLORIDA BED
-  // base = £210 (2ft small single, with mattress)  |  original = £250
+  // base = £260 (2ft small single, with mattress)  |  original = £350
   // WITH: ss=210, sts=220, sd=240, std=250, k=270, sk=350
   // NO:   ss=175, sts=180, sd=200, std=210, k=220, sk=280
   // ══════════════════════════════════════════════════════════════════════════
@@ -516,8 +516,8 @@ const baseProducts: Product[] = [
     "florida-bed",
     "Florida Bed",
     "luxury-beds",
-    210,
-    250,
+    260,
+    300,
     "/all products img/Florida bed/1.webp",
     {
       sizes: [
@@ -545,7 +545,7 @@ const baseProducts: Product[] = [
 
   // ══════════════════════════════════════════════════════════════════════════
   // 7. LUXURY GOLDEN WAVE BED
-  // base = £250 (2ft small single, with mattress)  |  original = £300
+  // base = £300 (2ft small single, with mattress)  |  original = £350
   // WITH: ss=250, sts=260, sd=290, std=300, k=330, sk=390
   // NO:   ss=210, sts=220, sd=250, std=260, k=280, sk=300
   // ══════════════════════════════════════════════════════════════════════════
@@ -553,8 +553,8 @@ const baseProducts: Product[] = [
     "golden-wave-bed",
     "Golden Wave Bed",
     "luxury-beds",
-    250,
     300,
+    350,
     "/all products img/Golden wave bed/1.webp",
     {
       sizes: [
@@ -582,11 +582,11 @@ const baseProducts: Product[] = [
 
   // ══════════════════════════════════════════════════════════════════════════
   // 8. LUXURY HILTON BED
-  // base = £210 (2ft small single, with mattress)  |  original = £250
+  // base = £260 (2ft small single, with mattress)  |  original = £300
   // WITH: ss=210, sts=220, sd=240, std=250, k=270, sk=350
   // NO:   ss=175, sts=180, sd=200, std=210, k=220, sk=280
   // ══════════════════════════════════════════════════════════════════════════
-  product("hilton", "Hilton Bed", "luxury-beds", 210, 250, "/all products img/Hilton/1.webp", {
+  product("hilton", "Hilton Bed", "luxury-beds", 260, 300, "/all products img/Hilton/1.webp", {
     sizes: [
       { name: "2ft Small Single – With Mattress", extraPrice: 0 },
       { name: "3ft Standard Single – With Mattress", extraPrice: 10 },
@@ -611,15 +611,15 @@ const baseProducts: Product[] = [
 
   // ══════════════════════════════════════════════════════════════════════════
   // 9. LUXURY CUBE BED
-  // base = £210 (2ft small single, with mattress)  |  original = £250
+  // base = £260 (2ft small single, with mattress)  |  original = £300
   // (same pricing tier as Florida/Hilton/Panel Line/Bumper/Wing Back)
   // ══════════════════════════════════════════════════════════════════════════
   product(
     "luxury-cube-bed",
     "Cube Bed",
     "luxury-beds",
-    210,
-    250,
+    260,
+    300,
     "/all products img/Luxury Cube bed/1.webp",
     {
       sizes: [
@@ -647,7 +647,7 @@ const baseProducts: Product[] = [
 
   // ══════════════════════════════════════════════════════════════════════════
   // 10. LUXURY OXFORD WINGBACK BED
-  // base = £250 (2ft small single, with mattress)  |  original = £300
+  // base = £300 (2ft small single, with mattress)  |  original = £300
   // WITH: ss=250, sts=260, sd=290, std=300, k=330, sk=390
   // NO:   ss=210, sts=220, sd=250, std=260, k=280, sk=300
   // ══════════════════════════════════════════════════════════════════════════
@@ -655,8 +655,8 @@ const baseProducts: Product[] = [
     "oxford-wingback",
     "Oxford Wingback Bed",
     "luxury-beds",
-    250,
     300,
+    350,
     "/all products img/Oxford Wingback/1.webp",
     {
       sizes: [
@@ -684,7 +684,7 @@ const baseProducts: Product[] = [
 
   // ══════════════════════════════════════════════════════════════════════════
   // 11. LUXURY PANEL LINE BED
-  // base = £210 (2ft small single, with mattress)  |  original = £250
+  // base = £260 (2ft small single, with mattress)  |  original = £300
   // WITH: ss=210, sts=220, sd=240, std=250, k=270, sk=350
   // NO:   ss=175, sts=180, sd=200, std=210, k=220, sk=280
   // ══════════════════════════════════════════════════════════════════════════
@@ -692,8 +692,8 @@ const baseProducts: Product[] = [
     "panel-line",
     "Panel Line Bed",
     "luxury-beds",
-    210,
-    250,
+    260,
+    300,
     "/all products img/Panel Line/1.webp",
     {
       sizes: [
@@ -721,14 +721,14 @@ const baseProducts: Product[] = [
 
   // ══════════════════════════════════════════════════════════════════════════
   // 12. LUXURY PANEL LINE BUMPER BED
-  // base = £210 (2ft small single, with mattress)  |  original = £250
+  // base = £260 (2ft small single, with mattress)  |  original = £300
   // ══════════════════════════════════════════════════════════════════════════
   product(
     "panel-line-bumper",
     "Panel Line Bumper Bed",
     "luxury-beds",
-    210,
-    250,
+    260,
+    300,
     "/all products img/Panel line bumper/1.webp",
     {
       sizes: [
@@ -756,7 +756,7 @@ const baseProducts: Product[] = [
 
   // ══════════════════════════════════════════════════════════════════════════
   // 13. LUXURY PANEL LINE GOLD STRIP BED
-  // base = £250 (2ft small single, with mattress)  |  original = £300
+  // base = £300 (2ft small single, with mattress)  |  original = £300
   // WITH: ss=250, sts=260, sd=290, std=300, k=330, sk=390
   // NO:   ss=210, sts=220, sd=250, std=260, k=280, sk=300
   // ══════════════════════════════════════════════════════════════════════════
@@ -764,8 +764,8 @@ const baseProducts: Product[] = [
     "panel-line-gold-strip",
     "Panel Line Gold Strip Bed",
     "luxury-beds",
-    250,
     300,
+    350,
     "/all products img/Panel line gold strip/1.webp",
     {
       sizes: [
@@ -793,14 +793,14 @@ const baseProducts: Product[] = [
 
   // ══════════════════════════════════════════════════════════════════════════
   // 14. LUXURY PANEL WING BACK BED
-  // base = £210 (2ft small single, with mattress)  |  original = £250
+  // base = £260 (2ft small single, with mattress)  |  original = £250
   // ══════════════════════════════════════════════════════════════════════════
   product(
     "panel-wing-back",
     "Panel Wing Back Bed",
     "luxury-beds",
-    210,
-    250,
+    260,
+    300,
     "/all products img/Panel wing back/1.webp",
     {
       sizes: [
@@ -828,11 +828,11 @@ const baseProducts: Product[] = [
 
   // ══════════════════════════════════════════════════════════════════════════
   // 15. LUXURY SLEIGH BED
-  // base = £250 (2ft small single, with mattress)  |  original = £300
+  // base = £300 (2ft small single, with mattress)  |  original = £350
   // WITH: ss=250, sts=260, sd=290, std=300, k=330, sk=390
   // NO:   ss=210, sts=220, sd=250, std=260, k=280, sk=300
   // ══════════════════════════════════════════════════════════════════════════
-  product("sleigh", "Sleigh Bed", "luxury-beds", 250, 300, "/all products img/Sleigh/1.webp", {
+  product("sleigh", "Sleigh Bed", "luxury-beds", 300, 350, "/all products img/Sleigh/1.webp", {
     sizes: [
       { name: "2ft Small Single – With Mattress", extraPrice: 0 },
       { name: "3ft Standard Single – With Mattress", extraPrice: 10 },

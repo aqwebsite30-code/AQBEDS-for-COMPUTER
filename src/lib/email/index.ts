@@ -206,11 +206,20 @@ export const sendOrderEmail = createServerFn({ method: "POST" }).handler(async (
                   <p style="color: #64748b; font-size: 14px; margin-top: 5px;">Your premium sleep journey begins today.</p>
                 </div>
 
-                <div style="background: #eff6ff; padding: 20px; border-radius: 12px; margin-bottom: 35px; border: 1px solid #dbeafe;">
+                <div style="background: #eff6ff; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #dbeafe;">
                   <p style="margin: 0; color: #1e3a8a; font-size: 14px; line-height: 1.6; text-align: center;">
-                    Our team is currently preparing your order. We will contact you via phone or WhatsApp shortly to arrange the most convenient delivery time.
+                    You pay nothing today. Pay the courier in cash when your bed arrives, after you have
+                    inspected it. We will message you on WhatsApp to agree the delivery day.
                   </p>
                 </div>
+
+                ${
+                  safeRef
+                    ? `<div style="text-align: center; margin-bottom: 35px;">
+                        <a href="https://www.aqbeds.com/track?token=${encodeURIComponent(orderRef)}" style="display: inline-block; background: #0f172a; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 14px; padding: 14px 24px; border-radius: 10px;">Track your order</a>
+                      </div>`
+                    : ""
+                }
 
                 <div style="margin-bottom: 35px;">
                   <h2 style="font-size: 18px; margin: 0 0 15px; color: #111; font-weight: 700;">Order Summary</h2>
@@ -227,7 +236,7 @@ export const sendOrderEmail = createServerFn({ method: "POST" }).handler(async (
                     </tbody>
                     <tfoot>
                       <tr>
-                        <td colspan="2" style="padding: 20px 12px; text-align: right; font-weight: 700; font-size: 16px; color: #111;">Total Paid (COD):</td>
+                        <td colspan="2" style="padding: 20px 12px; text-align: right; font-weight: 700; font-size: 16px; color: #111;">Due on delivery (cash):</td>
                         <td style="padding: 20px 12px; text-align: right; font-weight: 800; font-size: 24px; color: #2563eb;">${clientTotal}</td>
                       </tr>
                     </tfoot>
@@ -245,8 +254,10 @@ export const sendOrderEmail = createServerFn({ method: "POST" }).handler(async (
                 </div>
 
                 <div style="text-align: center; padding-top: 30px; border-top: 1px solid #f1f5f9; margin-top: 40px;">
-                  <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">Questions? Simply reply to this email or contact us via WhatsApp.</p>
-                  <p style="color: #9ca3af; font-size: 12px; margin: 0;">AQ BEDS — Luxury Handcrafted Sleep Solutions</p>
+                  <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">
+                    Questions? Reply to this email, or message us on WhatsApp with your order number.
+                  </p>
+                  <p style="color: #9ca3af; font-size: 12px; margin: 0;">AQ Beds · orders@aqbeds.com</p>
                 </div>
               </div>
             </div>

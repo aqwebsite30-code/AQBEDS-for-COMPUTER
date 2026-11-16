@@ -3,14 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useCart } from "../features/cart/store/cart";
 import { formatGBP, buildWhatsAppUrl, WHATSAPP_NUMBER } from "../lib/utils/format";
-import {
-  CheckCircle2,
-  Loader2,
-  MessageSquare,
-  MessageCircle,
-  ArrowLeft,
-  Truck,
-} from "lucide-react";
+import { Loader2, MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { sendOrderEmail } from "../lib/email";
 import { saveOrder } from "@/lib/orders";
@@ -27,6 +20,7 @@ import { trackEvent } from "@/lib/analytics";
 import { isSelectableDeliveryDate } from "@/lib/delivery-date";
 import { useDeliveryInfo } from "@/hooks/useDeliveryInfo";
 import { OrderSummary } from "@/components/checkout/OrderSummary";
+import { OrderConfirmedModal } from "@/components/checkout/OrderConfirmedModal";
 import { REVIEW_AVG_LABEL, REVIEW_COUNT } from "@/lib/reviews";
 import {
   trackBeginCheckout,
@@ -696,160 +690,11 @@ function CheckoutPage() {
       {placed && typeof document !== "undefined"
         ? createPortal(
             <AnimatePresence>
-              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 bg-brand/40 backdrop-blur-md"
-                />
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0, y: 30 }}
-                  animate={{
-                    scale: 1,
-                    opacity: 1,
-                    y: 0,
-                    transition: {
-                      type: "spring",
-                      damping: 20,
-                      stiffness: 300,
-                    },
-                  }}
-                  exit={{ scale: 0.95, opacity: 0, y: 10 }}
-                  className="relative w-full max-w-md bg-gradient-to-br from-brand to-brand-accent border border-white/20 rounded-[40px] p-10 overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.4)]"
-                >
-                  <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12">
-                    <CheckCircle2 className="w-40 h-40 text-white" />
-                  </div>
-
-                  <div className="flex flex-col items-center text-center space-y-8 relative z-10">
-                    <div className="w-24 h-24 bg-white/10 rounded-3xl flex items-center justify-center border border-white/20 shadow-inner rotate-3">
-                      <CheckCircle2 className="w-12 h-12 text-white" />
-                    </div>
-
-                    <div className="space-y-3">
-                      <h2 className="text-3xl font-display font-bold text-white tracking-tight leading-tight">
-                        Order confirmed!
-                      </h2>
-                      <p className="text-white/70 font-medium px-2">
-                        Thank you for choosing AQ Beds. Your premium sleep experience is being
-                        prepared.
-                      </p>
-                      <p className="text-white font-bold text-sm px-2">
-                        £0 today. Pay the courier when it arrives.
-                      </p>
-                    </div>
-
-                    {placedReference && (
-                      <div className="w-full rounded-2xl border border-white/25 bg-white/10 px-5 py-4">
-                        <p className="text-white/60 text-[11px] font-semibold uppercase tracking-[0.2em]">
-                          Your order number
-                        </p>
-                        <p
-                          className="mt-1 font-display text-2xl font-bold tracking-[0.12em] text-white"
-                          data-testid="order-reference"
-                        >
-                          {placedReference}
-                        </p>
-                        <p className="mt-1 text-white/60 text-xs">
-                          Quote this number on WhatsApp or when you track your order.
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="w-full h-px bg-white/10" />
-
-                    <div className="space-y-4 w-full">
-                      <p className="text-white/60 text-sm font-medium italic">
-                        You will be notified shortly via WhatsApp.
-                      </p>
-
-                      <Link
-                        to="/"
-                        className="w-full h-14 rounded-2xl bg-white text-brand font-bold flex items-center justify-center gap-2 hover:bg-secondary transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
-                      >
-                        <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-                        Return Home
-                      </Link>
-                      {placedToken && (
-                        <Link
-                          to="/track"
-                          search={{ token: placedToken }}
-                          className="w-full h-14 rounded-2xl border border-white/40 text-white font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
-                        >
-                          <Truck className="w-5 h-5" />
-                          Track your order
-                        </Link>
-                      )}
-                      {/* Pre-built from the order that was just saved. Rebuilding
-                          it from the page's first <form> picked up the header
-                          search box instead of the checkout form. */}
-                      <a
-                        href={whatsappUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(event) => {
-                          trackGenerateLead("whatsapp_confirmation");
-                          // Try a new tab first; if the browser blocks it, keep
-                          // the customer here and reveal the fallback link.
-                          const popup = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-                          if (popup) {
-                            event.preventDefault();
-                          } else {
-                            setWaBlocked(true);
-                          }
-                        }}
-                        className="w-full h-14 rounded-2xl bg-whatsapp text-white font-bold flex items-center justify-center gap-2 hover:bg-whatsapp/90 transition-all shadow-xl hover:scale-[1.02] active:scale-[0.98]"
-                      >
-                        <MessageSquare className="w-5 h-5" />
-                        Open WhatsApp
-                      </a>
-
-                      {/* Popup-blocked fallback: same order message, visible and copyable. */}
-                      <div className="w-full rounded-2xl border border-white/20 bg-white/5 p-3 text-left">
-                        <p className="text-xs font-semibold text-white/85">
-                          WhatsApp did not open? Use this link:
-                        </p>
-                        <a
-                          href={whatsappUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mt-1 block break-all text-xs font-bold text-white underline underline-offset-2"
-                        >
-                          Open your order message on WhatsApp
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (navigator.clipboard) {
-                              void navigator.clipboard.writeText(whatsappUrl).then(
-                                () => toast.success("Order message link copied"),
-                                () => setWaBlocked(true),
-                              );
-                            } else {
-                              setWaBlocked(true);
-                            }
-                          }}
-                          className="mt-2 text-xs font-semibold text-white/85 underline underline-offset-2"
-                        >
-                          Copy order message link
-                        </button>
-                        {waBlocked && (
-                          <p className="mt-2 text-xs text-white/70">
-                            Your browser is blocking new tabs. Long-press the link above, or copy
-                            it and open it in WhatsApp. Your order is already saved — you can also
-                            track it with the button above.
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Decorative elements */}
-                  <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-white/10 rounded-full blur-3xl" />
-                  <div className="absolute -top-12 -right-12 w-48 h-48 bg-cta/20 rounded-full blur-3xl" />
-                </motion.div>
-              </div>
+              <OrderConfirmedModal
+                reference={placedReference}
+                token={placedToken}
+                whatsappUrl={whatsappUrl}
+              />
             </AnimatePresence>,
             document.body,
           )

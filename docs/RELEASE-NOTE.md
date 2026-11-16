@@ -368,3 +368,22 @@ numbers.
   renders one).
 - Category hero: minimum 360px height on mobile with a stronger gradient and a
   smaller mobile H1, so the intro no longer spills onto a light part of the photo.
+
+## Price rise with a rollback switch, and a confirmation screen that fits (15 Nov 2026)
+
+- Every bed size went up by £50 (divan 2ft with mattress £185 -> £235, 6ft super
+  king £290 -> £340; no-mattress £150 -> £200 through £220 -> £270). 15 bed
+  products, all sizes, compare-at prices raised with them.
+- Both price lists are saved in the database as `PriceSet` rows: **Prices 1**
+  (before) and **Prices 2** (after, active). `npm run prices -- use "Prices 1"`
+  switches the whole catalogue back in one write; see `docs/price-sets.md`.
+- Hardcoded "from £X" copy was brought in line: product metas and descriptions,
+  the static catalogue used by header search, the homepage metadata, the hero
+  button and the ottoman-vs-divan guide.
+- The order-confirmed panel is now its own component, capped at the viewport
+  height with its own scroll, 48px buttons and shorter copy. Verified at
+  375x667, 390, 768 and 1440 with no clipping and no horizontal scroll.
+- The WhatsApp fallback block only appears when the tab was actually blocked.
+- Homepage category grid gained a "Track your order" tile.
+- Customer order email: "Total Paid (COD)" corrected to "Due on delivery
+  (cash)", added the track link and the pay-nothing-today line.

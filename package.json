@@ -15,7 +15,9 @@
     "responsive-images": "node scripts/responsive-images.mjs",
     "check:prices": "node scripts/check-prices.cjs",
     "verify:audit": "node scripts/verify-audit.mjs",
-    "test:delivery": "node scripts/test-delivery.mjs"
+    "test:delivery": "node scripts/test-delivery.mjs",
+    "prices": "node scripts/price-sets.cjs",
+    "prices:sync-copy": "node scripts/sync-price-copy.cjs"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",

@@ -33,8 +33,8 @@ const ROWS: { label: string; ottoman: string; divan: string }[] = [
   },
   {
     label: "Price from",
-    ottoman: "£350 (Aurora Ottoman Gas-Lift Bed)",
-    divan: "£185 (Divan Bed)",
+    ottoman: "£400 (Aurora Ottoman Gas-Lift Bed)",
+    divan: "£235 (Divan Bed)",
   },
   {
     label: "Sizes",
@@ -64,7 +64,7 @@ const PICK_DIVAN = [
   "You want clothes or bedsheets within reach every day without lifting a heavy base.",
   "There is clear space beside the bed for drawers to slide open.",
   "You like the low, tidy divan silhouette more than a big upholstered frame.",
-  "Budget matters — divan bases start at £185, roughly £165 under the cheapest ottoman.",
+  "Budget matters — divan bases start at £235, roughly £165 under the cheapest ottoman.",
 ];
 
 const FAQS: { q: string; a: string }[] = [
@@ -86,7 +86,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "How much do they cost?",
-    a: "Divan bases start at £185 and ottoman beds start at £350 at the time of writing. Live prices for every size are on each product page — free UK delivery either way.",
+    a: "Divan bases start at £235 and ottoman beds start at £400 at the time of writing. Live prices for every size are on each product page — free UK delivery either way.",
   },
 ];
 
@@ -97,7 +97,7 @@ export const Route = createFileRoute("/guides/ottoman-vs-divan")({
       {
         name: "description",
         content:
-          "Ottoman vs divan: how each storage bed works, what fits inside, real prices from £185, how to choose. Free UK delivery. Cash on delivery available.",
+          "Ottoman vs divan: how each storage bed works, what fits inside, real prices from £235, how to choose. Free UK delivery. Cash on delivery available.",
       },
       {
         property: "og:title",
@@ -106,7 +106,7 @@ export const Route = createFileRoute("/guides/ottoman-vs-divan")({
       {
         property: "og:description",
         content:
-          "Storage type, space needed, prices from £185 and a simple way to choose between an ottoman and a divan bed.",
+          "Storage type, space needed, prices from £235 and a simple way to choose between an ottoman and a divan bed.",
       },
       {
         property: "og:image",

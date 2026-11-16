@@ -102,6 +102,19 @@ model AdminUser {
   role      String   @default("admin")
   createdAt DateTime @default(now())
 }
+// Named snapshots of every product's live price. The storefront always reads
+// Product.price / Product.salePrice, so switching price sets is a single write
+// that copies a snapshot back over those columns — no code change, no deploy.
+// payload is JSON: [{ id, slug, price, salePrice }].
+model PriceSet {
+  name      String   @id // stable key, e.g. prices-1 / prices-2
+  label     String // shown in admin, e.g. "Prices 1"
+  payload   String
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model ChatMessage {
   id        String   @id @default(uuid())
   sessionId String   // Anonymous session ID

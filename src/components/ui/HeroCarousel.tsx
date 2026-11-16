@@ -192,7 +192,7 @@ export function HeroCarousel() {
               className="group relative h-12 sm:h-14 px-8 sm:px-10 rounded-full bg-white text-[#0B3C5D] font-black text-sm sm:text-base flex items-center gap-2 overflow-hidden transition-all hover:scale-105 active:scale-95 w-full sm:w-auto justify-center shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
             >
               <span className="relative z-10 flex items-center gap-2">
-                Shop All Beds — From £185
+                Shop All Beds — From £235
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
               </span>
             </Link>

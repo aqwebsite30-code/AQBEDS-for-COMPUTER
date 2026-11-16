@@ -18,13 +18,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Handcrafted ottoman, divan & luxury beds from £185, with mattresses included. Free UK delivery. Cash on delivery available.",
+          "Handcrafted ottoman, divan & luxury beds from £235, with mattresses included. Free UK delivery. Cash on delivery available.",
       },
       { property: "og:title", content: "AQ Beds — Premium Beds & Mattresses" },
       {
         property: "og:description",
         content:
-          "Handcrafted ottoman, divan & luxury beds from £185, with mattresses included. Free UK delivery. Cash on delivery available.",
+          "Handcrafted ottoman, divan & luxury beds from £235, with mattresses included. Free UK delivery. Cash on delivery available.",
       },
       {
         property: "og:image",
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/")({
       {
         name: "twitter:description",
         content:
-          "Handcrafted ottoman, divan & luxury beds from £185, with mattresses included. Free UK delivery. Cash on delivery available.",
+          "Handcrafted ottoman, divan & luxury beds from £235, with mattresses included. Free UK delivery. Cash on delivery available.",
       },
       {
         name: "twitter:image",
@@ -257,6 +257,25 @@ function Home() {
               </React.Fragment>
             );
           })}
+
+          {/* Tracking lives beside the categories so it is findable without
+              digging through the footer or remembering a URL. */}
+          <Reveal
+            delay={(HOME_CATEGORIES.length + 1) * 0.05}
+            className="col-span-2 h-full lg:col-span-1"
+          >
+            <Link
+              to="/track"
+              className="group flex h-full min-h-[104px] items-center gap-4 overflow-hidden rounded-2xl bg-brand p-5 text-white transition-transform active:scale-[0.98] tap-highlight-transparent sm:rounded-3xl"
+            >
+              <Truck className="h-8 w-8 shrink-0 text-white/70" />
+              <div className="min-w-0">
+                <h3 className="font-display font-bold text-base sm:text-lg">Track your order</h3>
+                <p className="mt-0.5 text-xs text-white/70">Order number and delivery date</p>
+              </div>
+              <ArrowRight className="ml-auto h-5 w-5 shrink-0 text-white/60 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </Reveal>
         </div>
       </section>
 
