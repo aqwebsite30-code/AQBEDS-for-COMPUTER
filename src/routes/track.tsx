@@ -15,6 +15,16 @@ type TrackResult = {
   preferredDeliveryDate?: string | null;
 };
 
+type HistoryOrder = {
+  reference: string | null;
+  status: string;
+  createdAt: string;
+  itemsCount: number;
+  itemNames: string[];
+  total: number;
+  preferredDeliveryDate?: string | null;
+};
+
 const STATUS_LABELS: Record<string, string> = {
   pending: "Order confirmed",
   processing: "Being prepared",
@@ -35,8 +45,7 @@ export const Route = createFileRoute("/track")({
       { title: "Track My Order — AQ Beds" },
       {
         name: "description",
-        content:
-          "Enter your AQ Beds order tracking reference to see exactly where your bed is.",
+        content: "Enter your AQ Beds order tracking reference to see exactly where your bed is.",
       },
       { name: "robots", content: "noindex, follow" },
     ],
@@ -53,6 +62,12 @@ function TrackPage() {
   const [result, setResult] = useState<TrackResult | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [failed, setFailed] = useState(false);
+  // Order history: email + postcode returns every order with its tracking code.
+  const [email, setEmail] = useState("");
+  const [postcode, setPostcode] = useState("");
+  const [history, setHistory] = useState<HistoryOrder[] | null>(null);
+  const [historyBusy, setHistoryBusy] = useState(false);
+  const [historyError, setHistoryError] = useState("");
 
   useEffect(() => {
     setReference(token);
@@ -111,6 +126,31 @@ function TrackPage() {
     navigate({ to: "/track", search: { token: next } });
   };
 
+  const onSubmitHistory = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const mail = email.trim();
+    const code = postcode.trim();
+    if (!mail || !code) {
+      setHistoryError("Enter the email and postcode you ordered with.");
+      return;
+    }
+    setHistoryBusy(true);
+    setHistoryError("");
+    setHistory(null);
+    try {
+      const res = await fetch(
+        `/api/track?email=${encodeURIComponent(mail)}&postcode=${encodeURIComponent(code)}`,
+      );
+      if (!res.ok) throw new Error("lookup failed");
+      const data = (await res.json()) as { orders?: HistoryOrder[] };
+      setHistory(data.orders ?? []);
+    } catch {
+      setHistoryError("We could not load your orders right now. Please try again.");
+    } finally {
+      setHistoryBusy(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 sm:py-20 animate-fade-in">
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand/60 mb-3">
@@ -120,8 +160,8 @@ function TrackPage() {
         Track your order
       </h1>
       <p className="mt-4 text-sm leading-relaxed text-muted-foreground max-w-lg">
-        Enter the tracking link from your confirmation message — we will show exactly where your
-        bed is.
+        Enter the tracking link from your confirmation message — we will show exactly where your bed
+        is.
       </p>
 
       <form onSubmit={onSubmit} className="mt-8 space-y-3">
@@ -237,6 +277,96 @@ function TrackPage() {
           ) : null}
         </div>
       ) : null}
+
+      <div className="mt-10 rounded-3xl border border-brand/10 bg-brand/[0.03] p-6">
+        <h2 className="font-display text-lg font-bold">See all your orders</h2>
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+          Use the email and postcode from your order and we will show every order with its tracking
+          code.
+        </p>
+        <form onSubmit={onSubmitHistory} className="mt-4 space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Email
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@example.com"
+                autoComplete="email"
+                className="mt-2 h-12 w-full rounded-2xl border border-border bg-card px-4 text-sm font-normal normal-case tracking-normal text-foreground outline-none focus:border-brand"
+              />
+            </label>
+            <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Postcode
+              <input
+                value={postcode}
+                onChange={(event) => setPostcode(event.target.value.toUpperCase())}
+                placeholder="LS1 4AB"
+                autoComplete="postal-code"
+                className="mt-2 h-12 w-full rounded-2xl border border-border bg-card px-4 text-sm font-normal normal-case tracking-normal text-foreground outline-none focus:border-brand"
+              />
+            </label>
+          </div>
+          <button
+            type="submit"
+            disabled={historyBusy}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-brand px-6 text-sm font-black text-brand-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+          >
+            {historyBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
+            Show my orders
+          </button>
+        </form>
+
+        {historyError ? <p className="mt-4 text-sm text-red-600">{historyError}</p> : null}
+
+        {history && history.length === 0 ? (
+          <p className="mt-4 text-sm text-muted-foreground">
+            No orders found for that email and postcode. Check the postcode you used at checkout, or
+            message us and we will find it.
+          </p>
+        ) : null}
+
+        {history && history.length > 0 ? (
+          <ul className="mt-4 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+            {history.map((order) => {
+              const code = order.reference || "";
+              return (
+                <li key={code || order.createdAt}>
+                  <button
+                    type="button"
+                    onClick={() => navigate({ to: "/track", search: { token: code } })}
+                    className="flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-brand/5"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-display text-base font-black tracking-[0.08em]">
+                        {code || "—"}
+                      </p>
+                      <p className="mt-1 truncate text-xs text-muted-foreground">
+                        {new Date(order.createdAt).toLocaleDateString("en-GB")} · {order.itemsCount}{" "}
+                        item{order.itemsCount === 1 ? "" : "s"}
+                        {order.itemNames.length > 0 ? ` · ${order.itemNames.join(", ")}` : ""}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-xs font-bold uppercase tracking-widest text-brand">
+                        {STATUS_LABELS[order.status] || "Order confirmed"}
+                      </p>
+                      <p className="mt-1 text-sm font-semibold">
+                        {new Intl.NumberFormat("en-GB", {
+                          style: "currency",
+                          currency: "GBP",
+                          maximumFractionDigits: 0,
+                        }).format(order.total)}
+                      </p>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
+      </div>
 
       <div className="mt-10 rounded-3xl border border-brand/10 bg-brand/[0.03] p-6">
         <p className="text-sm font-semibold">Placed an order but missing your link?</p>

@@ -387,3 +387,22 @@ numbers.
 - Homepage category grid gained a "Track your order" tile.
 - Customer order email: "Total Paid (COD)" corrected to "Due on delivery
   (cash)", added the track link and the pay-nothing-today line.
+
+## Tracking, checkout and email pass (16 Nov 2026)
+
+- Checkout on desktop: the order summary sidebar now carries the Place Order and
+  WhatsApp buttons, so the customer can buy without scrolling to the bottom of
+  the form. The duplicated summary, risk-free block, review quote and inline
+  buttons are mobile-only, which cut the desktop page length by roughly a third.
+  Mobile keeps its sticky Place Order bar.
+- "Track Order" is now in the main navigation on every page, and a small
+  "Already ordered? Track your order" pill sits under the hero buttons on
+  phones.
+- `/track` gained "See all your orders": email + postcode lists every order with
+  its reference, status, date, items and total; tapping one opens the full
+  tracking card. `/api/track` returns that list and never exposes contact
+  details or the full address.
+- Resend key registered in `.env` and in Vercel (Production + Preview), replacing
+  the old one. `aqbeds.com` is not yet verified in the Resend account, so
+  customer mail is still rejected and logged; business alerts fall back to the
+  Resend testing sender. See `docs/email-setup.md`.

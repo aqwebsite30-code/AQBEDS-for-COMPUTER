@@ -63,6 +63,7 @@ export function Header() {
     { label: "Luxury Beds", to: "/category/$slug" as const, params: { slug: "luxury-beds" } },
     { label: "Sofas", to: "/category/$slug" as const, params: { slug: "sofas" } },
     { label: "Wardrobes", to: "/category/$slug" as const, params: { slug: "wardrobes" } },
+    { label: "Track Order", to: "/track" as const },
   ];
 
   const suggestions = useMemo(() => getSearchSuggestions(q), [q]);

@@ -266,6 +266,7 @@ function Home() {
           >
             <Link
               to="/track"
+              search={{ token: "" }}
               className="group flex h-full min-h-[104px] items-center gap-4 overflow-hidden rounded-2xl bg-brand p-5 text-white transition-transform active:scale-[0.98] tap-highlight-transparent sm:rounded-3xl"
             >
               <Truck className="h-8 w-8 shrink-0 text-white/70" />

@@ -35,6 +35,20 @@ function partialPostcode(address: string): string {
   return `${match[1].charAt(0).toUpperCase()}***`;
 }
 
+function itemNames(items: unknown): string[] {
+  if (typeof items !== "string") return [];
+  try {
+    const parsed = JSON.parse(items);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((item: any) => (typeof item?.name === "string" ? item.name : ""))
+      .filter(Boolean)
+      .slice(0, 4);
+  } catch {
+    return [];
+  }
+}
+
 function itemCount(items: unknown): number {
   if (typeof items !== "string") return 0;
   try {
@@ -73,8 +87,63 @@ export default async function handler(req: any, res: any) {
       : typeof req.query?.reference === "string"
         ? req.query.reference.trim()
         : "";
-  if (!token) {
+
+  // Order history: email + postcode together. Neither alone is enough to list
+  // someone's orders, and the response carries no address or contact details.
+  const email = typeof req.query?.email === "string" ? req.query.email.trim().toLowerCase() : "";
+  const postcode =
+    typeof req.query?.postcode === "string" ? req.query.postcode.trim().toUpperCase() : "";
+
+  if (!token && !email) {
     jsonResponse(res, 400, { success: false, error: "Token parameter required" });
+    return;
+  }
+
+  if (email && !postcode) {
+    jsonResponse(res, 400, { success: false, error: "Postcode required" });
+    return;
+  }
+
+  if (email) {
+    try {
+      const orders = await prisma.order.findMany({
+        where: { customerEmail: { equals: email, mode: "insensitive" } },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+        select: {
+          reference: true,
+          status: true,
+          createdAt: true,
+          customerAddress: true,
+          items: true,
+          total: true,
+          preferredDeliveryDate: true,
+        },
+      });
+
+      const compact = (value: string) => value.replace(/\s+/g, "");
+      const matching = orders.filter((order) =>
+        compact(order.customerAddress || "")
+          .toUpperCase()
+          .includes(compact(postcode)),
+      );
+
+      jsonResponse(res, 200, {
+        success: true,
+        orders: matching.map((order) => ({
+          reference: order.reference,
+          status: order.status,
+          createdAt: order.createdAt.toISOString(),
+          itemsCount: itemCount(order.items),
+          itemNames: itemNames(order.items),
+          total: order.total,
+          preferredDeliveryDate: order.preferredDeliveryDate,
+        })),
+      });
+    } catch (error) {
+      console.error("Error listing orders:", error);
+      jsonResponse(res, 500, { success: false, error: "Internal server error" });
+    }
     return;
   }
 

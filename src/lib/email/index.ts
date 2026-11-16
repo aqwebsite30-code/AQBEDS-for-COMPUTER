@@ -9,6 +9,23 @@ import { formatGBP } from "../utils/format";
  */
 const SENDER = process.env.RESEND_FROM || "AQ Beds <orders@aqbeds.com>";
 
+/**
+ * Until aqbeds.com is verified in the Resend account, every send from
+ * orders@aqbeds.com is rejected with "domain is not verified". The testing
+ * sender is accepted, and Resend allows it to reach the account owner's own
+ * address (info@aqbeds.com) — so the business still gets its new-order alert.
+ * Customer mail starts flowing the moment the domain verifies, with no code
+ * change: the normal sender is always tried first.
+ */
+const TEST_SENDER = "AQ Beds <onboarding@resend.dev>";
+
+/** Business inbox that receives every new-order alert. */
+const NOTIFICATION_EMAIL = "info@aqbeds.com";
+
+function isUnverifiedDomain(message: string): boolean {
+  return /not verified|verify a domain|only send testing emails/i.test(message);
+}
+
 function getResend() {
   const key = process.env.RESEND_API_KEY;
   if (!key) throw new Error("RESEND_API_KEY is not set");
@@ -48,9 +65,29 @@ interface OrderEmailData {
   total: string;
 }
 
+/**
+ * Sends one mail and, for the business's own inbox only, retries from the
+ * Resend testing sender when the domain is still unverified. Customers are
+ * never re-sent from a sender Resend would reject for them anyway.
+ */
+async function sendOrderMail(
+  resend: Resend,
+  payload: Parameters<Resend["emails"]["send"]>[0],
+  recipient: string,
+) {
+  const attempt = await resend.emails.send(payload);
+  if (!attempt.error) return attempt;
+
+  const message = attempt.error.message || "";
+  const isOwner = recipient.trim().toLowerCase() === NOTIFICATION_EMAIL;
+  if (!isOwner || !isUnverifiedDomain(message)) return attempt;
+
+  console.warn("[email] aqbeds.com is not verified in Resend — sending admin alert from tester");
+  return resend.emails.send({ ...payload, from: TEST_SENDER });
+}
+
 export const sendOrderEmail = createServerFn({ method: "POST" }).handler(async (ctx: any) => {
   try {
-    const NOTIFICATION_EMAIL = "info@aqbeds.com";
     const data = ctx?.data || ctx;
     const { customer, items, total: clientTotal } = data;
     const orderRef = typeof data.orderNumber === "string" ? data.orderNumber.trim() : "";
@@ -97,7 +134,7 @@ export const sendOrderEmail = createServerFn({ method: "POST" }).handler(async (
 
     // 1. Send Admin Notification Email
     const resend = getResend();
-    const adminResponse = await resend.emails.send({
+    const adminPayload = {
       from: SENDER,
       to: [NOTIFICATION_EMAIL],
       subject: orderRef
@@ -177,17 +214,20 @@ export const sendOrderEmail = createServerFn({ method: "POST" }).handler(async (
             </div>
           </div>
         `,
-    });
+    };
+    const adminResponse = await sendOrderMail(resend, adminPayload, NOTIFICATION_EMAIL);
 
     // 2. Send Customer Confirmation Email
     if (customer.email) {
-      const customerResponse = await resend.emails.send({
-        from: SENDER,
-        to: [safeCustomer.email],
-        subject: orderRef
-          ? `Your AQ Beds order ${orderRef} is confirmed`
-          : `Your AQ Beds Order Confirmation — Thank You!`,
-        html: `
+      const customerResponse = await sendOrderMail(
+        resend,
+        {
+          from: SENDER,
+          to: [safeCustomer.email],
+          subject: orderRef
+            ? `Your AQ Beds order ${orderRef} is confirmed`
+            : `Your AQ Beds Order Confirmation — Thank You!`,
+          html: `
             <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; color: #333; background-color: #f9fafb; padding: 20px;">
               <div style="background: #000; padding: 40px 20px; text-align: center; border-radius: 16px 16px 0 0; border-bottom: 4px solid #2563eb;">
                 <h1 style="color: white; margin: 0; font-size: 28px; letter-spacing: 2px; text-transform: uppercase;">AQ BEDS</h1>
@@ -262,7 +302,9 @@ export const sendOrderEmail = createServerFn({ method: "POST" }).handler(async (
               </div>
             </div>
           `,
-      });
+        },
+        safeCustomer.email,
+      );
       if (customerResponse.error) {
         // The order is saved either way; log so the customer email can be re-sent.
         console.error("Resend Customer Email Error:", {

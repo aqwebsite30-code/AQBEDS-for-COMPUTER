@@ -203,6 +203,23 @@ export function HeroCarousel() {
               See Our Best Sellers
             </a>
           </motion.div>
+
+          {/* Returning customers land here first — give them a direct way in. */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.75 }}
+            className="mt-4 pointer-events-auto sm:hidden"
+          >
+            <Link
+              to="/track"
+              search={{ token: "" }}
+              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs sm:text-sm font-bold text-white backdrop-blur-md transition-colors hover:bg-white/20"
+            >
+              Already ordered? Track your order
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </motion.div>
         </motion.div>
       </div>
 

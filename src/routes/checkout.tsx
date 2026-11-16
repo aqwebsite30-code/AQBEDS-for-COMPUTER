@@ -544,11 +544,15 @@ function CheckoutPage() {
             </div>
           </Card>
           {/* C6b — final order summary at end of checkout, directly above the buttons
-              (shared component — its numbers can never differ from the sidebar) */}
-          <OrderSummary variant="final" preferredDate={preferredDate} />
+              (shared component — its numbers can never differ from the sidebar)
+              On desktop the sidebar already shows the summary, so this copy is
+              mobile-only: the page stays short and the button stays reachable. */}
+          <div className="lg:hidden">
+            <OrderSummary variant="final" preferredDate={preferredDate} />
+          </div>
 
           {/* C3 — zero-risk block: sits between the summary card and the buttons */}
-          <div className="rounded-2xl border border-whatsapp/30 bg-whatsapp/5 p-5 text-sm space-y-1.5">
+          <div className="rounded-2xl border border-whatsapp/30 bg-whatsapp/5 p-5 text-sm space-y-1.5 lg:hidden">
             <p className="font-bold">Nothing to pay now.</p>
             <p>Your courier waits while you inspect your bed.</p>
             <p>Pay cash ONLY when you're completely happy.</p>
@@ -556,7 +560,7 @@ function CheckoutPage() {
           </div>
 
           {/* C4 — real review, right above the buttons */}
-          <div className="rounded-2xl border border-amber-400/40 bg-amber-400/10 p-4 text-sm">
+          <div className="rounded-2xl border border-amber-400/40 bg-amber-400/10 p-4 text-sm lg:hidden">
             <p className="font-semibold text-amber-700 dark:text-amber-400">
               “From start to finish, the easiest process... delivered when they said it would be!” —
               Louise, verified buyer
@@ -571,7 +575,7 @@ function CheckoutPage() {
 
           {/* Dual order buttons — equal size, side by side, immediately under the C6b card.
               Handlers/classes identical to the previous placement (logic untouched). */}
-          <div className="relative z-[60] grid grid-cols-2 gap-3">
+          <div className="relative z-[60] grid grid-cols-2 gap-3 lg:hidden">
             <button
               type="submit"
               disabled={isSubmitting}
@@ -590,7 +594,7 @@ function CheckoutPage() {
             </button>
           </div>
           {/* T2/Section 1a — guarantee badge pair directly under the order buttons */}
-          <div className="mt-3 flex flex-wrap justify-center gap-2">
+          <div className="mt-3 flex flex-wrap justify-center gap-2 lg:hidden">
             <span className="rounded-full border border-whatsapp/40 bg-whatsapp/10 px-3 py-1.5 text-[11px] font-black text-whatsapp">
               Free Next-Day Replacement
             </span>
@@ -598,7 +602,7 @@ function CheckoutPage() {
               Inspect at Your Door
             </span>
           </div>
-          <p className="mt-3 text-[10px] text-center text-muted-foreground">
+          <p className="mt-3 text-[10px] text-center text-muted-foreground lg:hidden">
             By placing an order you agree to our Terms of Service.
             {secure && <> · Secure SSL Site</>}
           </p>
@@ -634,6 +638,32 @@ function CheckoutPage() {
         <aside className="hidden lg:block rounded-3xl border border-border bg-card p-6 h-fit space-y-4 sticky top-24 shadow-xl">
           <h2 className="font-display font-bold text-xl">Order Summary</h2>
           <OrderSummary variant="sidebar" preferredDate={preferredDate} />
+
+          {/* The purchase action lives here on desktop: the form is long, and the
+              customer must not have to scroll to the end to place the order. */}
+          <div className="space-y-2">
+            <button
+              type="submit"
+              form="checkout-form"
+              disabled={isSubmitting}
+              className="w-full h-14 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-lg shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Place Order"}
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                openCheckoutWhatsApp((e.currentTarget as HTMLButtonElement).form);
+              }}
+              className="w-full min-h-[48px] rounded-2xl bg-whatsapp text-white font-bold text-sm leading-tight px-2 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+            >
+              <MessageCircle className="h-5 w-5 shrink-0" /> ORDER VIA WHATSAPP
+            </button>
+            <p className="pt-1 text-center text-[11px] text-muted-foreground">
+              No payment online · Pay the courier in cash
+            </p>
+          </div>
+
           <div className="rounded-2xl border border-cta/30 bg-cta/5 p-4 space-y-1.5">
             <div className="text-xs font-black uppercase tracking-wider text-brand">
               RISK-FREE ORDERING
